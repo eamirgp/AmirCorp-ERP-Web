@@ -23,9 +23,7 @@ export interface PartnerListParams {
 export const partnerKeys = {
   all: ['partners'] as const,
   lists: () => [...partnerKeys.all, 'list'] as const,
-  list: (p: PartnerListParams) => [...partnerKeys.lists(), p] as const,
-  detail: (id: string) => [...partnerKeys.all, 'detail', id] as const,
-}
+  list: (p: PartnerListParams) => [...partnerKeys.lists(), p] as const,}
 
 const roleFilter = { clientes: 'Client', proveedores: 'Supplier' } as const
 
@@ -50,13 +48,6 @@ export const partnerListQuery = (p: PartnerListParams) =>
         }),
       ),
     placeholderData: keepPreviousData,
-  })
-
-/** Detalle de un cliente o proveedor, con quién lo creó y quién lo modificó. */
-export const partnerQuery = (id: string) =>
-  queryOptions({
-    queryKey: partnerKeys.detail(id),
-    queryFn: () => unwrap(api.GET('/api/partners/{id}', { params: { path: { id } } })),
   })
 
 /** Proveedores activos que coinciden con el texto (para elegir uno en una compra). */

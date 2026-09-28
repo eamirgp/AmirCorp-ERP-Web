@@ -3,8 +3,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { productQuery, useSaveProduct, type ProductRow } from '@/api/products'
-import { AuditInfo } from '@/components/ui/audit'
+import { useSaveProduct, type ProductRow } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -29,7 +28,6 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
   const units = useQuery(unitsOfMeasureQuery)
   const igv = useQuery(igvAffectationsQuery)
   const save = useSaveProduct()
-  const detail = useQuery({ ...productQuery(product?.id ?? ''), enabled: open && !!product })
   const form = useForm<Values>({ defaultValues: empty })
 
   // Carga los datos del producto a editar (o limpia el formulario) cada vez que se abre.
@@ -129,8 +127,6 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             )}
           </Field>
         </div>
-
-        {product && <AuditInfo record={detail.data} />}
       </form>
     </Dialog>
   )

@@ -3,8 +3,7 @@ import { useEffect, type ComponentProps } from 'react'
 import { useForm } from 'react-hook-form'
 import { assignableRolesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { useChangeUserRole, useCreateUser, useResetUserPassword, useUpdateUserProfile, userQuery, type UserRow } from '@/api/users'
-import { AuditInfo } from '@/components/ui/audit'
+import { useChangeUserRole, useCreateUser, useResetUserPassword, useUpdateUserProfile, type UserRow } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -79,7 +78,6 @@ function CreateUserDialog({ onClose }: { onClose: () => void }) {
 
 function ProfileDialog({ user, onClose }: { user: UserRow; onClose: () => void }) {
   const update = useUpdateUserProfile()
-  const detail = useQuery(userQuery(user.id))
   const form = useForm({ defaultValues: { name: user.name, email: user.email } })
   const onSubmit = form.handleSubmit((v) => update.mutate({ id: user.id, input: v }, { onSuccess: () => (toast.ok('Usuario actualizado'), onClose()) }))
 
@@ -89,7 +87,6 @@ function ProfileDialog({ user, onClose }: { user: UserRow; onClose: () => void }
         <ErrorList messages={update.isError ? errorMessages(update.error) : []} />
         <Field label="Nombre">{(a) => <Input {...a} autoFocus {...form.register('name')} />}</Field>
         <Field label="Correo">{(a) => <Input {...a} type="email" autoComplete="off" {...form.register('email')} />}</Field>
-        <AuditInfo record={detail.data} />
       </form>
     </Dialog>
   )

@@ -33,13 +33,9 @@ export function formatDate(isoDate: string) {
 
 // Los registros se muestran en hora de Perú, aunque el equipo esté configurado en otra zona.
 const dateTime = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
-const dateOnly = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: '2-digit', year: 'numeric' })
 
 /** Momento de la API (UTC) en hora de Perú: 28/09/2026 14:27 */
 export const formatDateTime = (instant: string) => dateTime.format(new Date(instant)).replace(',', '')
-
-/** Día de un momento de la API (UTC) en hora de Perú: 28/09/2026 */
-export const formatDay = (instant: string) => dateOnly.format(new Date(instant))
 
 /** Fecha de hoy en la zona del navegador, en formato yyyy-mm-dd para un campo de fecha. */
 export function todayIso() {

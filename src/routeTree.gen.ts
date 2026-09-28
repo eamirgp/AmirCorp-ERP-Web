@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppAuditoriaRouteImport } from './routes/_app/auditoria'
 import { Route as AppEmpresasRouteImport } from './routes/_app/empresas'
 import { Route as AppProductosRouteImport } from './routes/_app/productos'
 import { Route as AppSociosRouteImport } from './routes/_app/socios'
@@ -32,6 +33,11 @@ const LoginRoute = LoginRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAuditoriaRoute = AppAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
   getParentRoute: () => AppRoute,
 } as any)
 const AppEmpresasRoute = AppEmpresasRouteImport.update({
@@ -73,6 +79,7 @@ const AppComprasNuevaRoute = AppComprasNuevaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/auditoria': typeof AppAuditoriaRoute
   '/empresas': typeof AppEmpresasRoute
   '/productos': typeof AppProductosRoute
   '/socios': typeof AppSociosRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/auditoria': typeof AppAuditoriaRoute
   '/empresas': typeof AppEmpresasRoute
   '/productos': typeof AppProductosRoute
   '/socios': typeof AppSociosRoute
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/_app/auditoria': typeof AppAuditoriaRoute
   '/_app/empresas': typeof AppEmpresasRoute
   '/_app/productos': typeof AppProductosRoute
   '/_app/socios': typeof AppSociosRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/auditoria'
     | '/empresas'
     | '/productos'
     | '/socios'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/auditoria'
     | '/empresas'
     | '/productos'
     | '/socios'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
+    | '/_app/auditoria'
     | '/_app/empresas'
     | '/_app/productos'
     | '/_app/socios'
@@ -168,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/auditoria': {
+      id: '/_app/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AppAuditoriaRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/empresas': {
@@ -223,6 +242,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAuditoriaRoute: typeof AppAuditoriaRoute
   AppEmpresasRoute: typeof AppEmpresasRoute
   AppProductosRoute: typeof AppProductosRoute
   AppSociosRoute: typeof AppSociosRoute
@@ -234,6 +254,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAuditoriaRoute: AppAuditoriaRoute,
   AppEmpresasRoute: AppEmpresasRoute,
   AppProductosRoute: AppProductosRoute,
   AppSociosRoute: AppSociosRoute,

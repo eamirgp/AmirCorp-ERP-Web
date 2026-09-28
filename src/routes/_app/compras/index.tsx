@@ -7,7 +7,6 @@ import { z } from 'zod'
 import { errorMessages } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
 import { purchaseListQuery, type PurchaseRow, type PurchaseSortBy } from '@/api/purchases'
-import { CreatedCell } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
@@ -95,7 +94,6 @@ function PurchasesPage() {
         header: () => <span className="block text-right">Total</span>,
         cell: (c) => <span className="num block text-right whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currency)}</span>,
       }),
-      col.accessor('createdAt', { header: 'Registrada', meta: { hideOnMobile: true }, cell: (c) => <CreatedCell at={c.getValue()} by={c.row.original.createdByName} /> }),
       col.accessor('isCancelled', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="bad">Anulada</Pill> : <Pill tone="ok">Registrada</Pill>) }),
     ],
     [],

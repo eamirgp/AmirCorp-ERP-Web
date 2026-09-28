@@ -2,7 +2,7 @@ import * as Menu from '@radix-ui/react-dropdown-menu'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { KeyRound, MoreHorizontal, Pencil, Plus, Power, ShieldCheck, UserRound } from 'lucide-react'
+import { HistoryIcon, KeyRound, MoreHorizontal, Pencil, Plus, Power, ShieldCheck, UserRound } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
 import { assignableRolesQuery } from '@/api/catalogs'
@@ -14,6 +14,7 @@ import { FilterBar, FilterChip } from '@/components/ui/filters'
 import { EmptyState, Loading, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
+import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { UserDialog } from '@/features/users/user-dialogs'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
@@ -43,6 +44,7 @@ function UsersPage() {
   const list = useQuery(usersQuery)
   const toggle = useToggleUser()
   const [action, setAction] = useState<{ mode: Action; user: UserRow } | null>(null)
+  const [history, setHistory] = useState<HistoryTarget | null>(null)
 
   const openNew = () => navigate({ search: (prev) => ({ ...prev, nuevo: true }) })
   const closeDialog = () => {
@@ -113,6 +115,10 @@ function UsersPage() {
                       <KeyRound />
                       Restablecer contraseña
                     </Menu.Item>
+                    <Menu.Item className={itemClass} onSelect={() => setHistory({ entityType: 'User', entityId: u.id, label: `${u.name} · ${u.email}` })}>
+                      <HistoryIcon />
+                      Ver historial
+                    </Menu.Item>
                     <Menu.Separator className="my-1 h-px bg-line" />
                     <Menu.Item className={itemClass} onSelect={() => onToggle(u)}>
                       <Power />
@@ -168,6 +174,7 @@ function UsersPage() {
       </section>
 
       <UserDialog mode={search.nuevo ? 'create' : (action?.mode ?? null)} user={action?.user ?? null} onClose={closeDialog} />
+      <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )
 }

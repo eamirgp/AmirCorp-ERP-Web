@@ -12,3 +12,5 @@ export const taxDocumentTypesQuery = catalog('tax-document-types', () => unwrap(
 export const invoicePriceTypesQuery = catalog('invoice-price-types', () => unwrap(api.GET('/api/catalogs/invoice-price-types')))
 export const identityDocumentTypesQuery = catalog('identity-document-types', () => unwrap(api.GET('/api/partners/identity-document-types')))
 export const assignableRolesQuery = catalog('assignable-roles', () => unwrap(api.GET('/api/users/roles')))
+export const auditEntityTypesQuery = catalog('audit-entity-types', () => unwrap(api.GET('/api/audit/entity-types')))
+export const auditActionsQuery = catalog('audit-actions', () => unwrap(api.GET('/api/audit/actions')))

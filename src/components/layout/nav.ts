@@ -1,6 +1,6 @@
-import { Boxes, Building2, FileText, House, Package, ShieldCheck, ShoppingCart, Ship, Users, type LucideIcon } from 'lucide-react'
+import { Boxes, Building2, FileText, HistoryIcon, House, Package, ShieldCheck, ShoppingCart, Ship, Users, type LucideIcon } from 'lucide-react'
 
-export type NavPath = '/' | '/productos' | '/empresas' | '/socios' | '/usuarios' | '/compras'
+export type NavPath = '/' | '/productos' | '/empresas' | '/socios' | '/usuarios' | '/compras' | '/auditoria'
 
 export interface NavItem {
   label: string
@@ -33,6 +33,9 @@ export const navGroups: { label?: string; items: NavItem[] }[] = [
   },
   {
     label: 'Administración',
-    items: [{ label: 'Usuarios', icon: ShieldCheck, to: '/usuarios' }],
+    items: [
+      { label: 'Usuarios', icon: ShieldCheck, to: '/usuarios' },
+      { label: 'Auditoría', icon: HistoryIcon, to: '/auditoria' },
+    ],
   },
 ]

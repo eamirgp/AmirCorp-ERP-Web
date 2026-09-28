@@ -20,9 +20,7 @@ export interface ProductListParams {
 export const productKeys = {
   all: ['products'] as const,
   lists: () => [...productKeys.all, 'list'] as const,
-  list: (p: ProductListParams) => [...productKeys.lists(), p] as const,
-  detail: (id: string) => [...productKeys.all, 'detail', id] as const,
-}
+  list: (p: ProductListParams) => [...productKeys.lists(), p] as const,}
 
 export const productListQuery = (p: ProductListParams) =>
   queryOptions({
@@ -44,13 +42,6 @@ export const productListQuery = (p: ProductListParams) =>
       ),
     // Mientras llega la página siguiente se sigue mostrando la actual: la tabla no parpadea.
     placeholderData: keepPreviousData,
-  })
-
-/** Detalle de un producto, con quién lo creó y quién lo modificó. */
-export const productQuery = (id: string) =>
-  queryOptions({
-    queryKey: productKeys.detail(id),
-    queryFn: () => unwrap(api.GET('/api/products/{id}', { params: { path: { id } } })),
   })
 
 /** Productos activos que coinciden con el texto (para elegir uno en una línea de compra). */

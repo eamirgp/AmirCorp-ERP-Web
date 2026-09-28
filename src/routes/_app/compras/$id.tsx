@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowLeft, Ban } from 'lucide-react'
+import { ArrowLeft, Ban, HistoryIcon } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { useForm } from 'react-hook-form'
 import { errorMessages } from '@/api/client'
 import { purchaseQuery, useCancelPurchase, type PurchaseDetail } from '@/api/purchases'
-import { AuditInfo } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input } from '@/components/ui/field'
 import { Loading } from '@/components/ui/list-controls'
 import { ErrorList, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
+import { HistorySheet } from '@/features/audit/history-sheet'
 import { Totals } from '@/features/purchases/totals'
 import { formatDate, formatDecimal, formatMoney } from '@/lib/format'
 
@@ -24,6 +24,7 @@ function PurchaseDetailPage() {
   const { id } = Route.useParams()
   const purchase = useQuery(purchaseQuery(id))
   const [cancelling, setCancelling] = useState(false)
+  const [history, setHistory] = useState(false)
 
   if (purchase.isError) return <ErrorList messages={errorMessages(purchase.error)} />
   if (!purchase.data) return <Loading text="Cargando compra…" />
@@ -45,12 +46,18 @@ function PurchaseDetailPage() {
             {p.isCancelled ? <Pill tone="bad">Anulada</Pill> : <Pill tone="ok">Registrada</Pill>}
           </h1>
         </div>
-        {!p.isCancelled && (
-          <Button variant="danger" onClick={() => setCancelling(true)}>
-            <Ban />
-            Anular compra
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => setHistory(true)}>
+            <HistoryIcon />
+            Historial
           </Button>
-        )}
+          {!p.isCancelled && (
+            <Button variant="danger" onClick={() => setCancelling(true)}>
+              <Ban />
+              Anular compra
+            </Button>
+          )}
+        </div>
       </header>
 
       {p.isCancelled && (
@@ -112,7 +119,7 @@ function PurchaseDetailPage() {
 
       <Totals base={money(p.totalBaseAmount)} igv={money(p.totalIgvAmount)} total={money(p.total)} />
 
-      <AuditInfo record={p} created="Registrada" updated="Modificada" />
+      <HistorySheet target={history ? { entityType: 'Purchase', entityId: p.id, label: `${p.taxDocumentTypeDescription} ${p.fullNumber} · ${p.supplierName}` } : null} onClose={() => setHistory(false)} />
 
       {cancelling && <CancelDialog purchase={p} onClose={() => setCancelling(false)} />}
     </>

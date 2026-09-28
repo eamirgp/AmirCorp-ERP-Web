@@ -1,19 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Pencil, Plus, Power, Users } from 'lucide-react'
+import { HistoryIcon, Pencil, Plus, Power, Users } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
 import { partnerListQuery, useTogglePartner, type PartnerRole, type PartnerRow, type PartnerSortBy } from '@/api/partners'
-import { CreatedCell } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowActions } from '@/components/ui/data-table'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
+import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
 import { countLabel, directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
@@ -74,6 +74,7 @@ function PartnersPage() {
   const hasFilters = !!(search.q || search.estado || search.rol || search.doc)
   const toggle = useTogglePartner()
   const [editing, setEditing] = useState<PartnerRow | null>(null)
+  const [history, setHistory] = useState<HistoryTarget | null>(null)
 
   const openNew = () => navigate({ search: (prev) => ({ ...prev, nuevo: true }) })
   const closeForm = () => {
@@ -110,7 +111,6 @@ function PartnersPage() {
         meta: { hideOnMobile: true },
         cell: (c) => <span className="text-muted">{[c.row.original.isClient && 'Cliente', c.row.original.isSupplier && 'Proveedor'].filter(Boolean).join(' · ')}</span>,
       }),
-      col.accessor('createdAt', { header: 'Creado', meta: { hideOnMobile: true }, cell: (c) => <CreatedCell at={c.getValue()} by={c.row.original.createdByName} /> }),
       col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activo</Pill> : <Pill tone="neutral">Inactivo</Pill>) }),
       col.display({
         id: 'actions',
@@ -124,6 +124,15 @@ function PartnersPage() {
             <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
               <Power />
               <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setHistory({ entityType: 'BusinessPartner', entityId: c.row.original.id, label: `${c.row.original.documentNumber} · ${c.row.original.name}` })}
+              aria-label={`Historial de ${c.row.original.name}`}
+              title="Historial"
+            >
+              <HistoryIcon />
             </Button>
           </RowActions>
         ),
@@ -200,6 +209,7 @@ function PartnersPage() {
       </section>
 
       <PartnerFormDialog open={!!search.nuevo || editing !== null} partner={editing} onClose={closeForm} />
+      <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )
 }

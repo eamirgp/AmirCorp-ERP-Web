@@ -11,6 +11,7 @@ import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/fi
 import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
+import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductImportDialog } from '@/features/products/product-import-dialog'
 import { ProductsTable } from '@/features/products/products-table'
@@ -56,6 +57,7 @@ function ProductsPage() {
   const hasFilters = !!(search.q || search.estado)
   const toggle = useToggleProduct()
   const [editing, setEditing] = useState<ProductRow | null>(null)
+  const [history, setHistory] = useState<HistoryTarget | null>(null)
 
   // Abrir un producto desde la paleta de comandos (?editar=id).
   useEffect(() => {
@@ -126,7 +128,12 @@ function ProductsPage() {
         ) : !data ? (
           <Loading text="Cargando productos…" />
         ) : data.items.length > 0 ? (
-          <ProductsTable rows={data.items} onEdit={setEditing} onToggle={onToggle} />
+          <ProductsTable
+            rows={data.items}
+            onEdit={setEditing}
+            onToggle={onToggle}
+            onHistory={(p) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` })}
+          />
         ) : hasFilters ? (
           <EmptyState icon={<PackagePlus strokeWidth={1.5} />} text="Ningún producto coincide con la búsqueda o el filtro." />
         ) : (
@@ -151,6 +158,7 @@ function ProductsPage() {
       </section>
 
       <ProductFormDialog open={!!search.nuevo || editing !== null} product={editing} onClose={closeForm} />
+      <HistorySheet target={history} onClose={() => setHistory(null)} />
       <ProductImportDialog open={!!search.importar} onClose={() => navigate({ search: (prev) => ({ ...prev, importar: undefined }), replace: true })} />
     </>
   )

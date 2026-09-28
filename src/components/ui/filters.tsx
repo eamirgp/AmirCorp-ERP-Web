@@ -72,6 +72,39 @@ export function FilterChip<T extends string>({
   )
 }
 
+/**
+ * Filtro de fecha como chip: "Desde  28/09/2026 ✕". Usa el selector de fecha del navegador.
+ * El valor es un día en formato yyyy-mm-dd.
+ */
+export function DateFilter({ label, value, onChange }: { label: string; value: string | undefined; onChange: (value: string | undefined) => void }) {
+  return (
+    <span
+      className={`inline-flex h-9 items-center rounded-full border text-sm ${value ? 'border-line-strong' : 'border-dashed border-line-strong text-muted hover:border-ink/40'}`}
+    >
+      <label className="flex h-full cursor-pointer items-center gap-1.5 pr-2 pl-3">
+        <span className={value ? 'text-muted' : ''}>{label}</span>
+        <input
+          type="date"
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value || undefined)}
+          className="num bg-transparent text-ink outline-none [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-50"
+          aria-label={label}
+        />
+      </label>
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange(undefined)}
+          className="flex h-full items-center rounded-r-full border-l border-line pr-2.5 pl-1.5 text-faint hover:bg-surface-2 hover:text-ink"
+          aria-label={`Quitar filtro ${label}`}
+        >
+          <X className="size-3.5" />
+        </button>
+      )}
+    </span>
+  )
+}
+
 /** Menú "Ordenar": campo y dirección. Las opciones son las que la API permite ordenar. */
 export function SortMenu<T extends string>({
   options,

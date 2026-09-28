@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Building2, Pencil, Plus, Power } from 'lucide-react'
+import { Building2, HistoryIcon, Pencil, Plus, Power } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
 import { errorMessages } from '@/api/client'
@@ -12,6 +12,7 @@ import { FilterBar, FilterChip } from '@/components/ui/filters'
 import { EmptyState, Loading, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
+import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
@@ -36,6 +37,7 @@ function CompaniesPage() {
   const list = useQuery(companiesQuery)
   const toggle = useToggleCompany()
   const [editing, setEditing] = useState<CompanyRow | null>(null)
+  const [history, setHistory] = useState<HistoryTarget | null>(null)
 
   const openNew = () => navigate({ search: (prev) => ({ ...prev, nuevo: true }) })
   const closeForm = () => {
@@ -78,6 +80,15 @@ function CompaniesPage() {
             <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
               <Power />
               <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setHistory({ entityType: 'Company', entityId: c.row.original.id, label: `${c.row.original.ruc} · ${c.row.original.name}` })}
+              aria-label={`Historial de ${c.row.original.name}`}
+              title="Historial"
+            >
+              <HistoryIcon />
             </Button>
           </RowActions>
         ),
@@ -132,6 +143,7 @@ function CompaniesPage() {
       </section>
 
       <CompanyFormDialog open={!!search.nuevo || editing !== null} company={editing} onClose={closeForm} />
+      <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )
 }
