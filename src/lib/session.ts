@@ -5,7 +5,7 @@
  * la API no emita un refresh token en cookie httpOnly (ver docs/decisiones.md).
  */
 
-const KEY = 'amircorp.token'
+const KEY = 'erp.token'
 type Listener = () => void
 
 const listeners = new Set<Listener>()

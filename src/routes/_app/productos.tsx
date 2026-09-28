@@ -181,7 +181,7 @@ function ProductsPage() {
 function EmptyState({ filtered, onCreate }: { filtered: boolean; onCreate: () => void }) {
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-      <span className="grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent">
+      <span className="grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent-text">
         <PackagePlus className="size-5" />
       </span>
       {filtered ? (

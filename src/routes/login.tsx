@@ -4,6 +4,9 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { login } from '@/api/account'
 import { errorMessages } from '@/api/client'
+import { brand } from '@/brand'
+import { Logo } from '@/brand/logo'
+import { WheelMotif } from '@/brand/wheel-motif'
 import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
@@ -42,24 +45,20 @@ function LoginPage() {
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-      <aside className="relative hidden overflow-hidden bg-accent p-12 text-accent-ink lg:flex lg:flex-col">
-        <ManifestPattern />
-        <div className="relative flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-xl bg-accent-ink/15 font-display text-[15px] font-extrabold">AC</span>
-          <span className="font-display text-xl font-bold">AmirCorp</span>
-        </div>
+      <aside className="relative hidden overflow-hidden bg-side-bg p-12 text-white lg:flex lg:flex-col">
+        {/* La tapa de rueda del logo, grande y recortada en la esquina superior derecha. */}
+        <WheelMotif className="pointer-events-none absolute -top-[6%] -right-[6%] w-[58%] -scale-x-100 text-accent" />
+        <Logo size={30} tone="dark" className="relative" />
         <div className="relative mt-auto max-w-md">
-          <h2 className="font-display text-[34px] leading-[1.1] font-bold tracking-[-0.015em]">
-            Del contenedor en Ningbo a la factura en Lima.
-          </h2>
-          <p className="mt-4 text-[15px] leading-relaxed opacity-85">
-            Importaciones, inventario y ventas de tus empresas en un solo lugar, con el costo real de cada producto puesto en almacén.
-          </p>
+          <p className="label-caps !text-accent">{brand.tagline}</p>
+          <h2 className="mt-4 font-display text-[40px] leading-[1.02] font-bold tracking-[-0.02em]">{brand.login.headline}</h2>
+          <p className="mt-5 max-w-sm text-[15.5px] leading-relaxed text-white/70">{brand.login.text}</p>
         </div>
       </aside>
 
       <main className="grid place-items-center px-5 py-12">
         <form className="flex w-full max-w-sm flex-col gap-5" onSubmit={form.handleSubmit((v) => mutation.mutate(v))} noValidate>
+          <Logo size={24} className="mb-4 lg:hidden" />
           <div>
             <h1 className="font-display text-[28px] font-bold tracking-[-0.01em]">Iniciar sesión</h1>
             <p className="mt-1 text-[13.5px] text-muted">Ingresa con tu correo y contraseña.</p>
@@ -80,22 +79,5 @@ function LoginPage() {
         </form>
       </main>
     </div>
-  )
-}
-
-/** Trama sutil de líneas de un manifiesto de carga, dibujada en SVG. */
-function ManifestPattern() {
-  return (
-    <svg className="absolute inset-0 size-full opacity-[0.09]" aria-hidden>
-      <defs>
-        <pattern id="manifest" width="220" height="44" patternUnits="userSpaceOnUse">
-          <line x1="0" y1="43.5" x2="220" y2="43.5" stroke="currentColor" />
-          <rect x="12" y="16" width="64" height="8" rx="2" fill="currentColor" />
-          <rect x="92" y="16" width="36" height="8" rx="2" fill="currentColor" />
-          <rect x="164" y="16" width="44" height="8" rx="2" fill="currentColor" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#manifest)" />
-    </svg>
   )
 }

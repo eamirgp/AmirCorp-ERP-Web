@@ -11,7 +11,7 @@ import { session } from '@/lib/session'
 import { navGroups } from './nav'
 
 const itemClass =
-  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] text-ink data-[selected=true]:bg-accent-soft data-[selected=true]:text-accent [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted data-[selected=true]:[&_svg]:text-accent'
+  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] text-ink data-[selected=true]:bg-accent-soft data-[selected=true]:text-accent-text [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted data-[selected=true]:[&_svg]:text-accent-text'
 const groupClass =
   '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-[0.07em] [&_[cmdk-group-heading]]:text-faint [&_[cmdk-group-heading]]:uppercase'
 

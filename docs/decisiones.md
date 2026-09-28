@@ -13,7 +13,9 @@ Es una aplicación interna detrás de un login, sin necesidad de SEO ni renderiz
 ### 3. Sistema de diseño propio
 **Fecha:** setiembre 2026
 
-Radix UI aporta el comportamiento accesible (diálogos, menús) sin imponer estilos. El aspecto es propio (jade, Archivo, IBM Plex) y parte del simulador que se le mostró al cliente, para no parecer una plantilla genérica. Ver [diseno.md](diseno.md).
+Radix UI aporta el comportamiento accesible (diálogos, menús) sin imponer estilos. El aspecto es propio, para no parecer una plantilla genérica. Ver [diseno.md](diseno.md).
+
+**Actualización:** el ERP lo usarán dos empresas de la familia, cada una en su propia instalación. La primera identidad aplicada es la de **Pizarro Accesorios**, según su Manual de Identidad Visual (negro, jade `#5AAF76`, gris `#737373`, League Spartan y Source Sans). Todo lo propio de la marca quedó concentrado en `src/brand/`, `src/styles.css` y `public/`, para poder preparar la versión de la otra empresa sin tocar las pantallas.
 
 ### 4. Versiones fijadas
 **Fecha:** setiembre 2026

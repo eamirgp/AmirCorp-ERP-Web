@@ -4,6 +4,8 @@ import { Link } from '@tanstack/react-router'
 import { Check, ChevronDown, LogOut, Monitor, Moon, Search, Sun } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { meQuery } from '@/api/account'
+import { brand } from '@/brand'
+import { Logo, LogoMark } from '@/brand/logo'
 import { Kbd } from '@/components/ui/misc'
 import { modKey } from '@/lib/hotkeys'
 import { session } from '@/lib/session'
@@ -25,8 +27,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-bg/85 px-4 py-2.5 backdrop-blur sm:px-7">
-          <Link to="/" className="flex items-center gap-2 lg:hidden">
-            <BrandMark />
+          <Link to="/" className="flex items-center lg:hidden" aria-label={`${brand.name}, inicio`}>
+            <LogoMark height={30} />
           </Link>
           <button
             type="button"
@@ -50,51 +52,42 @@ export function AppShell({ children }: { children: ReactNode }) {
   )
 }
 
-function BrandMark() {
-  return (
-    <span className="grid size-8 place-items-center rounded-lg bg-accent font-display text-[13px] font-extrabold text-accent-ink" aria-hidden>
-      AC
-    </span>
-  )
-}
-
+/** Menú lateral siempre negro: el negro "base" del manual, con el jade marcando la pantalla activa. */
 function Sidebar() {
   return (
-    <aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r border-line bg-surface px-3 py-5 lg:flex">
-      <Link to="/" className="flex items-center gap-2.5 px-2">
-        <BrandMark />
-        <span>
-          <span className="block font-display text-[17px] leading-none font-bold">AmirCorp</span>
-          <span className="label-caps text-[10.5px]">Importación y ventas</span>
-        </span>
+    <aside className="sticky top-0 hidden h-dvh flex-col gap-7 bg-side-bg px-3 py-6 text-side-ink lg:flex">
+      <Link to="/" className="px-2.5" aria-label={`${brand.name}, inicio`}>
+        <Logo size={21} tone="dark" />
       </Link>
 
-      <nav className="flex flex-col gap-4" aria-label="Módulos">
+      <nav className="flex flex-col gap-5" aria-label="Módulos">
         {navGroups.map((group, i) => (
           <div key={group.label ?? i} className="flex flex-col gap-0.5">
-            {group.label && <div className="label-caps px-2.5 pb-1 text-[10.5px] text-faint">{group.label}</div>}
+            {group.label && <div className="label-caps px-2.5 pb-1.5 text-[10px] !text-side-muted">{group.label}</div>}
             {group.items.map((item) =>
               item.to ? (
                 <Link
                   key={item.label}
                   to={item.to}
                   activeOptions={{ exact: item.to === '/' }}
-                  className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] font-medium text-muted transition-colors hover:bg-surface-2 hover:text-ink data-[status=active]:bg-accent-soft data-[status=active]:text-accent"
+                  className="relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-side-muted transition-colors hover:bg-side-hover hover:text-side-ink data-[status=active]:bg-side-hover data-[status=active]:text-white data-[status=active]:before:absolute data-[status=active]:before:inset-y-1.5 data-[status=active]:before:-left-3 data-[status=active]:before:w-[3px] data-[status=active]:before:rounded-r data-[status=active]:before:bg-accent [&[data-status=active]_svg]:text-accent"
                 >
                   <item.icon className="size-[17px]" strokeWidth={1.8} />
                   {item.label}
                 </Link>
               ) : (
-                <span key={item.label} className="flex cursor-default items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13.5px] font-medium text-faint" title="Módulo en desarrollo">
+                <span key={item.label} className="flex cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-side-muted/60" title="Módulo en desarrollo">
                   <item.icon className="size-[17px]" strokeWidth={1.8} />
                   {item.label}
-                  <span className="ml-auto rounded border border-line px-1.5 text-[10.5px] font-semibold tracking-wide uppercase">Pronto</span>
+                  <span className="ml-auto rounded border border-side-line px-1.5 text-[9.5px] font-semibold tracking-[0.12em] uppercase">Pronto</span>
                 </span>
               ),
             )}
           </div>
         ))}
       </nav>
+
+      <p className="mt-auto px-2.5 text-[11px] leading-snug text-side-muted/70">{brand.legalName}</p>
     </aside>
   )
 }
@@ -122,7 +115,7 @@ function UserMenu() {
   return (
     <Menu.Root>
       <Menu.Trigger className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-surface-2">
-        <span className="grid size-8 place-items-center rounded-full bg-accent-soft font-display text-[12.5px] font-bold text-accent">{initials}</span>
+        <span className="grid size-8 place-items-center rounded-full bg-accent pt-0.5 font-display text-[12.5px] font-bold text-accent-ink">{initials}</span>
         <span className="hidden text-left sm:block">
           <span className="block text-[13px] leading-tight font-semibold">{name}</span>
           <span className="block text-[11.5px] leading-tight text-muted">{me.data?.roleDescription}</span>
@@ -148,7 +141,7 @@ function UserMenu() {
             >
               <o.icon />
               {o.label}
-              {theme === o.value && <Check className="ml-auto !text-accent" />}
+              {theme === o.value && <Check className="ml-auto !text-accent-text" />}
             </Menu.Item>
           ))}
           <Menu.Separator className="my-1 h-px bg-line" />

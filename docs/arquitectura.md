@@ -7,6 +7,7 @@ src/
   main.tsx               Arranque: router, caché de datos, cierre de sesión global
   styles.css             Sistema de diseño (colores, fuentes, utilidades)
   routeTree.gen.ts       Generado por el plugin de rutas. No se edita a mano.
+  brand/                 Marca de la instalación: nombre, textos, logo y tapa de rueda
   routes/                Una ruta por archivo (TanStack Router)
     __root.tsx           Raíz y página 404
     login.tsx            /login

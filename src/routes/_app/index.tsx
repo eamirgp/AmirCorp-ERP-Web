@@ -27,13 +27,13 @@ function HomePage() {
       <div className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <Panel className="p-5">
           <Link to="/productos" className="group flex items-start gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent-text">
               <Package className="size-5" />
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-2 font-display text-[17px] font-bold">
                 Productos
-                <ArrowRight className="size-4 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+                <ArrowRight className="size-4 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-accent-text" />
               </span>
               <span className="mt-1 block text-[13.5px] text-muted">
                 Catálogo compartido por tus empresas: código, unidad de medida, afectación al IGV y precio de venta.

@@ -1,6 +1,6 @@
 export type ThemeChoice = 'system' | 'light' | 'dark'
 
-const KEY = 'amircorp.theme'
+const KEY = 'erp.theme'
 
 export function getTheme(): ThemeChoice {
   try {

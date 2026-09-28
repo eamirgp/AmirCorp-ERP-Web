@@ -6,7 +6,7 @@ const tones: Record<Tone, string> = {
   ok: 'text-ok bg-ok-soft',
   warn: 'text-warn bg-warn-soft',
   bad: 'text-bad bg-bad-soft',
-  accent: 'text-accent bg-accent-soft',
+  accent: 'text-accent-text bg-accent-soft',
   neutral: 'text-muted bg-surface-2 border border-line',
 }
 

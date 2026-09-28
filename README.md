@@ -1,6 +1,8 @@
 # AmirCorp ERP · Web
 
-Frontend del ERP de AmirCorp: la aplicación que usan a diario las empresas del grupo para gestionar productos, compras, importaciones, inventario y ventas.
+Frontend del ERP: la aplicación que usan a diario las empresas para gestionar productos, compras, importaciones, inventario y ventas.
+
+La marca aplicada es la de **Pizarro Accesorios** (ver [docs/diseno.md](docs/diseno.md)). Todo lo propio de la marca vive en `src/brand/`, `src/styles.css` y `public/`.
 
 Consume la API de [AmirCorp-ERP](https://github.com/eamirgp/AmirCorp-ERP) y genera sus tipos a partir del contrato OpenAPI de esa API.
 

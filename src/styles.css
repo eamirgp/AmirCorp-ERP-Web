@@ -1,92 +1,98 @@
 @import "tailwindcss";
-@import "@fontsource-variable/archivo";
-@import "@fontsource/ibm-plex-sans/400.css";
-@import "@fontsource/ibm-plex-sans/500.css";
-@import "@fontsource/ibm-plex-sans/600.css";
-@import "@fontsource/ibm-plex-mono/400.css";
-@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource-variable/league-spartan";
+@import "@fontsource-variable/source-sans-3";
+@import "@fontsource-variable/source-code-pro";
 
 /*
-  Sistema de diseño de AmirCorp.
+  Sistema de diseño basado en el Manual de Identidad Visual de Pizarro Accesorios:
+  negro como base, verde jade #5AAF76 como secundario y gris #737373 como acento.
+  Títulos en League Spartan y textos en Source Sans.
+
   Los colores viven como variables en :root y se redefinen para modo oscuro.
-  Tailwind los expone como utilidades: bg-surface, text-ink, border-line, text-accent, etc.
+  Tailwind los expone como utilidades: bg-surface, text-ink, border-line, bg-accent, etc.
 */
 
 :root {
   color-scheme: light;
-  --bg: #f2f4f3;
+  --bg: #eef2ef;
   --surface: #ffffff;
-  --surface-2: #f7f9f8;
-  --line: #dce2df;
-  --line-strong: #c5cec9;
-  --ink: #14202a;
-  --muted: #5c6973;
-  --faint: #8a969e;
-  --accent: #0b7a64;
-  --accent-hover: #09695a;
-  --accent-ink: #ffffff;
-  --accent-soft: #ddf0ea;
-  --ok: #1d844a;
-  --ok-soft: #dff2e6;
-  --warn: #b8690b;
+  --surface-2: #f5f7f5;
+  --line: #dde3df;
+  --line-strong: #c6cec9;
+  --ink: #0a0a0a;
+  --muted: #737373; /* gris del manual */
+  --faint: #9b9e9c;
+  --accent: #5aaf76; /* verde jade del manual: rellenos, botones, indicadores */
+  --accent-hover: #4c9d67;
+  --accent-ink: #000000; /* texto sobre jade: negro, como el logo sobre fondo verde */
+  --accent-soft: #e2f2e7;
+  --accent-text: #2a7445; /* jade oscurecido para texto sobre fondo claro (contraste AA) */
+  --ok: #1f7a43;
+  --ok-soft: #e1f2e7;
+  --warn: #a8600a;
   --warn-soft: #fbeed8;
-  --bad: #be3b34;
+  --bad: #b8352f;
   --bad-soft: #f8e2e0;
-  --overlay: rgb(8 14 18 / 0.5);
-  --shadow: 0 1px 2px rgb(20 32 42 / 0.06), 0 6px 20px rgb(20 32 42 / 0.06);
-  --shadow-lg: 0 24px 64px rgb(8 14 18 / 0.28);
+  --overlay: rgb(0 0 0 / 0.5);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 20px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.25);
+
+  /* Menú lateral: siempre negro, en ambos temas (negro "base" del manual). */
+  --side-bg: #050605;
+  --side-ink: #e9ecea;
+  --side-muted: #8e928f;
+  --side-line: #1b1e1c;
+  --side-hover: #111412;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0d1316;
-    --surface: #141d21;
-    --surface-2: #19242a;
-    --line: #26343a;
-    --line-strong: #34454c;
-    --ink: #e3eaed;
-    --muted: #95a5ad;
-    --faint: #6d7e86;
-    --accent: #36b596;
-    --accent-hover: #45c4a5;
-    --accent-ink: #062219;
-    --accent-soft: #12342c;
-    --ok: #5fcb8c;
-    --ok-soft: #142f1f;
+    --bg: #0a0b0a;
+    --surface: #121413;
+    --surface-2: #181b19;
+    --line: #242826;
+    --line-strong: #323733;
+    --ink: #f1f3f2;
+    --muted: #a3a6a4;
+    --faint: #737373;
+    --accent-hover: #6cc08a;
+    --accent-soft: #14291c;
+    --accent-text: #6cc08a;
+    --ok: #6cc08a;
+    --ok-soft: #14291c;
     --warn: #e6a24d;
     --warn-soft: #382913;
     --bad: #ee7d74;
     --bad-soft: #3a1e1b;
-    --overlay: rgb(0 0 0 / 0.6);
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.25);
-    --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.5);
+    --overlay: rgb(0 0 0 / 0.65);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.6);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0d1316;
-  --surface: #141d21;
-  --surface-2: #19242a;
-  --line: #26343a;
-  --line-strong: #34454c;
-  --ink: #e3eaed;
-  --muted: #95a5ad;
-  --faint: #6d7e86;
-  --accent: #36b596;
-  --accent-hover: #45c4a5;
-  --accent-ink: #062219;
-  --accent-soft: #12342c;
-  --ok: #5fcb8c;
-  --ok-soft: #142f1f;
+  --bg: #0a0b0a;
+  --surface: #121413;
+  --surface-2: #181b19;
+  --line: #242826;
+  --line-strong: #323733;
+  --ink: #f1f3f2;
+  --muted: #a3a6a4;
+  --faint: #737373;
+  --accent-hover: #6cc08a;
+  --accent-soft: #14291c;
+  --accent-text: #6cc08a;
+  --ok: #6cc08a;
+  --ok-soft: #14291c;
   --warn: #e6a24d;
   --warn-soft: #382913;
   --bad: #ee7d74;
   --bad-soft: #3a1e1b;
-  --overlay: rgb(0 0 0 / 0.6);
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.25);
-  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.5);
+  --overlay: rgb(0 0 0 / 0.65);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.6);
 }
 
 @theme inline {
@@ -102,6 +108,7 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
@@ -109,11 +116,16 @@
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
   --color-overlay: var(--overlay);
+  --color-side-bg: var(--side-bg);
+  --color-side-ink: var(--side-ink);
+  --color-side-muted: var(--side-muted);
+  --color-side-line: var(--side-line);
+  --color-side-hover: var(--side-hover);
   --shadow-panel: var(--shadow);
   --shadow-float: var(--shadow-lg);
-  --font-display: "Archivo Variable", "Arial Narrow", system-ui, sans-serif;
-  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-display: "League Spartan Variable", "Arial Black", system-ui, sans-serif;
+  --font-sans: "Source Sans 3 Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Source Code Pro Variable", ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
 @layer base {
@@ -126,7 +138,7 @@
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
-    font-size: 14px;
+    font-size: 14.5px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -141,17 +153,40 @@
   }
 }
 
+/* Cifras en columna para montos y cantidades. */
 @utility num {
-  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
+/* Etiquetas en mayúsculas espaciadas, como el "A C C E S O R I O S" del logo. */
 @utility label-caps {
-  font-size: 11.5px;
-  letter-spacing: 0.07em;
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--muted);
+}
+
+/* Muestra un elemento solo en el tema claro u oscuro (por ejemplo, la versión del logo). */
+.only-light {
+  display: revert;
+}
+.only-dark {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .only-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .only-dark {
+    display: revert;
+  }
+}
+:root[data-theme="dark"] .only-light {
+  display: none;
+}
+:root[data-theme="dark"] .only-dark {
+  display: revert;
 }
 
 @keyframes fade-in {
