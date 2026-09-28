@@ -44,12 +44,12 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-5 py-12">
-      <form className="flex w-full max-w-[340px] flex-col gap-5" onSubmit={form.handleSubmit((v) => mutation.mutate(v))} noValidate>
-        <Logo size={24} className="mb-6 self-center" />
+      <form className="flex w-full max-w-[380px] flex-col gap-5" onSubmit={form.handleSubmit((v) => mutation.mutate(v))} noValidate>
+        <Logo size={28} className="mb-6 self-center" />
 
         <div className="text-center">
-          <h1 className="font-display text-[22px] font-semibold">Iniciar sesión</h1>
-          <p className="mt-1 text-[14px] text-muted">Ingresa con tu correo y contraseña.</p>
+          <h1 className="font-display text-xl font-semibold">Iniciar sesión</h1>
+          <p className="mt-1 text-base text-muted">Ingresa con tu correo y contraseña.</p>
         </div>
 
         <ErrorList messages={mutation.isError ? errorMessages(mutation.error) : []} />
@@ -61,12 +61,12 @@ function LoginPage() {
           {(a) => <Input {...a} type="password" autoComplete="current-password" {...form.register('password')} />}
         </Field>
 
-        <Button type="submit" variant="primary" loading={mutation.isPending} className="mt-1 h-10">
+        <Button type="submit" variant="primary" loading={mutation.isPending} className="mt-1 h-11">
           Entrar
         </Button>
       </form>
 
-      <p className="mt-16 text-[12px] text-faint">{brand.legalName}</p>
+      <p className="mt-16 text-xs text-faint">{brand.legalName}</p>
     </div>
   )
 }

@@ -1,69 +1,61 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { ChevronLeft, ChevronRight, PackagePlus, Plus, Search } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { PackagePlus, Plus } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { z } from 'zod'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
-import { productListQuery, useToggleProduct, type ProductRow, type ProductStatus } from '@/api/products'
+import { productListQuery, useToggleProduct, type ProductRow, type ProductSortBy } from '@/api/products'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/field'
+import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
+import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductsTable } from '@/features/products/products-table'
-import { formatInt } from '@/lib/format'
+import { countLabel, directionSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 const PAGE_SIZE = 20
 
 // El estado de la pantalla vive en la URL: se puede compartir, recargar y usar el botón Atrás.
+const sortOptions: Option<ProductSortBy>[] = [
+  { value: 'Name', label: 'Nombre' },
+  { value: 'CreatedAt', label: 'Fecha de creación' },
+]
+
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
   page: z.coerce.number().int().min(1).optional().catch(undefined),
-  estado: z.enum(['activos', 'inactivos', 'todos']).optional().catch(undefined),
+  estado: statusSchema,
+  orden: z.enum(['Name', 'CreatedAt']).optional().catch(undefined),
+  dir: directionSchema,
   nuevo: z.boolean().optional().catch(undefined),
   editar: z.string().optional().catch(undefined),
 })
+type Search = z.infer<typeof searchSchema>
+
+const listParams = (s: Search) => ({ q: s.q, page: s.page ?? 1, pageSize: PAGE_SIZE, status: s.estado, sortBy: s.orden, descending: s.dir === 'desc' })
 
 export const Route = createFileRoute('/_app/productos')({
   validateSearch: (search) => searchSchema.parse(search),
-  loaderDeps: ({ search }) => ({ q: search.q, page: search.page, estado: search.estado }),
+  loaderDeps: ({ search }) => listParams(search),
   loader: ({ context, deps }) => {
     void context.queryClient.prefetchQuery(unitsOfMeasureQuery)
     void context.queryClient.prefetchQuery(igvAffectationsQuery)
-    return context.queryClient.ensureQueryData(
-      productListQuery({ q: deps.q, page: deps.page ?? 1, pageSize: PAGE_SIZE, status: deps.estado ?? 'activos' }),
-    )
+    return context.queryClient.ensureQueryData(productListQuery(deps))
   },
   component: ProductsPage,
 })
 
-const statusTabs: { value: ProductStatus; label: string }[] = [
-  { value: 'activos', label: 'Activos' },
-  { value: 'inactivos', label: 'Inactivos' },
-  { value: 'todos', label: 'Todos' },
-]
-
 function ProductsPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const status = search.estado ?? 'activos'
   const page = search.page ?? 1
-  const list = useQuery(productListQuery({ q: search.q, page, pageSize: PAGE_SIZE, status }))
+  const list = useQuery(productListQuery(listParams(search)))
+  const hasFilters = !!(search.q || search.estado)
   const toggle = useToggleProduct()
-
   const [editing, setEditing] = useState<ProductRow | null>(null)
-  const [term, setTerm] = useState(search.q ?? '')
-  const searchRef = useRef<HTMLInputElement>(null)
-
-  // La búsqueda se aplica 250 ms después de dejar de escribir.
-  useEffect(() => {
-    const q = term.trim() || undefined
-    if (q === search.q) return
-    const t = setTimeout(() => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true }), 250)
-    return () => clearTimeout(t)
-  }, [term, search.q, navigate])
 
   // Abrir un producto desde la paleta de comandos (?editar=id).
   useEffect(() => {
@@ -78,27 +70,20 @@ function ProductsPage() {
     setEditing(null)
     if (search.nuevo) navigate({ search: (prev) => ({ ...prev, nuevo: undefined }), replace: true })
   }
-
   useHotkey('n', openNew)
-  useHotkey('/', () => searchRef.current?.focus())
+
+  const onSearch = useCallback((q: string | undefined) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true }), [navigate])
 
   const onToggle = useCallback(
     (p: ProductRow) =>
       toggle.mutate(
         { id: p.id, active: !p.isActive },
-        {
-          onSuccess: () => toast.ok(`${p.code} ${p.isActive ? 'desactivado' : 'activado'}`),
-          onError: (e) => toast.error(errorMessages(e)[0]),
-        },
+        { onSuccess: () => toast.ok(`${p.code} ${p.isActive ? 'desactivado' : 'activado'}`), onError: (e) => toast.error(errorMessages(e)[0]) },
       ),
     [toggle],
   )
 
   const data = list.data
-  const total = data?.totalCount ?? 0
-  const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
-  const to = Math.min(page * PAGE_SIZE, total)
-  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <>
@@ -114,80 +99,48 @@ function ProductsPage() {
       />
 
       <section className="flex flex-col">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pb-4">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" />
-            <Input ref={searchRef} value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Buscar por código o nombre" className="pl-9" aria-label="Buscar productos" title="Atajo: /" />
-          </div>
-          <div className="flex gap-5" role="tablist" aria-label="Estado">
-            {statusTabs.map((t) => (
-              <button
-                key={t.value}
-                role="tab"
-                aria-selected={status === t.value}
-                onClick={() => navigate({ search: (prev) => ({ ...prev, estado: t.value === 'activos' ? undefined : t.value, page: undefined }) })}
-                className="py-1 text-[14px] text-faint transition-colors hover:text-ink aria-selected:text-ink aria-selected:shadow-[inset_0_-1.5px_0_var(--ink)]"
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          {list.isFetching && !list.isPending && <span className="text-[13px] text-faint">Actualizando…</span>}
-        </div>
+        <FilterBar
+          busy={list.isFetching && !list.isPending}
+          search={<SearchBox value={search.q} onSearch={onSearch} placeholder="Buscar por código o nombre" />}
+          filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />}
+          onClear={hasFilters ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, estado: undefined, page: undefined }) }) : undefined}
+          count={data ? countLabel(data.totalCount, 'producto', 'productos') : undefined}
+          sort={
+            <SortMenu
+              options={sortOptions}
+              value={search.orden ?? 'Name'}
+              descending={search.dir === 'desc'}
+              onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden: orden === 'Name' ? undefined : orden, dir: desc ? 'desc' : undefined, page: undefined }) })}
+            />
+          }
+        />
 
         {list.isError ? (
           <ErrorList messages={errorMessages(list.error)} />
-        ) : data && data.items.length > 0 ? (
+        ) : !data ? (
+          <Loading text="Cargando productos…" />
+        ) : data.items.length > 0 ? (
           <ProductsTable rows={data.items} onEdit={setEditing} onToggle={onToggle} />
-        ) : data ? (
-          <EmptyState filtered={!!search.q || status !== 'activos'} onCreate={openNew} />
+        ) : hasFilters ? (
+          <EmptyState icon={<PackagePlus strokeWidth={1.5} />} text="Ningún producto coincide con la búsqueda o el filtro." />
         ) : (
-          <div className="py-16 text-center text-[14px] text-faint">Cargando productos…</div>
+          <EmptyState
+            icon={<PackagePlus strokeWidth={1.5} />}
+            title="Todavía no hay productos"
+            text="Crea el primero. Luego podrás usarlo en compras, importaciones y ventas de cualquiera de tus empresas."
+            action={
+              <Button variant="primary" onClick={openNew}>
+                <Plus />
+                Crear producto
+              </Button>
+            }
+          />
         )}
 
-        {total > 0 && (
-          <footer className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[13px] text-muted">
-            <span className="num">
-              {formatInt(from)}–{formatInt(to)} de {formatInt(total)}
-            </span>
-            <div className="flex items-center gap-1">
-              <Button size="sm" variant="ghost" disabled={page <= 1} onClick={() => navigate({ search: (prev) => ({ ...prev, page: page - 1 === 1 ? undefined : page - 1 }) })}>
-                <ChevronLeft />
-                Anterior
-              </Button>
-              <span className="num px-2">
-                {page} / {lastPage}
-              </span>
-              <Button size="sm" variant="ghost" disabled={page >= lastPage} onClick={() => navigate({ search: (prev) => ({ ...prev, page: page + 1 }) })}>
-                Siguiente
-                <ChevronRight />
-              </Button>
-            </div>
-          </footer>
-        )}
+        <Pagination page={page} pageSize={PAGE_SIZE} total={data?.totalCount ?? 0} onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })} />
       </section>
 
       <ProductFormDialog open={!!search.nuevo || editing !== null} product={editing} onClose={closeForm} />
     </>
-  )
-}
-
-function EmptyState({ filtered, onCreate }: { filtered: boolean; onCreate: () => void }) {
-  return (
-    <div className="flex flex-col items-center gap-3 border-t border-line px-6 py-20 text-center">
-      <PackagePlus className="size-6 text-faint" strokeWidth={1.5} />
-      {filtered ? (
-        <p className="text-[14px] text-muted">Ningún producto coincide con la búsqueda o el filtro.</p>
-      ) : (
-        <>
-          <p className="font-display text-[17px] font-semibold">Todavía no hay productos</p>
-          <p className="max-w-sm text-[14px] text-muted">Crea el primero. Luego podrás usarlo en compras, importaciones y ventas de cualquiera de tus empresas.</p>
-          <Button variant="primary" onClick={onCreate}>
-            <Plus />
-            Crear producto
-          </Button>
-        </>
-      )}
-    </div>
   )
 }

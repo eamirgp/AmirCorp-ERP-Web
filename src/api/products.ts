@@ -1,15 +1,19 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toIsActive, type ActiveFilter } from '@/lib/filters'
 import { api, unwrap, type Schemas } from './client'
+import { useToggleActive } from './mutations'
 
 export type ProductRow = Schemas['ListProductsResponseDto']
 export type ProductInput = Schemas['CreateProductRequest']
-export type ProductStatus = 'activos' | 'inactivos' | 'todos'
+export type ProductSortBy = NonNullable<Schemas['ProductSortBy']>
 
 export interface ProductListParams {
   q?: string
   page: number
   pageSize: number
-  status: ProductStatus
+  status?: ActiveFilter
+  sortBy?: ProductSortBy
+  descending?: boolean
 }
 
 export const productKeys = {
@@ -29,8 +33,9 @@ export const productListQuery = (p: ProductListParams) =>
               Page: p.page,
               PageSize: p.pageSize,
               SearchTerm: p.q || undefined,
-              IsActive: p.status === 'todos' ? undefined : p.status === 'activos',
-              SortBy: 'Name',
+              IsActive: toIsActive(p.status),
+              SortBy: p.sortBy ?? 'Name',
+              SortDescending: p.descending,
             },
           },
         }),
@@ -38,6 +43,12 @@ export const productListQuery = (p: ProductListParams) =>
     // Mientras llega la página siguiente se sigue mostrando la actual: la tabla no parpadea.
     placeholderData: keepPreviousData,
   })
+
+/** Productos activos que coinciden con el texto (para elegir uno en una línea de compra). */
+export const searchProducts = (term: string) =>
+  unwrap(api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SortBy: 'Name' } } })).then(
+    (r) => r.items,
+  )
 
 export function useSaveProduct() {
   const qc = useQueryClient()
@@ -50,27 +61,11 @@ export function useSaveProduct() {
   })
 }
 
-/** Activa o desactiva con actualización optimista: la fila cambia al instante y se revierte si falla. */
-export function useToggleProduct() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
-      unwrap(
-        active
-          ? api.PATCH('/api/products/{id}/activate', { params: { path: { id } } })
-          : api.PATCH('/api/products/{id}/deactivate', { params: { path: { id } } }),
-      ),
-    onMutate: async ({ id, active }) => {
-      await qc.cancelQueries({ queryKey: productKeys.lists() })
-      const snapshot = qc.getQueriesData({ queryKey: productKeys.lists() })
-      qc.setQueriesData<{ items: ProductRow[] }>({ queryKey: productKeys.lists() }, (old) =>
-        old ? { ...old, items: old.items.map((p) => (p.id === id ? { ...p, isActive: active } : p)) } : old,
-      )
-      return { snapshot }
-    },
-    onError: (_error, _vars, context) => {
-      context?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data))
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: productKeys.lists() }),
-  })
-}
+export const useToggleProduct = () =>
+  useToggleActive<ProductRow>(productKeys.lists(), (id, active) =>
+    unwrap(
+      active
+        ? api.PATCH('/api/products/{id}/activate', { params: { path: { id } } })
+        : api.PATCH('/api/products/{id}/deactivate', { params: { path: { id } } }),
+    ),
+  )

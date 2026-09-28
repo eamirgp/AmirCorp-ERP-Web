@@ -12,8 +12,8 @@ const dots: Record<Tone, string> = {
 /** Estado como punto de color + texto: "Activo", "Pendiente", "Anulado". */
 export function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-2 text-[13px] whitespace-nowrap text-muted">
-      <span className={`size-1.5 rounded-full ${dots[tone]}`} aria-hidden />
+    <span className="inline-flex items-center gap-2 text-sm whitespace-nowrap text-muted">
+      <span className={`size-2 rounded-full ${dots[tone]}`} aria-hidden />
       {children}
     </span>
   )
@@ -21,7 +21,7 @@ export function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
 
 /** Tecla de un atajo: <Kbd>Ctrl</Kbd><Kbd>K</Kbd> */
 export function Kbd({ children }: { children: ReactNode }) {
-  return <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-line px-1 font-sans text-[11px] text-faint">{children}</kbd>
+  return <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded border border-line px-1 font-sans text-2xs text-faint">{children}</kbd>
 }
 
 export function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -32,8 +32,8 @@ export function PageHeader({ title, description, actions }: { title: string; des
   return (
     <header className="flex flex-wrap items-end gap-x-6 gap-y-3">
       <div className="min-w-0 flex-1">
-        <h1 className="font-display text-[24px] leading-tight font-semibold tracking-[-0.01em]">{title}</h1>
-        {description && <p className="mt-1 text-[14px] text-muted">{description}</p>}
+        <h1 className="font-display text-2xl leading-tight font-semibold tracking-[-0.01em]">{title}</h1>
+        {description && <p className="mt-1 text-base text-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
@@ -43,7 +43,7 @@ export function PageHeader({ title, description, actions }: { title: string; des
 export function ErrorList({ messages }: { messages: string[] }) {
   if (messages.length === 0) return null
   return (
-    <div role="alert" className="border-l-2 border-bad bg-bad-soft px-3.5 py-2.5 text-[13.5px] text-bad">
+    <div role="alert" className="border-l-2 border-bad bg-bad-soft px-3.5 py-2.5 text-sm text-bad">
       {messages.length === 1 ? (
         messages[0]
       ) : (

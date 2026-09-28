@@ -31,7 +31,7 @@ function HomePage() {
         <ul className="border-t border-line">
           {modules.map((m) => (
             <li key={m.label} className="border-b border-line">
-              <Link to={m.to!} className="group flex items-center gap-3 py-3.5 text-[15px]">
+              <Link to={m.to!} className="group flex items-center gap-3 py-3.5 text-md">
                 <m.icon className="size-4 text-faint group-hover:text-accent" strokeWidth={1.75} />
                 {m.label}
                 <ArrowRight className="ml-auto size-4 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-ink" />
@@ -45,7 +45,7 @@ function HomePage() {
         <h2 className="label-caps pb-2">Atajos de teclado</h2>
         <ul className="flex flex-col gap-2.5">
           {shortcuts.map((s) => (
-            <li key={s.label} className="flex items-center justify-between gap-4 text-[14px] text-muted">
+            <li key={s.label} className="flex items-center justify-between gap-4 text-base text-muted">
               {s.label}
               <span className="flex shrink-0 gap-1">
                 {s.keys.map((k) => (

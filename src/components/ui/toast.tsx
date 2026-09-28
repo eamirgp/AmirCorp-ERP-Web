@@ -38,7 +38,7 @@ export function Toaster() {
       {items.map((t) => (
         <div
           key={t.id}
-          className="pointer-events-auto flex max-w-sm animate-[pop-in_160ms_ease-out] items-center gap-2.5 rounded-xl border border-line bg-surface px-4 py-3 text-[13.5px] font-medium shadow-float"
+          className="pointer-events-auto flex max-w-sm animate-[pop-in_160ms_ease-out] items-center gap-2.5 rounded-xl border border-line bg-surface px-4 py-3 text-sm font-medium shadow-float"
         >
           {t.tone === 'ok' ? <CheckCircle2 className="size-4 text-ok" /> : <CircleAlert className="size-4 text-bad" />}
           {t.text}

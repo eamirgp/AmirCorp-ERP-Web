@@ -402,6 +402,59 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/purchases/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Calcula los montos y totales de una compra mientras se llena, sin guardarla. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PreviewPurchaseRequest"];
+                    "text/json": components["schemas"]["PreviewPurchaseRequest"];
+                    "application/*+json": components["schemas"]["PreviewPurchaseRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PreviewPurchaseResponseDto"];
+                        "application/json": components["schemas"]["PreviewPurchaseResponseDto"];
+                        "text/json": components["schemas"]["PreviewPurchaseResponseDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/purchases": {
         parameters: {
             query?: never;
@@ -2090,6 +2143,8 @@ export interface components {
         ListUnitsOfMeasureResponseDto: {
             unitOfMeasure: components["schemas"]["UnitOfMeasure"];
             description: string;
+            /** Format: double */
+            fixedConversionFactor?: null | number;
         };
         ListUsersResponseDto: {
             /** Format: uuid */
@@ -2098,6 +2153,7 @@ export interface components {
             email: string;
             role: components["schemas"]["UserRole"];
             isActive: boolean;
+            roleDescription?: null | string;
         };
         LoginRequest: {
             email: null | string;
@@ -2147,6 +2203,45 @@ export interface components {
         };
         /** @enum {unknown} */
         PartnerRoleFilter: "Client" | "Supplier" | null;
+        PreviewPurchaseLineRequest: {
+            invoiceIgvAffectation: null | components["schemas"]["IgvAffectation"];
+            invoiceUnitOfMeasure: null | components["schemas"]["UnitOfMeasure"];
+            /** Format: double */
+            invoiceQuantity: null | number;
+            /** Format: double */
+            invoiceAmount: null | number;
+            /** Format: double */
+            conversionFactor: null | number;
+        };
+        PreviewPurchaseLineResponseDto: {
+            /** Format: int32 */
+            lineNumber: number;
+            /** Format: double */
+            baseAmount: null | number;
+            /** Format: double */
+            igvAmount: null | number;
+            /** Format: double */
+            total: null | number;
+            /** Format: double */
+            inventoryQuantity: null | number;
+            /** Format: double */
+            inventoryUnitCost: null | number;
+            error: null | string;
+        };
+        /** @description Compra a medio llenar. No se valida: las líneas incompletas simplemente no se calculan. */
+        PreviewPurchaseRequest: {
+            invoicePriceType: null | components["schemas"]["InvoicePriceType"];
+            lines: null | components["schemas"]["PreviewPurchaseLineRequest"][];
+        };
+        PreviewPurchaseResponseDto: {
+            lines: components["schemas"]["PreviewPurchaseLineResponseDto"][];
+            /** Format: double */
+            totalBaseAmount: number;
+            /** Format: double */
+            totalIgvAmount: number;
+            /** Format: double */
+            total: number;
+        };
         /** @enum {unknown} */
         ProductSortBy: "Name" | "CreatedAt" | null;
         /** @enum {unknown} */

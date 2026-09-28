@@ -44,6 +44,24 @@ El tema sigue al sistema operativo y el usuario puede fijarlo en claro u oscuro 
 
 ## Tipografía
 
+### Tamaños
+
+La escala está en `src/styles.css` (`@theme`) y es generosa a propósito: el sistema se usa muchas horas al día y lo usan también personas mayores. **Para agrandar o achicar toda la aplicación se cambian esos valores**, no los componentes. En el código nunca se escriben tamaños a mano (`text-[13px]`): se usa la escala.
+
+| Clase | Tamaño | Uso |
+|---|---|---|
+| `text-2xs` | 12.5 px | Etiquetas en mayúsculas, teclas de atajos |
+| `text-xs` | 13.5 px | Datos secundarios: documentos, códigos, cabeceras de tabla |
+| `text-sm` | 15 px | Botones, etiquetas de campos, filtros, menús |
+| `text-base` | 16 px | Texto general, tablas, campos |
+| `text-md` | 17 px | Texto destacado |
+| `text-lg` | 19 px | Totales, títulos de diálogo |
+| `text-xl` / `text-2xl` | 24 / 28 px | Títulos de pantalla |
+
+Los campos y botones miden 40 px de alto, y los botones pequeños y chips de filtro 36 px.
+
+### Fuentes
+
 | Rol | Fuente | Clase |
 |---|---|---|
 | Títulos y logo | League Spartan | `font-display` |
@@ -63,6 +81,7 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 ## Reglas
 
 - **Tablas limpias:** cabecera sin fondo, filas separadas por una línea fina, acciones visibles al pasar el mouse o al enfocar la fila.
+- **Filtros como chips**, al estilo de Stripe o Linear: `⊕ Estado` punteado sin valor, `Estado: Activos ✕` con valor. A la derecha, el número de resultados y el menú "Ordenar". "Limpiar filtros" aparece solo con filtros aplicados. Por defecto no hay filtros: se ve todo y lo inactivo aparece atenuado.
 - **Estados como punto de color + texto** (`Pill`), sin fondo.
 - **Atajos discretos:** se enseñan en Inicio, en la paleta y como ayuda al pasar el mouse. No hay cajitas de teclas en cada botón.
 - **Todo se puede hacer con teclado:** `/` para buscar, `N` para crear, flechas y Enter.
@@ -72,4 +91,14 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 
 ## Componentes base
 
-En `src/components/ui/`: `Button`, `Input`, `Select`, `Field`, `Dialog`, `Pill`, `Kbd`, `Panel`, `PageHeader`, `ErrorList` y `toast`.
+En `src/components/ui/`:
+
+| Componente | Uso |
+|---|---|
+| `Button`, `Input`, `Select`, `Field` | Controles de formulario; `Field` enlaza etiqueta, control y ayuda |
+| `Dialog`, `toast` | Ventanas modales y avisos breves |
+| `DataTable`, `RowActions` | Tabla estándar con navegación por teclado y acciones por fila |
+| `FilterBar`, `FilterChip`, `SortMenu` | Barra de filtros, chips y menú de orden |
+| `SearchBox`, `Pagination`, `EmptyState`, `Loading` | Piezas de las listas |
+| `SearchSelect` | Elegir un registro buscándolo en la API (proveedor, producto) |
+| `Pill`, `Kbd`, `PageHeader`, `ErrorList`, `Panel` | Estado, tecla, título de pantalla, errores de la API |

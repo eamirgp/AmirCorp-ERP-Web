@@ -29,9 +29,9 @@ export function Dialog({
         >
           <div className="flex items-start gap-3 px-6 pt-5 pb-3">
             <div className="min-w-0 flex-1">
-              <RadixDialog.Title className="font-display text-[18px] font-semibold">{title}</RadixDialog.Title>
+              <RadixDialog.Title className="font-display text-lg font-semibold">{title}</RadixDialog.Title>
               {description ? (
-                <RadixDialog.Description className="mt-0.5 text-[13px] text-muted">{description}</RadixDialog.Description>
+                <RadixDialog.Description className="mt-0.5 text-sm text-muted">{description}</RadixDialog.Description>
               ) : (
                 <RadixDialog.Description className="sr-only">{title}</RadixDialog.Description>
               )}

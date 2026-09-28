@@ -1,0 +1,45 @@
+import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { api, unwrap, type Schemas } from './client'
+import { useToggleActive } from './mutations'
+
+export type UserRow = Schemas['ListUsersResponseDto']
+export type UserRole = NonNullable<Schemas['UserRole']>
+
+export const userKeys = { lists: () => ['users', 'list'] as const }
+
+export const usersQuery = queryOptions({
+  queryKey: userKeys.lists(),
+  queryFn: () => unwrap(api.GET('/api/users')),
+})
+
+function useUserMutation<V>(fn: (v: V) => Promise<unknown>) {
+  const qc = useQueryClient()
+  return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: userKeys.lists() }) })
+}
+
+export const useCreateUser = () =>
+  useUserMutation((input: Schemas['CreateUserRequest']) => unwrap(api.POST('/api/users', { body: input })))
+
+export const useUpdateUserProfile = () =>
+  useUserMutation(({ id, input }: { id: string; input: Schemas['UpdateUserProfileRequest'] }) =>
+    unwrap(api.PUT('/api/users/{id}', { params: { path: { id } }, body: input })),
+  )
+
+export const useChangeUserRole = () =>
+  useUserMutation(({ id, role }: { id: string; role: Schemas['UserRole'] }) =>
+    unwrap(api.PATCH('/api/users/{id}/role', { params: { path: { id } }, body: { role } })),
+  )
+
+export const useResetUserPassword = () =>
+  useUserMutation(({ id, newPassword }: { id: string; newPassword: string }) =>
+    unwrap(api.PATCH('/api/users/{id}/password', { params: { path: { id } }, body: { newPassword } })),
+  )
+
+export const useToggleUser = () =>
+  useToggleActive<UserRow>(userKeys.lists(), (id, active) =>
+    unwrap(
+      active
+        ? api.PATCH('/api/users/{id}/activate', { params: { path: { id } } })
+        : api.PATCH('/api/users/{id}/deactivate', { params: { path: { id } } }),
+    ),
+  )

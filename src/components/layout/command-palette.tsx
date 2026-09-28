@@ -11,9 +11,9 @@ import { session } from '@/lib/session'
 import { navGroups } from './nav'
 
 const itemClass =
-  'flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-[14px] text-ink data-[selected=true]:bg-surface-2 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-faint data-[selected=true]:[&_svg]:text-accent'
+  'flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-base text-ink data-[selected=true]:bg-surface-2 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-faint data-[selected=true]:[&_svg]:text-accent'
 const groupClass =
-  '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-[0.07em] [&_[cmdk-group-heading]]:text-faint [&_[cmdk-group-heading]]:uppercase'
+  '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-2xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-[0.07em] [&_[cmdk-group-heading]]:text-faint [&_[cmdk-group-heading]]:uppercase'
 
 /** Paleta de comandos (Ctrl+K): ir a una pantalla, crear registros o buscar productos. */
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -33,7 +33,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   }, [open])
 
   const products = useQuery({
-    ...productListQuery({ q: debounced, page: 1, pageSize: 5, status: 'todos' }),
+    ...productListQuery({ q: debounced, page: 1, pageSize: 5 }),
     enabled: open && debounced.length >= 2,
   })
 
@@ -56,13 +56,13 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
           value={search}
           onValueChange={setSearch}
           placeholder="Busca un producto por código o nombre, o escribe una acción…"
-          className="h-13 w-full bg-transparent text-[15px] text-ink placeholder:text-faint focus:outline-none"
+          className="h-13 w-full bg-transparent text-md text-ink placeholder:text-faint focus:outline-none"
         />
         <Kbd>Esc</Kbd>
       </div>
 
       <Command.List className="max-h-[52vh] overflow-y-auto p-2">
-        <Command.Empty className="px-3 py-8 text-center text-[13.5px] text-muted">
+        <Command.Empty className="px-3 py-8 text-center text-sm text-muted">
           {products.isFetching ? 'Buscando…' : 'Sin resultados.'}
         </Command.Empty>
 
@@ -76,18 +76,34 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                 onSelect={() => run(() => navigate({ to: '/productos', search: { q: p.code, editar: p.id } }))}
               >
                 <Package />
-                <span className="w-24 shrink-0 font-mono text-[12.5px] text-muted">{p.code}</span>
+                <span className="w-24 shrink-0 font-mono text-xs text-muted">{p.code}</span>
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
-                <span className="num text-[12.5px] text-muted">{formatPen(Number(p.salePrice))}</span>
+                <span className="num text-xs text-muted">{formatPen(Number(p.salePrice))}</span>
               </Command.Item>
             ))}
           </Command.Group>
         )}
 
-        <Command.Group heading="Acciones" className={groupClass}>
+        <Command.Group heading="Crear" className={groupClass}>
+          <Command.Item value="nueva compra registrar factura proveedor" className={itemClass} onSelect={() => run(() => navigate({ to: '/compras/nueva' }))}>
+            <Plus />
+            Nueva compra
+          </Command.Item>
           <Command.Item value="nuevo producto crear" className={itemClass} onSelect={() => run(() => navigate({ to: '/productos', search: { nuevo: true } }))}>
             <Plus />
             Nuevo producto
+          </Command.Item>
+          <Command.Item value="nuevo cliente proveedor crear" className={itemClass} onSelect={() => run(() => navigate({ to: '/socios', search: { nuevo: true } }))}>
+            <Plus />
+            Nuevo cliente o proveedor
+          </Command.Item>
+          <Command.Item value="nueva empresa ruc crear" className={itemClass} onSelect={() => run(() => navigate({ to: '/empresas', search: { nuevo: true } }))}>
+            <Plus />
+            Nueva empresa
+          </Command.Item>
+          <Command.Item value="nuevo usuario crear" className={itemClass} onSelect={() => run(() => navigate({ to: '/usuarios', search: { nuevo: true } }))}>
+            <Plus />
+            Nuevo usuario
           </Command.Item>
         </Command.Group>
 

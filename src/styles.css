@@ -86,6 +86,30 @@
   --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
 }
 
+/*
+  Escala de tamaños de letra. Todos los componentes la usan (text-sm, text-base...),
+  así que para agrandar o achicar toda la aplicación basta con cambiar estos valores.
+  Es generosa a propósito: el sistema se usa muchas horas al día.
+*/
+@theme {
+  --text-2xs: 12.5px;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 13.5px;
+  --text-xs--line-height: 1.45;
+  --text-sm: 15px;
+  --text-sm--line-height: 1.5;
+  --text-base: 16px;
+  --text-base--line-height: 1.5;
+  --text-md: 17px;
+  --text-md--line-height: 1.5;
+  --text-lg: 19px;
+  --text-lg--line-height: 1.35;
+  --text-xl: 24px;
+  --text-xl--line-height: 1.25;
+  --text-2xl: 28px;
+  --text-2xl--line-height: 1.2;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -122,7 +146,7 @@
     background: var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
-    font-size: 14.5px;
+    font-size: var(--text-base);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
@@ -144,7 +168,7 @@
 
 /* Etiquetas en mayúsculas espaciadas, como el "A C C E S O R I O S" del logo. */
 @utility label-caps {
-  font-size: 10.5px;
+  font-size: var(--text-2xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-weight: 500;

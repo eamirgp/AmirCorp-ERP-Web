@@ -1,7 +1,7 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
 
 const control =
-  'h-9 w-full min-w-0 rounded-md border border-line-strong bg-surface px-3 text-[14px] text-ink placeholder:text-faint transition-colors focus:border-ink focus:outline-none aria-[invalid=true]:border-bad disabled:opacity-60'
+  'h-10 w-full min-w-0 rounded-md border border-line-strong bg-surface px-3 text-base text-ink placeholder:text-faint transition-colors focus:border-ink focus:outline-none aria-[invalid=true]:border-bad disabled:opacity-60'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
   { className = '', ...props },
@@ -39,12 +39,12 @@ export function Field({
   const describedBy = error || hint ? `${id}-desc` : undefined
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="text-[12.5px] font-medium text-muted">
+      <label htmlFor={id} className="text-sm font-medium text-muted">
         {label}
       </label>
       {children({ id, 'aria-invalid': !!error, 'aria-describedby': describedBy })}
       {(error || hint) && (
-        <p id={describedBy} className={`text-[12px] ${error ? 'text-bad' : 'text-faint'}`}>
+        <p id={describedBy} className={`text-xs ${error ? 'text-bad' : 'text-faint'}`}>
           {error ?? hint}
         </p>
       )}

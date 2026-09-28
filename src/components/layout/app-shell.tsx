@@ -22,21 +22,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
+    <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[252px_minmax(0,1fr)]">
       <Sidebar />
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-line bg-bg px-4 sm:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-line bg-bg px-4 sm:px-8">
           <Link to="/" className="flex items-center lg:hidden" aria-label={`${brand.name}, inicio`}>
-            <LogoMark height={26} />
+            <LogoMark height={30} />
           </Link>
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex min-w-0 items-center gap-2.5 text-[14px] text-faint transition-colors hover:text-ink"
+            className="flex min-w-0 items-center gap-2.5 text-base text-faint transition-colors hover:text-ink"
           >
             <Search className="size-4 shrink-0" />
             <span className="truncate">Buscar o ir a…</span>
-            <span className="hidden text-[12px] sm:inline">{modKey} K</span>
+            <span className="hidden text-xs sm:inline">{modKey} K</span>
           </button>
           <div className="flex-1" />
           <UserMenu />
@@ -52,7 +52,7 @@ function Sidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh flex-col gap-8 border-r border-line px-4 py-5 lg:flex">
       <Link to="/" className="flex h-9 items-center px-2" aria-label={`${brand.name}, inicio`}>
-        <Logo size={18} />
+        <Logo size={21} />
       </Link>
 
       <nav className="flex flex-col gap-6" aria-label="Módulos">
@@ -65,16 +65,16 @@ function Sidebar() {
                   key={item.label}
                   to={item.to}
                   activeOptions={{ exact: item.to === '/' }}
-                  className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] text-muted transition-colors hover:text-ink data-[status=active]:bg-surface-2 data-[status=active]:font-medium data-[status=active]:text-ink [&[data-status=active]_svg]:text-accent"
+                  className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-base text-muted transition-colors hover:text-ink data-[status=active]:bg-surface-2 data-[status=active]:font-medium data-[status=active]:text-ink [&[data-status=active]_svg]:text-accent"
                 >
                   <item.icon className="size-4" strokeWidth={1.75} />
                   {item.label}
                 </Link>
               ) : (
-                <span key={item.label} className="flex cursor-default items-center gap-2.5 px-2 py-1.5 text-[14px] text-faint/70" title="Módulo en desarrollo">
+                <span key={item.label} className="flex cursor-default items-center gap-2.5 px-2 py-1.5 text-base text-faint/70" title="Módulo en desarrollo">
                   <item.icon className="size-4" strokeWidth={1.75} />
                   {item.label}
-                  <span className="ml-auto text-[11px]">pronto</span>
+                  <span className="ml-auto text-2xs">pronto</span>
                 </span>
               ),
             )}
@@ -103,20 +103,20 @@ function UserMenu() {
     .toUpperCase()
 
   const itemClass =
-    'flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 text-[13.5px] outline-none data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:text-muted'
+    'flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:text-muted'
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="flex items-center gap-2.5 text-[13.5px] text-muted transition-colors hover:text-ink" aria-label="Menú de usuario">
+      <Menu.Trigger className="flex items-center gap-2.5 text-sm text-muted transition-colors hover:text-ink" aria-label="Menú de usuario">
         <span className="hidden sm:inline">{name}</span>
-        <span className="grid size-8 place-items-center rounded-full border border-line-strong font-display text-[12px] font-semibold text-ink">{initials}</span>
+        <span className="grid size-8 place-items-center rounded-full border border-line-strong font-display text-xs font-semibold text-ink">{initials}</span>
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Content align="end" sideOffset={8} className="z-50 w-56 rounded-lg border border-line bg-surface p-1 shadow-float">
           <div className="px-2 py-2">
-            <div className="text-[13.5px] font-medium">{name}</div>
-            <div className="truncate text-[12.5px] text-muted">{me.data?.email}</div>
-            <div className="mt-0.5 text-[12px] text-faint">{me.data?.roleDescription}</div>
+            <div className="text-sm font-medium">{name}</div>
+            <div className="truncate text-xs text-muted">{me.data?.email}</div>
+            <div className="mt-0.5 text-xs text-faint">{me.data?.roleDescription}</div>
           </div>
           <Menu.Separator className="my-1 h-px bg-line" />
           <Menu.Label className="label-caps px-2 pt-1.5 pb-1">Tema</Menu.Label>

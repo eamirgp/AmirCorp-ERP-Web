@@ -12,8 +12,12 @@ Consume la API de [AmirCorp-ERP](https://github.com/eamirgp/AmirCorp-ERP) y gene
 |---|---|
 | Inicio de sesión | ✅ |
 | Layout, menú, paleta de comandos (Ctrl+K), tema claro/oscuro | ✅ |
-| Productos: buscar, filtrar, crear, editar, activar/desactivar | ✅ |
-| Ventas, importaciones, compras, inventario | 🚧 Aparecen en el menú como "Pronto" |
+| Productos | ✅ Buscar, filtrar, ordenar, crear, editar, activar/desactivar |
+| Clientes y proveedores | ✅ Filtros por rol, tipo de documento y estado |
+| Empresas | ✅ |
+| Usuarios | ✅ Crear, editar, cambiar rol, restablecer contraseña, activar/desactivar |
+| Compras | ✅ Lista, detalle, anulación y registro con totales calculados por la API en vivo |
+| Ventas, importaciones, inventario | 🚧 Aparecen en el menú como "pronto" |
 
 ## Tecnología
 
