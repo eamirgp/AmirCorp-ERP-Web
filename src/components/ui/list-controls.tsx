@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { formatInt } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
 import { Button } from './button'
-import { Input } from './field'
+import { Input, Select } from './field'
 
 /**
  * Buscador de una lista. Avisa el texto 250 ms después de dejar de escribir.
@@ -44,30 +44,56 @@ export function SearchBox({ value, onSearch, placeholder }: { value?: string; on
   )
 }
 
-/** Pie de una lista paginada: "1–20 de 57" y botones de página. */
-export function Pagination({ page, pageSize, total, onPage }: { page: number; pageSize: number; total: number; onPage: (page: number) => void }) {
-  // Con una sola página el pie no aporta nada: el contador de la barra ya dice cuántos hay.
-  if (total <= pageSize && page === 1) return null
-  const from = (page - 1) * pageSize + 1
-  const to = Math.min(page * pageSize, total)
-  const last = Math.max(1, Math.ceil(total / pageSize))
+/** Datos de paginación que devuelve la API en cada lista paginada. */
+export interface PageInfo {
+  page: number
+  pageSize: number
+  totalCount: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+  from: number
+  to: number
+  pageSizeOptions: number[]
+}
+
+/**
+ * Pie de una lista paginada: "1–20 de 57", filas por página y botones de página.
+ * Todo sale de la respuesta de la API: la pantalla no calcula páginas ni rangos.
+ */
+export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | undefined; onPage: (page: number) => void; onPageSize: (size: number) => void }) {
+  if (!info || info.totalCount === 0) return null
   return (
-    <footer className="flex flex-wrap items-center justify-between gap-3 pt-4 text-sm text-muted">
+    <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-4 text-sm text-muted">
       <span className="num">
-        {formatInt(from)}–{formatInt(to)} de {formatInt(total)}
+        {formatInt(info.from)}–{formatInt(info.to)} de {formatInt(info.totalCount)}
       </span>
-      <div className="flex items-center gap-1">
-        <Button size="sm" variant="ghost" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-          <ChevronLeft />
-          Anterior
-        </Button>
-        <span className="num px-2">
-          {page} / {last}
-        </span>
-        <Button size="sm" variant="ghost" disabled={page >= last} onClick={() => onPage(page + 1)}>
-          Siguiente
-          <ChevronRight />
-        </Button>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <label className="flex items-center gap-2 whitespace-nowrap">
+          Filas por página
+          <Select className="num w-auto" value={info.pageSize} onChange={(e) => onPageSize(Number(e.target.value))}>
+            {info.pageSizeOptions.map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </Select>
+        </label>
+        {info.totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <Button size="sm" variant="ghost" disabled={!info.hasPreviousPage} onClick={() => onPage(info.page - 1)}>
+              <ChevronLeft />
+              Anterior
+            </Button>
+            <span className="num px-2">
+              {info.page} / {info.totalPages}
+            </span>
+            <Button size="sm" variant="ghost" disabled={!info.hasNextPage} onClick={() => onPage(info.page + 1)}>
+              Siguiente
+              <ChevronRight />
+            </Button>
+          </div>
+        )}
       </div>
     </footer>
   )

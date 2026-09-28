@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { PackagePlus, Plus } from 'lucide-react'
+import { FileSpreadsheet, PackagePlus, Plus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { z } from 'zod'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
@@ -12,11 +12,10 @@ import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
+import { ProductImportDialog } from '@/features/products/product-import-dialog'
 import { ProductsTable } from '@/features/products/products-table'
-import { countLabel, directionSchema, statusOptions, statusSchema } from '@/lib/filters'
+import { countLabel, directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
-
-const PAGE_SIZE = 20
 
 // El estado de la pantalla vive en la URL: se puede compartir, recargar y usar el botón Atrás.
 const sortOptions: Option<ProductSortBy>[] = [
@@ -26,16 +25,18 @@ const sortOptions: Option<ProductSortBy>[] = [
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
-  page: z.coerce.number().int().min(1).optional().catch(undefined),
+  page: pageSchema,
+  filas: pageSizeSchema,
   estado: statusSchema,
   orden: z.enum(['Name', 'CreatedAt']).optional().catch(undefined),
   dir: directionSchema,
   nuevo: z.boolean().optional().catch(undefined),
   editar: z.string().optional().catch(undefined),
+  importar: z.boolean().optional().catch(undefined),
 })
 type Search = z.infer<typeof searchSchema>
 
-const listParams = (s: Search) => ({ q: s.q, page: s.page ?? 1, pageSize: PAGE_SIZE, status: s.estado, sortBy: s.orden, descending: s.dir === 'desc' })
+const listParams = (s: Search) => ({ q: s.q, page: s.page ?? 1, pageSize: s.filas, status: s.estado, sortBy: s.orden, descending: s.dir === 'desc' })
 
 export const Route = createFileRoute('/_app/productos')({
   validateSearch: (search) => searchSchema.parse(search),
@@ -51,7 +52,6 @@ export const Route = createFileRoute('/_app/productos')({
 function ProductsPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const page = search.page ?? 1
   const list = useQuery(productListQuery(listParams(search)))
   const hasFilters = !!(search.q || search.estado)
   const toggle = useToggleProduct()
@@ -91,10 +91,16 @@ function ProductsPage() {
         title="Productos"
         description="Catálogo compartido por tus empresas. El stock y el costo se llevan por separado en cada una."
         actions={
-          <Button variant="primary" onClick={openNew} title="Atajo: N">
-            <Plus />
-            Nuevo producto
-          </Button>
+          <>
+            <Button onClick={() => navigate({ search: (prev) => ({ ...prev, importar: true }) })}>
+              <FileSpreadsheet />
+              Importar
+            </Button>
+            <Button variant="primary" onClick={openNew} title="Atajo: N">
+              <Plus />
+              Nuevo producto
+            </Button>
+          </>
         }
       />
 
@@ -137,10 +143,15 @@ function ProductsPage() {
           />
         )}
 
-        <Pagination page={page} pageSize={PAGE_SIZE} total={data?.totalCount ?? 0} onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })} />
+        <Pagination
+          info={data}
+          onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })}
+          onPageSize={(filas) => navigate({ search: (prev) => ({ ...prev, filas, page: undefined }) })}
+        />
       </section>
 
       <ProductFormDialog open={!!search.nuevo || editing !== null} product={editing} onClose={closeForm} />
+      <ProductImportDialog open={!!search.importar} onClose={() => navigate({ search: (prev) => ({ ...prev, importar: undefined }), replace: true })} />
     </>
   )
 }

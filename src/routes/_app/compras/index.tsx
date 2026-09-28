@@ -7,16 +7,15 @@ import { z } from 'zod'
 import { errorMessages } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
 import { purchaseListQuery, type PurchaseRow, type PurchaseSortBy } from '@/api/purchases'
+import { CreatedCell } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
-import { countLabel, directionSchema } from '@/lib/filters'
+import { countLabel, directionSchema, pageSchema, pageSizeSchema } from '@/lib/filters'
 import { formatDate, formatMoney } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
-
-const PAGE_SIZE = 20
 
 const sortOptions: Option<PurchaseSortBy>[] = [
   { value: 'IssueDate', label: 'Fecha de emisión' },
@@ -27,7 +26,8 @@ const sortOptions: Option<PurchaseSortBy>[] = [
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
-  page: z.coerce.number().int().min(1).optional().catch(undefined),
+  page: pageSchema,
+  filas: pageSizeSchema,
   empresa: z.string().optional().catch(undefined),
   orden: z.enum(['IssueDate', 'SupplierName', 'Total', 'CreatedAt']).optional().catch(undefined),
   dir: directionSchema,
@@ -38,7 +38,7 @@ type Search = z.infer<typeof searchSchema>
 const listParams = (s: Search) => ({
   q: s.q,
   page: s.page ?? 1,
-  pageSize: PAGE_SIZE,
+  pageSize: s.filas,
   companyId: s.empresa,
   sortBy: s.orden,
   descending: s.dir !== 'asc',
@@ -60,7 +60,6 @@ function PurchasesPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   const go = useNavigate()
-  const page = search.page ?? 1
   const list = useQuery(purchaseListQuery(listParams(search)))
   const companies = useQuery(companiesQuery)
   const companyOptions = useMemo(() => (companies.data ?? []).map((c) => ({ value: c.id, label: c.name })), [companies.data])
@@ -96,6 +95,7 @@ function PurchasesPage() {
         header: () => <span className="block text-right">Total</span>,
         cell: (c) => <span className="num block text-right whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currency)}</span>,
       }),
+      col.accessor('createdAt', { header: 'Registrada', meta: { hideOnMobile: true }, cell: (c) => <CreatedCell at={c.getValue()} by={c.row.original.createdByName} /> }),
       col.accessor('isCancelled', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="bad">Anulada</Pill> : <Pill tone="ok">Registrada</Pill>) }),
     ],
     [],
@@ -155,7 +155,11 @@ function PurchasesPage() {
           />
         )}
 
-        <Pagination page={page} pageSize={PAGE_SIZE} total={data?.totalCount ?? 0} onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })} />
+        <Pagination
+          info={data}
+          onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })}
+          onPageSize={(filas) => navigate({ search: (prev) => ({ ...prev, filas, page: undefined }) })}
+        />
       </section>
     </>
   )

@@ -11,6 +11,9 @@ export const statusOptions: Option<ActiveFilter>[] = [
 
 export const statusSchema = z.enum(['activos', 'inactivos']).optional().catch(undefined)
 export const directionSchema = z.enum(['asc', 'desc']).optional().catch(undefined)
+export const pageSchema = z.coerce.number().int().min(1).optional().catch(undefined)
+/** Filas por página elegidas en la pantalla. Sin valor, la API usa su tamaño por defecto y ajusta los que no acepta. */
+export const pageSizeSchema = z.coerce.number().int().min(1).optional().catch(undefined)
 
 /** Convierte el filtro de la URL al parámetro IsActive de la API (undefined = todos). */
 export const toIsActive = (filter: ActiveFilter | undefined): boolean | undefined => (filter === undefined ? undefined : filter === 'activos')

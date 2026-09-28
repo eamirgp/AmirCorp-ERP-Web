@@ -1,7 +1,9 @@
+import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { errorMessages } from '@/api/client'
-import { useSaveCompany, type CompanyRow } from '@/api/companies'
+import { companyQuery, useSaveCompany, type CompanyRow } from '@/api/companies'
+import { AuditInfo } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input } from '@/components/ui/field'
@@ -15,6 +17,7 @@ interface Values {
 
 export function CompanyFormDialog({ open, company, onClose }: { open: boolean; company: CompanyRow | null; onClose: () => void }) {
   const save = useSaveCompany()
+  const detail = useQuery({ ...companyQuery(company?.id ?? ''), enabled: open && !!company })
   const form = useForm<Values>({ defaultValues: { ruc: '', name: '' } })
 
   useEffect(() => {
@@ -55,6 +58,7 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
         <Field label="RUC">{(a) => <Input {...a} className="font-mono" inputMode="numeric" autoFocus {...form.register('ruc')} />}</Field>
         <Field label="Razón social">{(a) => <Input {...a} {...form.register('name')} />}</Field>
+        {company && <AuditInfo record={detail.data} />}
       </form>
     </Dialog>
   )

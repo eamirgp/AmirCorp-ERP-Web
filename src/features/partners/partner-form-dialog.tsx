@@ -3,7 +3,8 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { useSavePartner, type PartnerRow } from '@/api/partners'
+import { partnerQuery, useSavePartner, type PartnerRow } from '@/api/partners'
+import { AuditInfo } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -25,6 +26,7 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
   const docTypes = useQuery(identityDocumentTypesQuery)
   const countries = useQuery(countriesQuery)
   const save = useSavePartner()
+  const detail = useQuery({ ...partnerQuery(partner?.id ?? ''), enabled: open && !!partner })
   const form = useForm<Values>({ defaultValues: empty })
 
   useEffect(() => {
@@ -127,6 +129,8 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
             Proveedor: le compramos
           </label>
         </fieldset>
+
+        {partner && <AuditInfo record={detail.data} />}
       </form>
     </Dialog>
   )

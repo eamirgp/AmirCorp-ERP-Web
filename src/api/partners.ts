@@ -12,7 +12,7 @@ export type IdentityDocumentType = Schemas['IdentityDocumentType']
 export interface PartnerListParams {
   q?: string
   page: number
-  pageSize: number
+  pageSize?: number
   status?: ActiveFilter
   role?: PartnerRole
   documentType?: IdentityDocumentType
@@ -21,8 +21,10 @@ export interface PartnerListParams {
 }
 
 export const partnerKeys = {
-  lists: () => ['partners', 'list'] as const,
+  all: ['partners'] as const,
+  lists: () => [...partnerKeys.all, 'list'] as const,
   list: (p: PartnerListParams) => [...partnerKeys.lists(), p] as const,
+  detail: (id: string) => [...partnerKeys.all, 'detail', id] as const,
 }
 
 const roleFilter = { clientes: 'Client', proveedores: 'Supplier' } as const
@@ -50,6 +52,13 @@ export const partnerListQuery = (p: PartnerListParams) =>
     placeholderData: keepPreviousData,
   })
 
+/** Detalle de un cliente o proveedor, con quién lo creó y quién lo modificó. */
+export const partnerQuery = (id: string) =>
+  queryOptions({
+    queryKey: partnerKeys.detail(id),
+    queryFn: () => unwrap(api.GET('/api/partners/{id}', { params: { path: { id } } })),
+  })
+
 /** Proveedores activos que coinciden con el texto (para elegir uno en una compra). */
 export const searchSuppliers = (term: string) =>
   unwrap(
@@ -65,7 +74,7 @@ export function useSavePartner() {
       id
         ? unwrap(api.PUT('/api/partners/{id}', { params: { path: { id } }, body: input })).then(() => id)
         : unwrap(api.POST('/api/partners', { body: input })).then((r) => r.id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.lists() }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.all }),
   })
 }
 

@@ -901,6 +901,209 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/products/import/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plantilla vacía para la carga masiva. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["FileContentResult"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Todos los productos en el formato de la plantilla, para editarlos y volver a subirlos. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["FileContentResult"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Lee la planilla y devuelve qué pasará con cada fila. No guarda nada. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Si es true, los productos cuyo código ya existe se actualizan; si no, se omiten. */
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        File?: components["schemas"]["IFormFile"];
+                        UpdateExisting?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProductImportPreviewDto"];
+                        "application/json": components["schemas"]["ProductImportPreviewDto"];
+                        "text/json": components["schemas"]["ProductImportPreviewDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/products/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirma la carga masiva: vuelve a validar el archivo y guarda todo en una sola transacción.
+         *     Si una fila tiene errores no se guarda ninguna.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Si es true, los productos cuyo código ya existe se actualizan; si no, se omiten. */
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        File?: components["schemas"]["IFormFile"];
+                        UpdateExisting?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProductImportResultDto"];
+                        "application/json": components["schemas"]["ProductImportResultDto"];
+                        "text/json": components["schemas"]["ProductImportResultDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/companies": {
         parameters: {
             query?: never;
@@ -1908,8 +2111,22 @@ export interface components {
         };
         /** @enum {unknown} */
         Currency: "PEN" | "USD" | null;
+        EntityTagHeaderValue: {
+            tag?: components["schemas"]["StringSegment"];
+            isWeak?: boolean;
+        };
         ErrorResponse: {
             errors: string[];
+        };
+        FileContentResult: {
+            /** Format: byte */
+            fileContents?: string;
+            contentType: string;
+            fileDownloadName?: null | string;
+            /** Format: date-time */
+            lastModified?: null | string;
+            entityTag?: null | components["schemas"]["EntityTagHeaderValue"];
+            enableRangeProcessing?: boolean;
         };
         GetBusinessPartnerResponseDto: {
             /** Format: uuid */
@@ -1927,8 +2144,8 @@ export interface components {
             /** Format: date-time */
             updatedAt: null | string;
             updatedByName: null | string;
-            identityDocumentTypeDescription?: null | string;
-            countryName?: null | string;
+            identityDocumentTypeDescription: string;
+            countryName: string;
         };
         GetCompanyResponseDto: {
             /** Format: uuid */
@@ -1950,7 +2167,7 @@ export interface components {
             email: string;
             role: components["schemas"]["UserRole"];
             isActive: boolean;
-            roleDescription?: null | string;
+            roleDescription: string;
         };
         GetProductResponseDto: {
             /** Format: uuid */
@@ -1968,8 +2185,8 @@ export interface components {
             /** Format: date-time */
             updatedAt: null | string;
             updatedByName: null | string;
-            unitOfMeasureDescription?: null | string;
-            igvAffectationDescription?: null | string;
+            unitOfMeasureDescription: string;
+            igvAffectationDescription: string;
         };
         GetPurchaseLineResponseDto: {
             /** Format: int32 */
@@ -1990,8 +2207,8 @@ export interface components {
             igvAmount: number;
             /** Format: double */
             total: number;
-            invoiceIgvAffectationDescription?: null | string;
-            invoiceUnitOfMeasureDescription?: null | string;
+            invoiceIgvAffectationDescription: string;
+            invoiceUnitOfMeasureDescription: string;
         };
         GetPurchaseResponseDto: {
             /** Format: uuid */
@@ -2028,11 +2245,11 @@ export interface components {
             updatedAt: null | string;
             updatedByName: null | string;
             lines: components["schemas"]["GetPurchaseLineResponseDto"][];
-            taxDocumentTypeDescription?: null | string;
-            currencyDescription?: null | string;
-            invoicePriceTypeDescription?: null | string;
-            supplierIdentityDocumentTypeDescription?: null | string;
-            fullNumber?: null | string;
+            taxDocumentTypeDescription: string;
+            currencyDescription: string;
+            invoicePriceTypeDescription: string;
+            supplierIdentityDocumentTypeDescription: string;
+            fullNumber: string;
         };
         GetUserResponseDto: {
             /** Format: uuid */
@@ -2047,10 +2264,12 @@ export interface components {
             /** Format: date-time */
             updatedAt: null | string;
             updatedByName: null | string;
-            roleDescription?: null | string;
+            roleDescription: string;
         };
         /** @enum {unknown} */
         IdentityDocumentType: "TributarioExtranjero" | "Dni" | "Ruc";
+        /** Format: binary */
+        IFormFile: string;
         /** @enum {unknown} */
         IgvAffectation: "Gravado" | "Inafecto" | null;
         /** @enum {unknown} */
@@ -2069,8 +2288,11 @@ export interface components {
             isClient: boolean;
             isSupplier: boolean;
             isActive: boolean;
-            identityDocumentTypeDescription?: null | string;
-            countryName?: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName: null | string;
+            identityDocumentTypeDescription: string;
+            countryName: string;
         };
         ListCompaniesResponseDto: {
             /** Format: uuid */
@@ -2109,8 +2331,11 @@ export interface components {
             /** Format: double */
             salePrice: number;
             isActive: boolean;
-            unitOfMeasureDescription?: null | string;
-            igvAffectationDescription?: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName: null | string;
+            unitOfMeasureDescription: string;
+            igvAffectationDescription: string;
         };
         ListPurchasesResponseDto: {
             /** Format: uuid */
@@ -2132,9 +2357,12 @@ export interface components {
             total: number;
             isCancelled: boolean;
             cancellationReason: null | string;
-            taxDocumentTypeDescription?: null | string;
-            currencyDescription?: null | string;
-            fullNumber?: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName: null | string;
+            taxDocumentTypeDescription: string;
+            currencyDescription: string;
+            fullNumber: string;
         };
         ListTaxDocumentTypesResponseDto: {
             taxDocumentType: components["schemas"]["TaxDocumentType"];
@@ -2144,7 +2372,7 @@ export interface components {
             unitOfMeasure: components["schemas"]["UnitOfMeasure"];
             description: string;
             /** Format: double */
-            fixedConversionFactor?: null | number;
+            fixedConversionFactor: null | number;
         };
         ListUsersResponseDto: {
             /** Format: uuid */
@@ -2153,7 +2381,7 @@ export interface components {
             email: string;
             role: components["schemas"]["UserRole"];
             isActive: boolean;
-            roleDescription?: null | string;
+            roleDescription: string;
         };
         LoginRequest: {
             email: null | string;
@@ -2171,9 +2399,14 @@ export interface components {
             /** Format: int32 */
             totalCount: number;
             /** Format: int32 */
-            totalPages?: number;
-            hasNextPage?: boolean;
-            hasPreviousPage?: boolean;
+            totalPages: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            /** Format: int32 */
+            from: number;
+            /** Format: int32 */
+            to: number;
+            pageSizeOptions: number[];
         };
         PagedResultOfListProductsResponseDto: {
             items: components["schemas"]["ListProductsResponseDto"][];
@@ -2184,9 +2417,14 @@ export interface components {
             /** Format: int32 */
             totalCount: number;
             /** Format: int32 */
-            totalPages?: number;
-            hasNextPage?: boolean;
-            hasPreviousPage?: boolean;
+            totalPages: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            /** Format: int32 */
+            from: number;
+            /** Format: int32 */
+            to: number;
+            pageSizeOptions: number[];
         };
         PagedResultOfListPurchasesResponseDto: {
             items: components["schemas"]["ListPurchasesResponseDto"][];
@@ -2197,9 +2435,14 @@ export interface components {
             /** Format: int32 */
             totalCount: number;
             /** Format: int32 */
-            totalPages?: number;
-            hasNextPage?: boolean;
-            hasPreviousPage?: boolean;
+            totalPages: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            /** Format: int32 */
+            from: number;
+            /** Format: int32 */
+            to: number;
+            pageSizeOptions: number[];
         };
         /** @enum {unknown} */
         PartnerRoleFilter: "Client" | "Supplier" | null;
@@ -2243,11 +2486,59 @@ export interface components {
             total: number;
         };
         /** @enum {unknown} */
+        ProductImportAction: "Create" | "Update" | "Skip" | "Unchanged" | "Error";
+        ProductImportChangeDto: {
+            field: string;
+            from: string;
+            to: string;
+        };
+        ProductImportPreviewDto: {
+            rows: components["schemas"]["ProductImportRowDto"][];
+            /** Format: int32 */
+            toCreate: number;
+            /** Format: int32 */
+            toUpdate: number;
+            /** Format: int32 */
+            skipped: number;
+            /** Format: int32 */
+            unchanged: number;
+            /** Format: int32 */
+            withErrors: number;
+            /** Format: int32 */
+            toImport: number;
+            canImport: boolean;
+        };
+        ProductImportResultDto: {
+            /** Format: int32 */
+            created: number;
+            /** Format: int32 */
+            updated: number;
+        };
+        ProductImportRowDto: {
+            /** Format: int32 */
+            rowNumber: number;
+            code: null | string;
+            name: null | string;
+            action: components["schemas"]["ProductImportAction"];
+            errors: string[];
+            changes: components["schemas"]["ProductImportChangeDto"][];
+            actionDescription: string;
+        };
+        /** @enum {unknown} */
         ProductSortBy: "Name" | "CreatedAt" | null;
         /** @enum {unknown} */
         PurchaseSortBy: "IssueDate" | "SupplierName" | "Total" | "CreatedAt" | null;
         ResetUserPasswordRequest: {
             newPassword: null | string;
+        };
+        StringSegment: {
+            buffer?: null | string;
+            /** Format: int32 */
+            offset?: number;
+            /** Format: int32 */
+            length?: number;
+            value?: null | string;
+            hasValue?: boolean;
         };
         /** @enum {unknown} */
         TaxDocumentType: "Factura" | "Boleta" | null;

@@ -5,16 +5,27 @@ import { useToggleActive } from './mutations'
 export type UserRow = Schemas['ListUsersResponseDto']
 export type UserRole = NonNullable<Schemas['UserRole']>
 
-export const userKeys = { lists: () => ['users', 'list'] as const }
+export const userKeys = {
+  all: ['users'] as const,
+  lists: () => [...userKeys.all, 'list'] as const,
+  detail: (id: string) => [...userKeys.all, 'detail', id] as const,
+}
 
 export const usersQuery = queryOptions({
   queryKey: userKeys.lists(),
   queryFn: () => unwrap(api.GET('/api/users')),
 })
 
+/** Detalle de un usuario, con quién lo creó y quién lo modificó. */
+export const userQuery = (id: string) =>
+  queryOptions({
+    queryKey: userKeys.detail(id),
+    queryFn: () => unwrap(api.GET('/api/users/{id}', { params: { path: { id } } })),
+  })
+
 function useUserMutation<V>(fn: (v: V) => Promise<unknown>) {
   const qc = useQueryClient()
-  return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: userKeys.lists() }) })
+  return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: userKeys.all }) })
 }
 
 export const useCreateUser = () =>

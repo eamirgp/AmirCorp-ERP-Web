@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
 import { partnerListQuery, useTogglePartner, type PartnerRole, type PartnerRow, type PartnerSortBy } from '@/api/partners'
+import { CreatedCell } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowActions } from '@/components/ui/data-table'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
@@ -14,14 +15,13 @@ import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
-import { countLabel, directionSchema, statusOptions, statusSchema } from '@/lib/filters'
+import { countLabel, directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
-
-const PAGE_SIZE = 20
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
-  page: z.coerce.number().int().min(1).optional().catch(undefined),
+  page: pageSchema,
+  filas: pageSizeSchema,
   estado: statusSchema,
   rol: z.enum(['clientes', 'proveedores']).optional().catch(undefined),
   doc: z.enum(['Ruc', 'Dni', 'TributarioExtranjero']).optional().catch(undefined),
@@ -34,7 +34,7 @@ type Search = z.infer<typeof searchSchema>
 const listParams = (s: Search) => ({
   q: s.q,
   page: s.page ?? 1,
-  pageSize: PAGE_SIZE,
+  pageSize: s.filas,
   status: s.estado,
   role: s.rol,
   documentType: s.doc,
@@ -68,7 +68,6 @@ const col = createColumnHelper<PartnerRow>()
 function PartnersPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const page = search.page ?? 1
   const list = useQuery(partnerListQuery(listParams(search)))
   const docTypes = useQuery(identityDocumentTypesQuery)
   const docOptions = useMemo(() => (docTypes.data ?? []).map((d) => ({ value: d.identityDocumentType, label: d.description })), [docTypes.data])
@@ -111,6 +110,7 @@ function PartnersPage() {
         meta: { hideOnMobile: true },
         cell: (c) => <span className="text-muted">{[c.row.original.isClient && 'Cliente', c.row.original.isSupplier && 'Proveedor'].filter(Boolean).join(' · ')}</span>,
       }),
+      col.accessor('createdAt', { header: 'Creado', meta: { hideOnMobile: true }, cell: (c) => <CreatedCell at={c.getValue()} by={c.row.original.createdByName} /> }),
       col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activo</Pill> : <Pill tone="neutral">Inactivo</Pill>) }),
       col.display({
         id: 'actions',
@@ -192,7 +192,11 @@ function PartnersPage() {
           />
         )}
 
-        <Pagination page={page} pageSize={PAGE_SIZE} total={data?.totalCount ?? 0} onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })} />
+        <Pagination
+          info={data}
+          onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })}
+          onPageSize={(filas) => navigate({ search: (prev) => ({ ...prev, filas, page: undefined }) })}
+        />
       </section>
 
       <PartnerFormDialog open={!!search.nuevo || editing !== null} partner={editing} onClose={closeForm} />

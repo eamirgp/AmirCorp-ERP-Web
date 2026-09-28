@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react'
 import { useForm } from 'react-hook-form'
 import { errorMessages } from '@/api/client'
 import { purchaseQuery, useCancelPurchase, type PurchaseDetail } from '@/api/purchases'
+import { AuditInfo } from '@/components/ui/audit'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input } from '@/components/ui/field'
@@ -111,10 +112,7 @@ function PurchaseDetailPage() {
 
       <Totals base={money(p.totalBaseAmount)} igv={money(p.totalIgvAmount)} total={money(p.total)} />
 
-      <p className="text-xs text-faint">
-        Registrada por {p.createdByName ?? 'el sistema'}
-        {p.updatedAt && ` · Modificada por ${p.updatedByName ?? 'el sistema'}`}
-      </p>
+      <AuditInfo record={p} created="Registrada" updated="Modificada" />
 
       {cancelling && <CancelDialog purchase={p} onClose={() => setCancelling(false)} />}
     </>

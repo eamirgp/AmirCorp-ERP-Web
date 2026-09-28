@@ -26,6 +26,7 @@ export function useToggleActive<T extends { id: string; isActive: boolean }>(
       return { snapshot }
     },
     onError: (_e, _v, context) => context?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data)),
-    onSettled: () => qc.invalidateQueries({ queryKey: listKey }),
+    // Se recarga todo el recurso (listas y detalles): el detalle muestra quién lo modificó por última vez.
+    onSettled: () => qc.invalidateQueries({ queryKey: listKey.slice(0, 1) }),
   })
 }

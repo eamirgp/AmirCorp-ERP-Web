@@ -55,13 +55,19 @@ const data = await unwrap(api.GET('/api/products', { params: { query: { Page: 1 
 
 El frontend no calcula montos. Cuando una pantalla necesita mostrar un resultado antes de guardar, la API tiene un endpoint de cálculo. Ejemplo: al registrar una compra, cada cambio en las líneas llama (con 300 ms de pausa) a `POST /api/purchases/preview` y la pantalla muestra los montos por línea, los mensajes de error por línea y los totales que devuelve la API.
 
+## Archivos (Excel)
+
+- **Descargar:** `download()` en `src/api/products.ts` pide el archivo como `blob` y `lib/download.ts` lo guarda con el nombre que manda la API en `Content-Disposition` (la API expone esa cabecera en CORS).
+- **Subir:** los endpoints `multipart/form-data` reciben un `FormData` armado en el `bodySerializer` de la llamada (`importForm`).
+- **Carga masiva de productos** (`features/products/product-import-dialog.tsx`, `/productos?importar=true`): subir → revisar → listo. La revisión muestra lo que devuelve `POST /api/products/import/preview` (resumen, acción y cambios por fila); el botón Importar se habilita solo si la API responde `canImport`. El frontend no lee el Excel ni valida filas.
+
 ## Cómo agregar una pantalla de lista
 
 Ejemplo: `/ventas`. Usa `src/routes/_app/socios.tsx` como modelo.
 
 1. **API:** crea `src/api/sales.ts` con sus `queryOptions` (listado paginado con filtros y orden) y mutaciones. Para activar/desactivar usa `useToggleActive`.
 2. **Ruta:** crea `src/routes/_app/ventas/index.tsx` con su `validateSearch` (búsqueda, página, filtros y orden en la URL), `loader` y componente. El plugin actualiza `routeTree.gen.ts` solo.
-3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `DataTable` y `Pagination`.
-4. **Formularios y detalle:** en `src/features/sales/`.
+3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `DataTable` y `Pagination info={data}`. La página va en `?page=` y las filas por página en `?filas=`; los rangos, el total de páginas y las opciones de filas salen de la respuesta. Para la columna "Creado" usa `CreatedCell`.
+4. **Formularios y detalle:** en `src/features/sales/`. Al editar, pide el detalle (`GET /api/.../{id}`) y muestra `AuditInfo` al final: quién lo creó y quién lo modificó, en hora de Perú.
 5. **Menú:** agrega `to: '/ventas'` en `src/components/layout/nav.ts` (y a `NavPath`).
 6. Conecta el atajo `N` con `useHotkey('n', ...)` y agrega "Nueva venta" a la paleta de comandos.

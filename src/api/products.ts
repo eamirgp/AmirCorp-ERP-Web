@@ -1,4 +1,5 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fileNameFrom } from '@/lib/download'
 import { toIsActive, type ActiveFilter } from '@/lib/filters'
 import { api, unwrap, type Schemas } from './client'
 import { useToggleActive } from './mutations'
@@ -10,7 +11,7 @@ export type ProductSortBy = NonNullable<Schemas['ProductSortBy']>
 export interface ProductListParams {
   q?: string
   page: number
-  pageSize: number
+  pageSize?: number
   status?: ActiveFilter
   sortBy?: ProductSortBy
   descending?: boolean
@@ -20,6 +21,7 @@ export const productKeys = {
   all: ['products'] as const,
   lists: () => [...productKeys.all, 'list'] as const,
   list: (p: ProductListParams) => [...productKeys.lists(), p] as const,
+  detail: (id: string) => [...productKeys.all, 'detail', id] as const,
 }
 
 export const productListQuery = (p: ProductListParams) =>
@@ -44,6 +46,13 @@ export const productListQuery = (p: ProductListParams) =>
     placeholderData: keepPreviousData,
   })
 
+/** Detalle de un producto, con quién lo creó y quién lo modificó. */
+export const productQuery = (id: string) =>
+  queryOptions({
+    queryKey: productKeys.detail(id),
+    queryFn: () => unwrap(api.GET('/api/products/{id}', { params: { path: { id } } })),
+  })
+
 /** Productos activos que coinciden con el texto (para elegir uno en una línea de compra). */
 export const searchProducts = (term: string) =>
   unwrap(api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SortBy: 'Name' } } })).then(
@@ -57,7 +66,46 @@ export function useSaveProduct() {
       id
         ? unwrap(api.PUT('/api/products/{id}', { params: { path: { id } }, body: input })).then(() => id)
         : unwrap(api.POST('/api/products', { body: input })).then((r) => r.id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.lists() }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
+  })
+}
+
+// ---------- Carga masiva con Excel ----------
+
+export type ProductImportPreview = Schemas['ProductImportPreviewDto']
+export type ProductImportRow = Schemas['ProductImportRowDto']
+
+/** Descarga un archivo de la API y devuelve el contenido con el nombre que indica la API. */
+async function download(request: Promise<{ data?: Blob; error?: unknown; response: Response }>, fallbackName: string) {
+  const blob = await unwrap(request)
+  const { response } = await request
+  return { blob, fileName: fileNameFrom(response, fallbackName) }
+}
+
+export const downloadProductTemplate = () => download(api.GET('/api/products/import/template', { parseAs: 'blob' }), 'plantilla-productos.xlsx')
+
+export const exportProducts = () => download(api.GET('/api/products/export', { parseAs: 'blob' }), 'productos.xlsx')
+
+/** El archivo va como multipart/form-data; el navegador arma los límites del envío. */
+const importForm = (file: File, updateExisting: boolean) => ({
+  body: { File: file as unknown as string, UpdateExisting: updateExisting },
+  bodySerializer: (body: { File?: string; UpdateExisting?: boolean }) => {
+    const form = new FormData()
+    form.append('File', body.File as unknown as Blob)
+    form.append('UpdateExisting', String(body.UpdateExisting ?? false))
+    return form
+  },
+})
+
+export const previewProductImport = (file: File, updateExisting: boolean) =>
+  unwrap(api.POST('/api/products/import/preview', importForm(file, updateExisting)))
+
+export function useImportProducts() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ file, updateExisting }: { file: File; updateExisting: boolean }) =>
+      unwrap(api.POST('/api/products/import', importForm(file, updateExisting))),
+    onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
   })
 }
 

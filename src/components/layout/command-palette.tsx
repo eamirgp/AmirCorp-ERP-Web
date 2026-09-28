@@ -93,6 +93,10 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             <Plus />
             Nuevo producto
           </Command.Item>
+          <Command.Item value="importar productos excel carga masiva" className={itemClass} onSelect={() => run(() => navigate({ to: '/productos', search: { importar: true } }))}>
+            <Plus />
+            Importar productos desde Excel
+          </Command.Item>
           <Command.Item value="nuevo cliente proveedor crear" className={itemClass} onSelect={() => run(() => navigate({ to: '/socios', search: { nuevo: true } }))}>
             <Plus />
             Nuevo cliente o proveedor

@@ -11,7 +11,7 @@ export type PurchaseSortBy = NonNullable<Schemas['PurchaseSortBy']>
 export interface PurchaseListParams {
   q?: string
   page: number
-  pageSize: number
+  pageSize?: number
   companyId?: string
   sortBy?: PurchaseSortBy
   descending?: boolean
