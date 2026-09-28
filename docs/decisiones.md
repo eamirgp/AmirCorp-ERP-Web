@@ -56,5 +56,4 @@ El frontend no decide nada del negocio. Muestra lo que la API devuelve, envía l
 - Flujo al cambiar la API: cambio en el backend → `api:generate` → `typecheck` → corregir lo que TypeScript marque → commit en ambos repos.
 
 ### 8. Pendientes conocidos
-- **Navegación en celular:** el menú lateral se oculta en pantallas angostas. Hoy se navega con la paleta (Ctrl+K o el buscador superior); falta un menú móvil.
 - **Selector de empresa:** cuando existan pantallas por empresa (compras, stock, ventas), irá en la barra superior.
