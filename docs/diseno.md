@@ -1,73 +1,73 @@
 # Sistema de diseño
 
-Basado en el **Manual de Identidad Visual de H&P Pizarro Accesorios E.I.R.L.** (Lorena Salcedo). La marca combina el negro como base, el verde jade como color secundario y el gris como acento, con un lenguaje automotriz: fibra de carbono, aros, luces verdes sobre negro.
+Basado en el **Manual de Identidad Visual de H&P Pizarro Accesorios E.I.R.L.** (Lorena Salcedo): negro como base, verde jade como secundario y gris como acento. Títulos en League Spartan y textos en Source Sans.
 
-Un ERP se usa muchas horas al día, así que la identidad se aplica con criterio de herramienta: se prioriza leer rápido, operar con teclado y entender el estado de cada registro de un vistazo.
+Un ERP se usa muchas horas al día, así que la identidad se aplica con criterio **minimalista**: fondo blanco, neutros puros, bordes finos, sin sombras en la página y mucho aire. El negro es la acción principal y el jade aparece solo como acento puntual.
 
 ## Dónde vive la marca
 
 | Qué | Dónde |
 |---|---|
-| Nombre, razón social, lema, textos del login | `src/brand/index.ts` |
+| Nombre y razón social | `src/brand/index.ts` |
 | Logo (ícono + palabra "pizarro ACCESORIOS") | `src/brand/logo.tsx`, `icon-light.png`, `icon-dark.png` |
-| Tapa de rueda decorativa | `src/brand/wheel-motif.tsx` |
 | Colores y fuentes | `src/styles.css` |
 | Favicon | `public/favicon.png`, `public/apple-touch-icon.png` |
 
-Las pantallas no nombran la marca directamente: usan `brand` y `<Logo />`. Para otra empresa basta con cambiar esa carpeta, los colores y el favicon.
+Las pantallas no nombran la marca directamente: usan `brand` y `<Logo />`. Para otra empresa basta con cambiar esos archivos.
 
-## Colores del manual
+## Colores
 
 | Manual | Valor | Uso en el ERP |
 |---|---|---|
-| Negro (base) | `#000000` | Texto principal, menú lateral, panel del login |
-| Verde jade (secundario) | `#5AAF76` | Botón principal, indicador de pantalla activa, foco, ícono |
-| Gris (acento) | `#737373` | Texto secundario (cumple el contraste mínimo sobre blanco) |
+| Negro (base) | `#000000` (`#0A0A0A` en pantalla) | Texto principal y **acción principal**: botón negro, blanco en modo oscuro |
+| Verde jade (secundario) | `#5AAF76` | Acento puntual: ícono de la pantalla activa, foco de las filas, estado "Activo", marca de selección |
+| Gris (acento) | `#737373` | Texto secundario. Cumple el contraste mínimo sobre blanco |
 
 Decisiones de uso:
-- **Sobre el jade el texto va en negro**, como el logo sobre fondo verde (página 12 del manual). El blanco sobre jade no tiene contraste suficiente para leerse bien.
-- **El jade como texto** sobre fondo claro se oscurece (`accent-text`, `#2A7445`) para que sea legible. En modo oscuro se usa un jade más claro (`#6CC08A`).
-- **El menú lateral es negro en ambos temas**, como las vitrinas negras con luz verde del moodboard.
+- **El jade no se usa en bloques grandes.** Aparece en detalles: la marca se reconoce sin cargar la pantalla.
+- **Neutros puros**, sin tinte, en la línea del gris del manual.
+- **Sin sombras en la página.** Los bloques se separan con líneas finas o solo con espacio. Las sombras quedan para lo que flota: diálogos, menús y la paleta.
+- **El jade como texto** se oscurece (`accent-text`, `#2A7445`) para leerse sobre blanco. En modo oscuro se aclara (`#6CC08A`).
 
 Tokens en `src/styles.css`, usados como utilidades de Tailwind:
 
 | Token | Uso |
 |---|---|
-| `bg`, `surface`, `surface-2` | Fondo de la app, paneles, cabeceras de tabla |
-| `line`, `line-strong` | Bordes; `line-strong` en controles |
+| `bg`, `surface`, `surface-2` | Fondo, paneles y fondo suave del ítem o fila activa |
+| `line`, `line-strong` | Bordes finos; `line-strong` en controles |
 | `ink`, `muted`, `faint` | Texto principal, secundario (gris del manual) y de apoyo |
-| `accent`, `accent-ink`, `accent-soft`, `accent-text` | Jade: relleno, texto sobre jade, fondo suave, jade legible como texto |
-| `ok`, `warn`, `bad` (+ `-soft`) | Estados: activo/aceptado, pendiente, anulado/error |
-| `side-*` | Menú lateral negro |
+| `primary`, `primary-ink` | Botón principal: negro con texto blanco, invertido en modo oscuro |
+| `accent`, `accent-soft`, `accent-text` | Jade: acento, fondo suave y jade legible como texto |
+| `ok`, `warn`, `bad` | Color del punto de estado: activo o aceptado, pendiente, anulado o error |
 
-## Tipografía del manual
+El tema sigue al sistema operativo y el usuario puede fijarlo en claro u oscuro desde su menú.
+
+## Tipografía
 
 | Rol | Fuente | Clase |
 |---|---|---|
-| Títulos y logo | League Spartan (Bold) | `font-display` |
-| Textos | Source Sans (versión actual: Source Sans 3) | (por defecto) |
-| Códigos | Source Code Pro, de la misma familia que Source Sans | `font-mono` |
+| Títulos y logo | League Spartan | `font-display` |
+| Textos | Source Sans 3 (versión actual de Source Sans Pro) | (por defecto) |
+| Códigos | Source Code Pro, de la misma familia | `font-mono` |
 | Montos y cantidades | Source Sans con cifras tabulares | `num` |
 
-Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depender de Google Fonts.
-
-Las etiquetas pequeñas (`label-caps`) van en mayúsculas espaciadas, como el "A C C E S O R I O S" del logo.
+Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depender de Google Fonts. Las etiquetas pequeñas (`label-caps`) van en mayúsculas espaciadas, como el "A C C E S O R I O S" del logo.
 
 ## Logo
 
-- `<Logo tone="dark" />` sobre fondos oscuros: P jade y rueda blanca, palabra en blanco.
-- `<Logo tone="light" />` sobre fondos claros: P negra y rueda jade, palabra en negro.
-- `<Logo />` (tone `auto`) cambia solo según el tema.
+- `<Logo />` cambia solo según el tema: P negra con rueda jade sobre claro, P jade con rueda blanca sobre oscuro.
+- `tone="light"` o `tone="dark"` fuerzan una versión.
 - La palabra "pizarro ACCESORIOS" se escribe con la fuente real (League Spartan Bold), no es una imagen.
-- El ícono se extrajo del PDF del manual (PNG transparente de 828×992). La versión para fondo oscuro se generó recoloreando esa imagen con los colores de la variante oficial.
+- El ícono se extrajo del PDF del manual (PNG transparente de 828×992). La versión para fondo oscuro se generó recoloreando esa imagen con los colores de la variante oficial. Si el diseñador entrega el SVG original, conviene reemplazarlo.
 
 ## Reglas
 
-- **Densidad de herramienta:** tablas compactas y paneles con borde fino.
-- **El estado se ve en la forma, no solo en el texto:** `Pill` con punto de color.
+- **Tablas limpias:** cabecera sin fondo, filas separadas por una línea fina, acciones visibles al pasar el mouse o al enfocar la fila.
+- **Estados como punto de color + texto** (`Pill`), sin fondo.
+- **Atajos discretos:** se enseñan en Inicio, en la paleta y como ayuda al pasar el mouse. No hay cajitas de teclas en cada botón.
 - **Todo se puede hacer con teclado:** `/` para buscar, `N` para crear, flechas y Enter.
 - **Los mensajes hablan como el usuario** y vienen de la API.
-- **Nada de emojis ni degradados.** Los íconos (lucide) acompañan acciones y módulos.
+- **Nada de emojis, degradados ni íconos decorativos.**
 - **Movimiento mínimo:** solo la aparición de diálogos y avisos, desactivado con `prefers-reduced-motion`.
 
 ## Componentes base

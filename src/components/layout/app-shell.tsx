@@ -1,12 +1,11 @@
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Check, ChevronDown, LogOut, Monitor, Moon, Search, Sun } from 'lucide-react'
+import { Check, LogOut, Monitor, Moon, Search, Sun } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { meQuery } from '@/api/account'
 import { brand } from '@/brand'
 import { Logo, LogoMark } from '@/brand/logo'
-import { Kbd } from '@/components/ui/misc'
 import { modKey } from '@/lib/hotkeys'
 import { session } from '@/lib/session'
 import { getTheme, setTheme, type ThemeChoice } from '@/lib/theme'
@@ -23,71 +22,65 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[232px_minmax(0,1fr)]">
+    <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)]">
       <Sidebar />
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-bg/85 px-4 py-2.5 backdrop-blur sm:px-7">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-line bg-bg px-4 sm:px-8">
           <Link to="/" className="flex items-center lg:hidden" aria-label={`${brand.name}, inicio`}>
-            <LogoMark height={30} />
+            <LogoMark height={26} />
           </Link>
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex h-9 min-w-0 flex-1 items-center gap-2.5 rounded-lg border border-line bg-surface px-3 text-left text-[13.5px] text-faint transition-colors hover:border-line-strong sm:max-w-md"
+            className="flex min-w-0 items-center gap-2.5 text-[14px] text-faint transition-colors hover:text-ink"
           >
             <Search className="size-4 shrink-0" />
-            <span className="min-w-0 flex-1 truncate">Buscar o ir a…</span>
-            <span className="hidden items-center gap-1 sm:flex">
-              <Kbd>{modKey}</Kbd>
-              <Kbd>K</Kbd>
-            </span>
+            <span className="truncate">Buscar o ir a…</span>
+            <span className="hidden text-[12px] sm:inline">{modKey} K</span>
           </button>
-          <div className="flex-1 max-sm:hidden" />
+          <div className="flex-1" />
           <UserMenu />
         </header>
-        <main className="flex min-w-0 flex-col gap-5 px-4 py-6 sm:px-7">{children}</main>
+        <main className="mx-auto flex w-full max-w-[1200px] min-w-0 flex-col gap-6 px-4 py-8 sm:px-8">{children}</main>
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   )
 }
 
-/** Menú lateral siempre negro: el negro "base" del manual, con el jade marcando la pantalla activa. */
 function Sidebar() {
   return (
-    <aside className="sticky top-0 hidden h-dvh flex-col gap-7 bg-side-bg px-3 py-6 text-side-ink lg:flex">
-      <Link to="/" className="px-2.5" aria-label={`${brand.name}, inicio`}>
-        <Logo size={21} tone="dark" />
+    <aside className="sticky top-0 hidden h-dvh flex-col gap-8 border-r border-line px-4 py-5 lg:flex">
+      <Link to="/" className="flex h-9 items-center px-2" aria-label={`${brand.name}, inicio`}>
+        <Logo size={18} />
       </Link>
 
-      <nav className="flex flex-col gap-5" aria-label="Módulos">
+      <nav className="flex flex-col gap-6" aria-label="Módulos">
         {navGroups.map((group, i) => (
-          <div key={group.label ?? i} className="flex flex-col gap-0.5">
-            {group.label && <div className="label-caps px-2.5 pb-1.5 text-[10px] !text-side-muted">{group.label}</div>}
+          <div key={group.label ?? i} className="flex flex-col gap-px">
+            {group.label && <div className="label-caps px-2 pb-2">{group.label}</div>}
             {group.items.map((item) =>
               item.to ? (
                 <Link
                   key={item.label}
                   to={item.to}
                   activeOptions={{ exact: item.to === '/' }}
-                  className="relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-side-muted transition-colors hover:bg-side-hover hover:text-side-ink data-[status=active]:bg-side-hover data-[status=active]:text-white data-[status=active]:before:absolute data-[status=active]:before:inset-y-1.5 data-[status=active]:before:-left-3 data-[status=active]:before:w-[3px] data-[status=active]:before:rounded-r data-[status=active]:before:bg-accent [&[data-status=active]_svg]:text-accent"
+                  className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[14px] text-muted transition-colors hover:text-ink data-[status=active]:bg-surface-2 data-[status=active]:font-medium data-[status=active]:text-ink [&[data-status=active]_svg]:text-accent"
                 >
-                  <item.icon className="size-[17px]" strokeWidth={1.8} />
+                  <item.icon className="size-4" strokeWidth={1.75} />
                   {item.label}
                 </Link>
               ) : (
-                <span key={item.label} className="flex cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 text-[14px] font-medium text-side-muted/60" title="Módulo en desarrollo">
-                  <item.icon className="size-[17px]" strokeWidth={1.8} />
+                <span key={item.label} className="flex cursor-default items-center gap-2.5 px-2 py-1.5 text-[14px] text-faint/70" title="Módulo en desarrollo">
+                  <item.icon className="size-4" strokeWidth={1.75} />
                   {item.label}
-                  <span className="ml-auto rounded border border-side-line px-1.5 text-[9.5px] font-semibold tracking-[0.12em] uppercase">Pronto</span>
+                  <span className="ml-auto text-[11px]">pronto</span>
                 </span>
               ),
             )}
           </div>
         ))}
       </nav>
-
-      <p className="mt-auto px-2.5 text-[11px] leading-snug text-side-muted/70">{brand.legalName}</p>
     </aside>
   )
 }
@@ -110,26 +103,23 @@ function UserMenu() {
     .toUpperCase()
 
   const itemClass =
-    'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-[13.5px] outline-none data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:text-muted'
+    'flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 text-[13.5px] outline-none data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:text-muted'
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-surface-2">
-        <span className="grid size-8 place-items-center rounded-full bg-accent pt-0.5 font-display text-[12.5px] font-bold text-accent-ink">{initials}</span>
-        <span className="hidden text-left sm:block">
-          <span className="block text-[13px] leading-tight font-semibold">{name}</span>
-          <span className="block text-[11.5px] leading-tight text-muted">{me.data?.roleDescription}</span>
-        </span>
-        <ChevronDown className="size-4 text-faint" />
+      <Menu.Trigger className="flex items-center gap-2.5 text-[13.5px] text-muted transition-colors hover:text-ink" aria-label="Menú de usuario">
+        <span className="hidden sm:inline">{name}</span>
+        <span className="grid size-8 place-items-center rounded-full border border-line-strong font-display text-[12px] font-semibold text-ink">{initials}</span>
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Content align="end" sideOffset={6} className="z-50 w-60 rounded-xl border border-line bg-surface p-1.5 shadow-float">
-          <div className="px-2.5 py-2">
-            <div className="text-[13.5px] font-semibold">{name}</div>
+        <Menu.Content align="end" sideOffset={8} className="z-50 w-56 rounded-lg border border-line bg-surface p-1 shadow-float">
+          <div className="px-2 py-2">
+            <div className="text-[13.5px] font-medium">{name}</div>
             <div className="truncate text-[12.5px] text-muted">{me.data?.email}</div>
+            <div className="mt-0.5 text-[12px] text-faint">{me.data?.roleDescription}</div>
           </div>
           <Menu.Separator className="my-1 h-px bg-line" />
-          <Menu.Label className="label-caps px-2.5 pt-1.5 pb-1 text-[10.5px]">Tema</Menu.Label>
+          <Menu.Label className="label-caps px-2 pt-1.5 pb-1">Tema</Menu.Label>
           {themeOptions.map((o) => (
             <Menu.Item
               key={o.value}
@@ -141,7 +131,7 @@ function UserMenu() {
             >
               <o.icon />
               {o.label}
-              {theme === o.value && <Check className="ml-auto !text-accent-text" />}
+              {theme === o.value && <Check className="ml-auto !text-accent" />}
             </Menu.Item>
           ))}
           <Menu.Separator className="my-1 h-px bg-line" />

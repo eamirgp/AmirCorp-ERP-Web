@@ -1,5 +1,5 @@
 /**
- * Marca de la instalación. Todo lo propio de la empresa (nombre, textos, logo) vive en esta carpeta
+ * Marca de la instalación. Todo lo propio de la empresa (nombre y logo) vive en esta carpeta
  * y en los colores y fuentes de src/styles.css, para poder cambiar de marca sin tocar las pantallas.
  *
  * Marca actual: Pizarro Accesorios, según su Manual de Identidad Visual.
@@ -7,9 +7,4 @@
 export const brand = {
   name: 'Pizarro Accesorios',
   legalName: 'H&P Pizarro Accesorios E.I.R.L.',
-  tagline: 'Accesorios tuning para autos y motos',
-  login: {
-    headline: 'Cada accesorio, del contenedor al mostrador.',
-    text: 'Importaciones, inventario y ventas en un solo lugar, con el costo real de cada producto puesto en tienda.',
-  },
 } as const

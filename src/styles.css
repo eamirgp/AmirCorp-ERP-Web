@@ -8,91 +8,82 @@
   negro como base, verde jade #5AAF76 como secundario y gris #737373 como acento.
   Títulos en League Spartan y textos en Source Sans.
 
+  Estilo minimalista: fondo blanco, neutros puros, bordes finos y sin sombras en la página.
+  El negro es la acción principal y el jade se usa solo como acento puntual.
+
   Los colores viven como variables en :root y se redefinen para modo oscuro.
   Tailwind los expone como utilidades: bg-surface, text-ink, border-line, bg-accent, etc.
 */
 
 :root {
   color-scheme: light;
-  --bg: #eef2ef;
+  /* Neutros puros, en la línea del gris #737373 del manual. */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f5f7f5;
-  --line: #dde3df;
-  --line-strong: #c6cec9;
+  --surface-2: #f7f7f7;
+  --line: #ebebeb;
+  --line-strong: #d6d6d6;
   --ink: #0a0a0a;
   --muted: #737373; /* gris del manual */
-  --faint: #9b9e9c;
-  --accent: #5aaf76; /* verde jade del manual: rellenos, botones, indicadores */
-  --accent-hover: #4c9d67;
-  --accent-ink: #000000; /* texto sobre jade: negro, como el logo sobre fondo verde */
-  --accent-soft: #e2f2e7;
+  --faint: #a3a3a3;
+  /* Acción principal: el negro "base" del manual. */
+  --primary: #0a0a0a;
+  --primary-hover: #2a2a2a;
+  --primary-ink: #ffffff;
+  /* Verde jade del manual: acento puntual (pantalla activa, foco, estados). */
+  --accent: #5aaf76;
+  --accent-soft: #eef7f1;
   --accent-text: #2a7445; /* jade oscurecido para texto sobre fondo claro (contraste AA) */
-  --ok: #1f7a43;
-  --ok-soft: #e1f2e7;
-  --warn: #a8600a;
-  --warn-soft: #fbeed8;
-  --bad: #b8352f;
-  --bad-soft: #f8e2e0;
-  --overlay: rgb(0 0 0 / 0.5);
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 20px rgb(0 0 0 / 0.05);
-  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.25);
-
-  /* Menú lateral: siempre negro, en ambos temas (negro "base" del manual). */
-  --side-bg: #050605;
-  --side-ink: #e9ecea;
-  --side-muted: #8e928f;
-  --side-line: #1b1e1c;
-  --side-hover: #111412;
+  --ok: #5aaf76;
+  --warn: #d48a1f;
+  --bad: #d4453d;
+  --bad-soft: #fdf1f0;
+  --overlay: rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0a0b0a;
-    --surface: #121413;
-    --surface-2: #181b19;
-    --line: #242826;
-    --line-strong: #323733;
-    --ink: #f1f3f2;
-    --muted: #a3a6a4;
+    --bg: #0a0a0a;
+    --surface: #0a0a0a;
+    --surface-2: #141414;
+    --line: #1f1f1f;
+    --line-strong: #2e2e2e;
+    --ink: #f2f2f2;
+    --muted: #a3a3a3;
     --faint: #737373;
-    --accent-hover: #6cc08a;
-    --accent-soft: #14291c;
+    --primary: #f2f2f2;
+    --primary-hover: #d9d9d9;
+    --primary-ink: #0a0a0a;
+    --accent-soft: #11231a;
     --accent-text: #6cc08a;
-    --ok: #6cc08a;
-    --ok-soft: #14291c;
-    --warn: #e6a24d;
-    --warn-soft: #382913;
-    --bad: #ee7d74;
-    --bad-soft: #3a1e1b;
-    --overlay: rgb(0 0 0 / 0.65);
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.6);
+    --bad: #ef7c74;
+    --bad-soft: #2a1414;
+    --overlay: rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0a0b0a;
-  --surface: #121413;
-  --surface-2: #181b19;
-  --line: #242826;
-  --line-strong: #323733;
-  --ink: #f1f3f2;
-  --muted: #a3a6a4;
+  --bg: #0a0a0a;
+  --surface: #0a0a0a;
+  --surface-2: #141414;
+  --line: #1f1f1f;
+  --line-strong: #2e2e2e;
+  --ink: #f2f2f2;
+  --muted: #a3a3a3;
   --faint: #737373;
-  --accent-hover: #6cc08a;
-  --accent-soft: #14291c;
+  --primary: #f2f2f2;
+  --primary-hover: #d9d9d9;
+  --primary-ink: #0a0a0a;
+  --accent-soft: #11231a;
   --accent-text: #6cc08a;
-  --ok: #6cc08a;
-  --ok-soft: #14291c;
-  --warn: #e6a24d;
-  --warn-soft: #382913;
-  --bad: #ee7d74;
-  --bad-soft: #3a1e1b;
-  --overlay: rgb(0 0 0 / 0.65);
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 24px 64px rgb(0 0 0 / 0.6);
+  --bad: #ef7c74;
+  --bad-soft: #2a1414;
+  --overlay: rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
 }
 
 @theme inline {
@@ -104,24 +95,17 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-ink: var(--primary-ink);
   --color-accent: var(--accent);
-  --color-accent-hover: var(--accent-hover);
-  --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
   --color-ok: var(--ok);
-  --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
-  --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
   --color-overlay: var(--overlay);
-  --color-side-bg: var(--side-bg);
-  --color-side-ink: var(--side-ink);
-  --color-side-muted: var(--side-muted);
-  --color-side-line: var(--side-line);
-  --color-side-hover: var(--side-hover);
-  --shadow-panel: var(--shadow);
   --shadow-float: var(--shadow-lg);
   --font-display: "League Spartan Variable", "Arial Black", system-ui, sans-serif;
   --font-sans: "Source Sans 3 Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -160,11 +144,11 @@
 
 /* Etiquetas en mayúsculas espaciadas, como el "A C C E S O R I O S" del logo. */
 @utility label-caps {
-  font-size: 11px;
-  letter-spacing: 0.14em;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-weight: 600;
-  color: var(--muted);
+  font-weight: 500;
+  color: var(--faint);
 }
 
 /* Muestra un elemento solo en el tema claro u oscuro (por ejemplo, la versión del logo). */

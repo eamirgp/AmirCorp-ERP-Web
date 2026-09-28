@@ -11,7 +11,7 @@ import { session } from '@/lib/session'
 import { navGroups } from './nav'
 
 const itemClass =
-  'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] text-ink data-[selected=true]:bg-accent-soft data-[selected=true]:text-accent-text [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted data-[selected=true]:[&_svg]:text-accent-text'
+  'flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-[14px] text-ink data-[selected=true]:bg-surface-2 [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-faint data-[selected=true]:[&_svg]:text-accent'
 const groupClass =
   '[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:tracking-[0.07em] [&_[cmdk-group-heading]]:text-faint [&_[cmdk-group-heading]]:uppercase'
 
@@ -48,7 +48,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       onOpenChange={onOpenChange}
       label="Buscar o ir a"
       overlayClassName="fixed inset-0 z-40 bg-overlay"
-      contentClassName="fixed top-[14vh] left-1/2 z-50 w-[calc(100%-32px)] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-line bg-surface shadow-float animate-[pop-in_120ms_ease-out]"
+      contentClassName="fixed top-[14vh] left-1/2 z-50 w-[calc(100%-32px)] max-w-xl -translate-x-1/2 overflow-hidden rounded-xl border border-line bg-surface shadow-float animate-[pop-in_120ms_ease-out]"
     >
       <div className="flex items-center gap-3 border-b border-line px-4">
         <Search className="size-4 text-faint" />

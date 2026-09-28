@@ -8,7 +8,7 @@ import { errorMessages } from '@/api/client'
 import { productListQuery, useToggleProduct, type ProductRow, type ProductStatus } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/field'
-import { ErrorList, Kbd, PageHeader, Panel } from '@/components/ui/misc'
+import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductsTable } from '@/features/products/products-table'
@@ -106,53 +106,47 @@ function ProductsPage() {
         title="Productos"
         description="Catálogo compartido por tus empresas. El stock y el costo se llevan por separado en cada una."
         actions={
-          <Button variant="primary" onClick={openNew}>
+          <Button variant="primary" onClick={openNew} title="Atajo: N">
             <Plus />
             Nuevo producto
-            <Kbd>N</Kbd>
           </Button>
         }
       />
 
-      <Panel>
-        <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3">
-          <div className="relative min-w-0 flex-1 sm:max-w-sm">
+      <section className="flex flex-col">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pb-4">
+          <div className="relative min-w-0 flex-1 sm:max-w-xs">
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" />
-            <Input ref={searchRef} value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Buscar por código o nombre" className="pr-9 pl-9" aria-label="Buscar productos" />
-            <span className="absolute top-1/2 right-2.5 -translate-y-1/2">
-              <Kbd>/</Kbd>
-            </span>
+            <Input ref={searchRef} value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Buscar por código o nombre" className="pl-9" aria-label="Buscar productos" title="Atajo: /" />
           </div>
-          <div className="flex rounded-lg border border-line bg-surface-2 p-0.5" role="tablist" aria-label="Estado">
+          <div className="flex gap-5" role="tablist" aria-label="Estado">
             {statusTabs.map((t) => (
               <button
                 key={t.value}
                 role="tab"
                 aria-selected={status === t.value}
                 onClick={() => navigate({ search: (prev) => ({ ...prev, estado: t.value === 'activos' ? undefined : t.value, page: undefined }) })}
-                className="rounded-md px-3 py-1.5 text-[13px] font-medium text-muted aria-selected:bg-surface aria-selected:text-ink aria-selected:shadow-sm"
+                className="py-1 text-[14px] text-faint transition-colors hover:text-ink aria-selected:text-ink aria-selected:shadow-[inset_0_-1.5px_0_var(--ink)]"
               >
                 {t.label}
               </button>
             ))}
           </div>
-          {list.isFetching && !list.isPending && <span className="text-[12.5px] text-faint">Actualizando…</span>}
+          {list.isFetching && !list.isPending && <span className="text-[13px] text-faint">Actualizando…</span>}
         </div>
 
         {list.isError ? (
-          <div className="p-4">
-            <ErrorList messages={errorMessages(list.error)} />
-          </div>
+          <ErrorList messages={errorMessages(list.error)} />
         ) : data && data.items.length > 0 ? (
           <ProductsTable rows={data.items} onEdit={setEditing} onToggle={onToggle} />
         ) : data ? (
           <EmptyState filtered={!!search.q || status !== 'activos'} onCreate={openNew} />
         ) : (
-          <div className="p-10 text-center text-[13.5px] text-muted">Cargando productos…</div>
+          <div className="py-16 text-center text-[14px] text-faint">Cargando productos…</div>
         )}
 
         {total > 0 && (
-          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-2.5 text-[13px] text-muted">
+          <footer className="flex flex-wrap items-center justify-between gap-3 pt-4 text-[13px] text-muted">
             <span className="num">
               {formatInt(from)}–{formatInt(to)} de {formatInt(total)}
             </span>
@@ -171,7 +165,7 @@ function ProductsPage() {
             </div>
           </footer>
         )}
-      </Panel>
+      </section>
 
       <ProductFormDialog open={!!search.nuevo || editing !== null} product={editing} onClose={closeForm} />
     </>
@@ -180,16 +174,14 @@ function ProductsPage() {
 
 function EmptyState({ filtered, onCreate }: { filtered: boolean; onCreate: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-      <span className="grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent-text">
-        <PackagePlus className="size-5" />
-      </span>
+    <div className="flex flex-col items-center gap-3 border-t border-line px-6 py-20 text-center">
+      <PackagePlus className="size-6 text-faint" strokeWidth={1.5} />
       {filtered ? (
-        <p className="text-[13.5px] text-muted">Ningún producto coincide con la búsqueda o el filtro.</p>
+        <p className="text-[14px] text-muted">Ningún producto coincide con la búsqueda o el filtro.</p>
       ) : (
         <>
-          <p className="font-display text-[17px] font-bold">Todavía no hay productos</p>
-          <p className="max-w-sm text-[13.5px] text-muted">Crea el primero. Luego podrás usarlo en compras, importaciones y ventas de cualquiera de tus empresas.</p>
+          <p className="font-display text-[17px] font-semibold">Todavía no hay productos</p>
+          <p className="max-w-sm text-[14px] text-muted">Crea el primero. Luego podrás usarlo en compras, importaciones y ventas de cualquiera de tus empresas.</p>
           <Button variant="primary" onClick={onCreate}>
             <Plus />
             Crear producto

@@ -1,7 +1,7 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
 
 const control =
-  'h-9 w-full min-w-0 rounded-lg border border-line-strong bg-surface px-3 text-[13.5px] text-ink placeholder:text-faint transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 aria-[invalid=true]:border-bad disabled:opacity-60'
+  'h-9 w-full min-w-0 rounded-md border border-line-strong bg-surface px-3 text-[14px] text-ink placeholder:text-faint transition-colors focus:border-ink focus:outline-none aria-[invalid=true]:border-bad disabled:opacity-60'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
   { className = '', ...props },

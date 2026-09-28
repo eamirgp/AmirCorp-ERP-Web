@@ -21,9 +21,9 @@ export function ProductsTable({
     () => [
       col.accessor('code', {
         header: 'Código',
-        cell: (c) => <span className="font-mono text-[12.5px] font-medium">{c.getValue()}</span>,
+        cell: (c) => <span className="font-mono text-[12.5px] text-muted">{c.getValue()}</span>,
       }),
-      col.accessor('name', { header: 'Producto', cell: (c) => <span className="font-medium">{c.getValue()}</span> }),
+      col.accessor('name', { header: 'Producto', cell: (c) => <span>{c.getValue()}</span> }),
       col.accessor('unitOfMeasureDescription', { header: 'Unidad', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('igvAffectationDescription', { header: 'IGV', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('salePrice', {
@@ -38,7 +38,7 @@ export function ProductsTable({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,
         cell: (c) => (
-          <div className="flex justify-end gap-1">
+          <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 group-focus-visible:opacity-100 max-md:opacity-100">
             <Button size="sm" variant="ghost" onClick={() => onEdit(c.row.original)} aria-label={`Editar ${c.row.original.name}`}>
               <Pencil />
               Editar
@@ -69,12 +69,12 @@ export function ProductsTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-[13.5px]">
+      <table className="w-full border-collapse text-[14px]">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((h) => (
-                <th key={h.id} className="label-caps border-b border-line bg-surface-2 px-4 py-2.5 text-left whitespace-nowrap">
+                <th key={h.id} className="border-b border-line px-3 py-2.5 text-left text-[12.5px] font-normal whitespace-nowrap text-faint first:pl-0 last:pr-0">
                   {flexRender(h.column.columnDef.header, h.getContext())}
                 </th>
               ))}
@@ -88,10 +88,10 @@ export function ProductsTable({
               tabIndex={0}
               onKeyDown={(e) => onRowKeyDown(e, row.original)}
               onDoubleClick={() => onEdit(row.original)}
-              className={`border-b border-line outline-none last:border-b-0 hover:bg-surface-2/70 focus-visible:bg-accent-soft/60 focus-visible:shadow-[inset_3px_0_0_var(--accent)] ${row.original.isActive ? '' : 'text-muted'}`}
+              className={`group border-b border-line outline-none focus-visible:bg-surface-2 focus-visible:shadow-[inset_2px_0_0_var(--accent)] ${row.original.isActive ? '' : 'text-muted'}`}
             >
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-2.5 align-middle">
+                <td key={cell.id} className="px-3 py-3 align-middle first:pl-0 last:pr-0">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
