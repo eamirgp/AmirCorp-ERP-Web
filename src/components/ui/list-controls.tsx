@@ -28,7 +28,8 @@ export function SearchBox({ value, onSearch, placeholder }: { value?: string; on
   useHotkey('/', () => inputRef.current?.focus())
 
   return (
-    <div className="relative min-w-0 flex-1 sm:max-w-xs">
+    // En celular ocupa toda la fila; en pantallas grandes, un ancho fijo junto a los filtros.
+    <div className="relative w-full min-w-0 sm:w-72 sm:flex-none">
       <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" />
       <Input
         ref={inputRef}
@@ -45,7 +46,8 @@ export function SearchBox({ value, onSearch, placeholder }: { value?: string; on
 
 /** Pie de una lista paginada: "1–20 de 57" y botones de página. */
 export function Pagination({ page, pageSize, total, onPage }: { page: number; pageSize: number; total: number; onPage: (page: number) => void }) {
-  if (total === 0) return null
+  // Con una sola página el pie no aporta nada: el contador de la barra ya dice cuántos hay.
+  if (total <= pageSize && page === 1) return null
   const from = (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
   const last = Math.max(1, Math.ceil(total / pageSize))

@@ -97,17 +97,18 @@ function PartnersPage() {
       col.accessor('documentNumber', {
         header: 'Documento',
         cell: (c) => (
-          <span className="whitespace-nowrap">
-            <span className="text-xs text-faint">{c.row.original.identityDocumentTypeDescription} </span>
-            <span className="font-mono text-xs text-muted">{c.getValue()}</span>
+          <span>
+            <span className="block font-mono text-sm whitespace-nowrap">{c.getValue()}</span>
+            <span className="block text-xs text-faint">{c.row.original.identityDocumentTypeDescription}</span>
           </span>
         ),
       }),
       col.accessor('name', { header: 'Nombre o razón social' }),
-      col.accessor('countryName', { header: 'País', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('countryName', { header: 'País', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.display({
         id: 'role',
         header: 'Rol',
+        meta: { hideOnMobile: true },
         cell: (c) => <span className="text-muted">{[c.row.original.isClient && 'Cliente', c.row.original.isSupplier && 'Proveedor'].filter(Boolean).join(' · ')}</span>,
       }),
       col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activo</Pill> : <Pill tone="neutral">Inactivo</Pill>) }),
@@ -118,11 +119,11 @@ function PartnersPage() {
           <RowActions>
             <Button size="sm" variant="ghost" onClick={() => setEditing(c.row.original)}>
               <Pencil />
-              Editar
+              <span className="max-md:sr-only">Editar</span>
             </Button>
             <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
               <Power />
-              {c.row.original.isActive ? 'Desactivar' : 'Activar'}
+              <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
             </Button>
           </RowActions>
         ),

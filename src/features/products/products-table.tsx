@@ -14,8 +14,8 @@ export function ProductsTable({ rows, onEdit, onToggle }: { rows: ProductRow[]; 
     () => [
       col.accessor('code', { header: 'Código', cell: (c) => <span className="font-mono text-xs text-muted">{c.getValue()}</span> }),
       col.accessor('name', { header: 'Producto' }),
-      col.accessor('unitOfMeasureDescription', { header: 'Unidad', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
-      col.accessor('igvAffectationDescription', { header: 'IGV', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('unitOfMeasureDescription', { header: 'Unidad', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('igvAffectationDescription', { header: 'IGV', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('salePrice', {
         header: () => <span className="block text-right">Precio</span>,
         cell: (c) => <span className="num block text-right">{formatPen(Number(c.getValue()))}</span>,
@@ -28,11 +28,11 @@ export function ProductsTable({ rows, onEdit, onToggle }: { rows: ProductRow[]; 
           <RowActions>
             <Button size="sm" variant="ghost" onClick={() => onEdit(c.row.original)} aria-label={`Editar ${c.row.original.name}`}>
               <Pencil />
-              Editar
+              <span className="max-md:sr-only">Editar</span>
             </Button>
             <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
               <Power />
-              {c.row.original.isActive ? 'Desactivar' : 'Activar'}
+              <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
             </Button>
           </RowActions>
         ),

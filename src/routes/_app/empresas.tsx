@@ -73,11 +73,11 @@ function CompaniesPage() {
           <RowActions>
             <Button size="sm" variant="ghost" onClick={() => setEditing(c.row.original)}>
               <Pencil />
-              Editar
+              <span className="max-md:sr-only">Editar</span>
             </Button>
             <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
               <Power />
-              {c.row.original.isActive ? 'Desactivar' : 'Activar'}
+              <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
             </Button>
           </RowActions>
         ),

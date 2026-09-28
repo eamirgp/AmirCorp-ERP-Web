@@ -1,7 +1,8 @@
+import * as Sheet from '@radix-ui/react-dialog'
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Check, LogOut, Monitor, Moon, Search, Sun } from 'lucide-react'
+import { Check, LogOut, Menu as MenuIcon, Monitor, Moon, Search, Sun, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { meQuery } from '@/api/account'
 import { brand } from '@/brand'
@@ -26,6 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-line bg-bg px-4 sm:px-8">
+          <MobileNav />
           <Link to="/" className="flex items-center lg:hidden" aria-label={`${brand.name}, inicio`}>
             <LogoMark height={30} />
           </Link>
@@ -48,40 +50,73 @@ export function AppShell({ children }: { children: ReactNode }) {
   )
 }
 
+/** Lista de módulos: la usan el menú lateral y el menú del celular. */
+function NavList({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <nav className="flex flex-col gap-6" aria-label="Módulos">
+      {navGroups.map((group, i) => (
+        <div key={group.label ?? i} className="flex flex-col gap-px">
+          {group.label && <div className="label-caps px-2 pb-2">{group.label}</div>}
+          {group.items.map((item) =>
+            item.to ? (
+              <Link
+                key={item.label}
+                to={item.to}
+                onClick={onNavigate}
+                activeOptions={{ exact: item.to === '/' }}
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-base text-muted transition-colors hover:text-ink data-[status=active]:bg-surface-2 data-[status=active]:font-medium data-[status=active]:text-ink [&[data-status=active]_svg]:text-accent"
+              >
+                <item.icon className="size-4" strokeWidth={1.75} />
+                {item.label}
+              </Link>
+            ) : (
+              <span key={item.label} className="flex cursor-default items-center gap-2.5 px-2 py-1.5 text-base text-faint/70" title="Módulo en desarrollo">
+                <item.icon className="size-4" strokeWidth={1.75} />
+                {item.label}
+                <span className="ml-auto text-2xs">pronto</span>
+              </span>
+            ),
+          )}
+        </div>
+      ))}
+    </nav>
+  )
+}
+
 function Sidebar() {
   return (
-    <aside className="sticky top-0 hidden h-dvh flex-col gap-8 border-r border-line px-4 py-5 lg:flex">
+    <aside className="sticky top-0 hidden h-dvh flex-col gap-8 overflow-y-auto border-r border-line px-4 py-5 lg:flex">
       <Link to="/" className="flex h-9 items-center px-2" aria-label={`${brand.name}, inicio`}>
         <Logo size={21} />
       </Link>
-
-      <nav className="flex flex-col gap-6" aria-label="Módulos">
-        {navGroups.map((group, i) => (
-          <div key={group.label ?? i} className="flex flex-col gap-px">
-            {group.label && <div className="label-caps px-2 pb-2">{group.label}</div>}
-            {group.items.map((item) =>
-              item.to ? (
-                <Link
-                  key={item.label}
-                  to={item.to}
-                  activeOptions={{ exact: item.to === '/' }}
-                  className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-base text-muted transition-colors hover:text-ink data-[status=active]:bg-surface-2 data-[status=active]:font-medium data-[status=active]:text-ink [&[data-status=active]_svg]:text-accent"
-                >
-                  <item.icon className="size-4" strokeWidth={1.75} />
-                  {item.label}
-                </Link>
-              ) : (
-                <span key={item.label} className="flex cursor-default items-center gap-2.5 px-2 py-1.5 text-base text-faint/70" title="Módulo en desarrollo">
-                  <item.icon className="size-4" strokeWidth={1.75} />
-                  {item.label}
-                  <span className="ml-auto text-2xs">pronto</span>
-                </span>
-              ),
-            )}
-          </div>
-        ))}
-      </nav>
+      <NavList />
     </aside>
+  )
+}
+
+/** Menú del celular: el mismo menú lateral, abierto como panel desde el botón ☰. */
+function MobileNav() {
+  const [open, setOpen] = useState(false)
+  return (
+    <Sheet.Root open={open} onOpenChange={setOpen}>
+      <Sheet.Trigger className="-ml-1.5 rounded-md p-1.5 text-muted hover:text-ink lg:hidden" aria-label="Abrir menú">
+        <MenuIcon className="size-6" />
+      </Sheet.Trigger>
+      <Sheet.Portal>
+        <Sheet.Overlay className="fixed inset-0 z-40 bg-overlay data-[state=open]:animate-[fade-in_120ms_ease-out]" />
+        <Sheet.Content className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col gap-8 overflow-y-auto border-r border-line bg-bg px-4 py-5 shadow-float focus:outline-none">
+          <Sheet.Title className="sr-only">Menú</Sheet.Title>
+          <Sheet.Description className="sr-only">Módulos del sistema</Sheet.Description>
+          <div className="flex items-center justify-between px-2">
+            <Logo size={21} />
+            <Sheet.Close className="rounded-md p-1.5 text-muted hover:text-ink" aria-label="Cerrar menú">
+              <X className="size-5" />
+            </Sheet.Close>
+          </div>
+          <NavList onNavigate={() => setOpen(false)} />
+        </Sheet.Content>
+      </Sheet.Portal>
+    </Sheet.Root>
   )
 }
 

@@ -30,10 +30,10 @@ export function Panel({ children, className = '' }: { children: ReactNode; class
 
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
   return (
-    <header className="flex flex-wrap items-end gap-x-6 gap-y-3">
+    <header className="flex flex-col gap-x-6 gap-y-4 sm:flex-row sm:items-end">
       <div className="min-w-0 flex-1">
         <h1 className="font-display text-2xl leading-tight font-semibold tracking-[-0.01em]">{title}</h1>
-        {description && <p className="mt-1 text-base text-muted">{description}</p>}
+        {description && <p className="mt-1 max-w-2xl text-base text-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>

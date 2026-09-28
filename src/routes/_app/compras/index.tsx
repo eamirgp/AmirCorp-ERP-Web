@@ -91,7 +91,7 @@ function PurchasesPage() {
           </span>
         ),
       }),
-      col.accessor('companyName', { header: 'Empresa', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('companyName', { header: 'Empresa', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('total', {
         header: () => <span className="block text-right">Total</span>,
         cell: (c) => <span className="num block text-right whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currency)}</span>,

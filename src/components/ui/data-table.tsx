@@ -1,5 +1,13 @@
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
+import { flexRender, getCoreRowModel, useReactTable, type ColumnDef, type RowData } from '@tanstack/react-table'
 import type { KeyboardEvent, ReactNode } from 'react'
+
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    /** Oculta la columna en pantallas angostas (celular) para que la tabla siga siendo legible. */
+    hideOnMobile?: boolean
+  }
+}
 
 /**
  * Tabla estándar del ERP: cabecera sin fondo, filas separadas por una línea fina y navegación por teclado
@@ -32,14 +40,21 @@ export function DataTable<T>({
     e.preventDefault()
   }
 
+  const responsive = (hide?: boolean) => (hide ? 'max-md:hidden' : '')
+
   return (
-    <div className="overflow-x-auto">
+    // relative: los textos ocultos para lectores de pantalla (sr-only) quedan dentro de este contenedor
+    // y no ensanchan la página en celulares.
+    <div className="relative overflow-x-auto">
       <table className="w-full border-collapse text-base">
         <thead>
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((h) => (
-                <th key={h.id} className="border-b border-line px-3 py-2.5 text-left text-xs font-normal whitespace-nowrap text-faint first:pl-0 last:pr-0">
+                <th
+                  key={h.id}
+                  className={`border-b border-line px-3 py-2.5 text-left text-xs font-normal whitespace-nowrap text-faint first:pl-0 last:pr-0 ${responsive(h.column.columnDef.meta?.hideOnMobile)}`}
+                >
                   {flexRender(h.column.columnDef.header, h.getContext())}
                 </th>
               ))}
@@ -56,7 +71,7 @@ export function DataTable<T>({
               className={`group border-b border-line outline-none focus-visible:bg-surface-2 focus-visible:shadow-[inset_2px_0_0_var(--accent)] ${isMuted?.(row.original) ? 'text-muted' : ''}`}
             >
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-3 py-3 align-middle first:pl-0 last:pr-0">
+                <td key={cell.id} className={`px-3 py-3 align-middle first:pl-0 last:pr-0 ${responsive(cell.column.columnDef.meta?.hideOnMobile)}`}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

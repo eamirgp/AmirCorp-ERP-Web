@@ -83,7 +83,7 @@ function UsersPage() {
   const columns = useMemo(
     () => [
       col.accessor('name', { header: 'Nombre' }),
-      col.accessor('email', { header: 'Correo', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('email', { header: 'Correo', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('roleDescription', { header: 'Rol', cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activo</Pill> : <Pill tone="neutral">Inactivo</Pill>) }),
       col.display({
