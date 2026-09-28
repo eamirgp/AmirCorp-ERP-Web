@@ -8,13 +8,13 @@
     "build": "vite build && tsc --noEmit",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "api:generate": "openapi-typescript http://localhost:5117/openapi/v1.json -o src/api/schema.d.ts"
+    "api:generate": "openapi-typescript http://localhost:5117/openapi/v1.json -o src/api/schema.d.ts",
+    "api:check": "node scripts/api-check.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "@fontsource/ibm-plex-sans": "^5.3.0",
-    "@hookform/resolvers": "^5.9.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
     "@tanstack/react-query": "^5.104.0",

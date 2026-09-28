@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation } from '@tanstack/react-query'
 import { createFileRoute, redirect, useRouter } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
@@ -25,16 +24,13 @@ function safeRedirect(target?: string) {
   return target && target.startsWith('/') && !target.startsWith('//') ? target : '/'
 }
 
-const formSchema = z.object({
-  email: z.string().trim().min(1, 'Ingresa tu correo.').email('El correo no es válido.'),
-  password: z.string().min(1, 'Ingresa tu contraseña.'),
-})
-type FormValues = z.infer<typeof formSchema>
+// Sin reglas propias: la API valida el correo y la contraseña y devuelve los mensajes.
+type FormValues = { email: string; password: string }
 
 function LoginPage() {
   const router = useRouter()
   const { redirect: target } = Route.useSearch()
-  const form = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: { email: '', password: '' } })
+  const form = useForm<FormValues>({ defaultValues: { email: '', password: '' } })
 
   const mutation = useMutation({
     mutationFn: (v: FormValues) => login(v.email, v.password),
@@ -43,8 +39,6 @@ function LoginPage() {
       router.history.push(safeRedirect(target))
     },
   })
-
-  const { errors } = form.formState
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
@@ -73,10 +67,10 @@ function LoginPage() {
 
           <ErrorList messages={mutation.isError ? errorMessages(mutation.error) : []} />
 
-          <Field label="Correo" error={errors.email?.message}>
+          <Field label="Correo">
             {(a) => <Input {...a} type="email" autoComplete="username" autoFocus {...form.register('email')} />}
           </Field>
-          <Field label="Contraseña" error={errors.password?.message}>
+          <Field label="Contraseña">
             {(a) => <Input {...a} type="password" autoComplete="current-password" {...form.register('password')} />}
           </Field>
 

@@ -1,8 +1,6 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
 import { useSaveProduct, type ProductRow } from '@/api/products'
@@ -12,27 +10,25 @@ import { Field, Input, Select } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 
-// Mismos límites que Product en el dominio de la API.
-const CODE_MAX = 50
-const NAME_MAX = 100
+// Sin reglas de negocio aquí: la API valida y devuelve los mensajes que se muestran arriba del formulario.
+interface Values {
+  code: string
+  name: string
+  unitOfMeasure: string
+  igvAffectation: string
+  salePrice: string
+}
 
-const schema = z.object({
-  code: z.string().trim().min(1, 'El código es requerido.').max(CODE_MAX, `Máximo ${CODE_MAX} caracteres.`),
-  name: z.string().trim().min(1, 'El nombre es requerido.').max(NAME_MAX, `Máximo ${NAME_MAX} caracteres.`),
-  unitOfMeasure: z.string().min(1, 'Elige la unidad de medida.'),
-  igvAffectation: z.string().min(1, 'Elige la afectación al IGV.'),
-  salePrice: z.number({ error: 'Ingresa el precio.' }).min(0, 'El precio no puede ser negativo.'),
-})
-type Values = z.infer<typeof schema>
+const empty: Values = { code: '', name: '', unitOfMeasure: '', igvAffectation: '', salePrice: '' }
 
-const empty: Values = { code: '', name: '', unitOfMeasure: '', igvAffectation: '', salePrice: Number.NaN }
+/** Convierte lo escrito a número; si no es un número, envía null y la API responde con el mensaje. */
+const toNumber = (value: string) => (value.trim() === '' || Number.isNaN(Number(value)) ? null : Number(value))
 
 export function ProductFormDialog({ open, product, onClose }: { open: boolean; product: ProductRow | null; onClose: () => void }) {
   const units = useQuery(unitsOfMeasureQuery)
   const igv = useQuery(igvAffectationsQuery)
   const save = useSaveProduct()
-  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: empty })
-  const { errors } = form.formState
+  const form = useForm<Values>({ defaultValues: empty })
 
   // Carga los datos del producto a editar (o limpia el formulario) cada vez que se abre.
   useEffect(() => {
@@ -46,7 +42,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             // El contrato marca los enums como opcionales aunque la API siempre los envía.
             unitOfMeasure: product.unitOfMeasure ?? '',
             igvAffectation: product.igvAffectation ?? '',
-            salePrice: Number(product.salePrice),
+            salePrice: String(product.salePrice),
           }
         : empty,
     )
@@ -60,9 +56,9 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
         input: {
           code: v.code,
           name: v.name,
-          unitOfMeasure: v.unitOfMeasure as Schemas['UnitOfMeasure'],
-          igvAffectation: v.igvAffectation as Schemas['IgvAffectation'],
-          salePrice: v.salePrice,
+          unitOfMeasure: (v.unitOfMeasure || null) as Schemas['UnitOfMeasure'] | null,
+          igvAffectation: (v.igvAffectation || null) as Schemas['IgvAffectation'] | null,
+          salePrice: toNumber(v.salePrice),
         },
       },
       {
@@ -79,7 +75,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
       open={open}
       onOpenChange={(o) => !o && onClose()}
       title={product ? 'Editar producto' : 'Nuevo producto'}
-      description={product ? `${product.code} · ${product.name}` : 'El producto queda disponible para las 3 empresas.'}
+      description={product ? `${product.code} · ${product.name}` : 'El producto queda disponible para todas las empresas.'}
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
@@ -93,22 +89,20 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
 
         <div className="grid gap-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-          <Field label="Código" hint="Se guarda en mayúsculas." error={errors.code?.message}>
-            {(a) => <Input {...a} className="font-mono uppercase" autoFocus placeholder="EL-1003" {...form.register('code')} />}
+          <Field label="Código">
+            {(a) => <Input {...a} className="font-mono" autoFocus placeholder="EL-1003" {...form.register('code')} />}
           </Field>
-          <Field label="Precio de venta (S/, con IGV)" error={errors.salePrice?.message}>
-            {(a) => (
-              <Input {...a} className="num text-right" type="number" inputMode="decimal" step="0.01" min="0" placeholder="0.00" {...form.register('salePrice', { valueAsNumber: true })} />
-            )}
+          <Field label="Precio de venta (S/, con IGV)">
+            {(a) => <Input {...a} className="num text-right" inputMode="decimal" placeholder="0.00" {...form.register('salePrice')} />}
           </Field>
         </div>
 
-        <Field label="Nombre" error={errors.name?.message}>
+        <Field label="Nombre">
           {(a) => <Input {...a} placeholder="Power bank 20 000 mAh carga rápida" {...form.register('name')} />}
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Unidad de medida" error={errors.unitOfMeasure?.message}>
+          <Field label="Unidad de medida">
             {(a) => (
               <Select {...a} {...form.register('unitOfMeasure')}>
                 <option value="">Elige…</option>
@@ -120,7 +114,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
               </Select>
             )}
           </Field>
-          <Field label="Afectación al IGV" error={errors.igvAffectation?.message}>
+          <Field label="Afectación al IGV">
             {(a) => (
               <Select {...a} {...form.register('igvAffectation')}>
                 <option value="">Elige…</option>

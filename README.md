@@ -49,11 +49,17 @@ Para usar otra dirección de API, copia `.env.example` como `.env.local` y cambi
 | `npm run build` | Build de producción en `dist/` y verificación de tipos |
 | `npm run typecheck` | Solo verificación de tipos |
 | `npm run api:generate` | Regenera `src/api/schema.d.ts` desde la API corriendo |
+| `npm run api:check` | Falla si el frontend quedó desincronizado con la API |
+
+## Regla principal: el frontend es "tonto"
+
+La API es la única fuente de verdad. El frontend **no valida reglas de negocio, no calcula, no normaliza y no decide permisos**: envía lo que el usuario escribe y muestra lo que la API responde, incluidos sus mensajes de error. Detalle en [docs/decisiones.md](docs/decisiones.md#6-frontend-tonto-la-api-es-la-única-fuente-de-verdad).
 
 ### Cuando cambia la API
 1. Arranca la API con los cambios.
 2. `npm run api:generate`.
 3. `npm run typecheck`: TypeScript marca cada lugar del frontend que quedó desactualizado.
+4. `npm run api:check` debe decir que está sincronizado.
 
 ## Atajos de teclado
 

@@ -28,6 +28,31 @@ La API emite solo un JWT de 60 minutos, sin refresh token. El frontend lo guarda
 
 **Pendiente antes de producción:** que la API emita un refresh token en una cookie `httpOnly` y que el JWT viva solo en memoria. Guardarlo en `localStorage` lo expone si alguna vez hubiera un ataque XSS.
 
-### 6. Pendientes conocidos
+### 6. Frontend "tonto": la API es la única fuente de verdad
+**Fecha:** setiembre 2026
+
+El frontend no decide nada del negocio. Muestra lo que la API devuelve, envía lo que el usuario escribe y muestra los errores de la API.
+
+**El frontend NO hace:**
+- Validaciones de negocio: requeridos, largos máximos, formatos de RUC o DNI, montos mínimos. Si el usuario escribe algo inválido, la API responde con el mensaje y el formulario lo muestra.
+- Cálculos: IGV, totales, costos, conversiones de unidades o de moneda. Cuando una pantalla necesita ver un total antes de guardar (por ejemplo, una compra), la API expone un endpoint que lo calcula.
+- Normalizaciones: mayúsculas, ceros a la izquierda, recortes.
+- Decidir permisos por su cuenta: qué módulos o acciones ve cada rol lo informará la API.
+
+**El frontend SÍ hace:**
+- Presentación: formatos de números y fechas, orden visual, colores de estado.
+- Convertir lo escrito al tipo que pide el contrato (texto a número). Si no se puede, envía `null` y la API responde con el error.
+- Comodidades que no deciden nada: estado en la URL, atajos, búsqueda con pausa, actualizaciones optimistas que se revierten si la API rechaza.
+
+**Textos:** las descripciones de catálogos, roles y estados vienen de la API (`unitOfMeasureDescription`, `roleDescription`...).
+
+### 7. Sincronización con la API
+**Fecha:** setiembre 2026
+
+- Los tipos se generan del contrato OpenAPI: `npm run api:generate`.
+- `npm run api:check` falla si el contrato de la API corriendo no coincide con `src/api/schema.d.ts`. Se corre antes de cada commit que toque llamadas a la API.
+- Flujo al cambiar la API: cambio en el backend → `api:generate` → `typecheck` → corregir lo que TypeScript marque → commit en ambos repos.
+
+### 8. Pendientes conocidos
 - **Navegación en celular:** el menú lateral se oculta en pantallas angostas. Hoy se navega con la paleta (Ctrl+K o el buscador superior); falta un menú móvil.
 - **Selector de empresa:** cuando existan pantallas por empresa (compras, stock, ventas), irá en la barra superior.
