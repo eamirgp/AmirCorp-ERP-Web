@@ -1721,6 +1721,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Países para un documento extranjero (sin Perú). */
         get: {
             parameters: {
                 query?: never;
@@ -2581,12 +2582,10 @@ export interface components {
         ChangeUserRoleRequest: {
             role: null | components["schemas"]["UserRole"];
         };
-        /** @enum {unknown} */
-        Country: "PE" | "CN";
         CreateBusinessPartnerRequest: {
             identityDocumentType: null | components["schemas"]["IdentityDocumentType"];
             documentNumber: null | string;
-            country: null | components["schemas"]["Country"];
+            countryCode: null | string;
             name: null | string;
             isClient: null | boolean;
             isSupplier: null | boolean;
@@ -2672,7 +2671,7 @@ export interface components {
             id: string;
             identityDocumentType: components["schemas"]["IdentityDocumentType"];
             documentNumber: string;
-            country: components["schemas"]["Country"];
+            countryCode: string;
             name: string;
             isClient: boolean;
             isSupplier: boolean;
@@ -2832,7 +2831,7 @@ export interface components {
             id: string;
             identityDocumentType: components["schemas"]["IdentityDocumentType"];
             documentNumber: string;
-            country: components["schemas"]["Country"];
+            countryCode: string;
             name: string;
             isClient: boolean;
             isSupplier: boolean;
@@ -2851,7 +2850,7 @@ export interface components {
             isActive: boolean;
         };
         ListCountriesResponseDto: {
-            country: components["schemas"]["Country"];
+            code: string;
             name: string;
         };
         ListCurrenciesResponseDto: {
@@ -3155,7 +3154,7 @@ export interface components {
         UpdateBusinessPartnerRequest: {
             identityDocumentType: null | components["schemas"]["IdentityDocumentType"];
             documentNumber: null | string;
-            country: null | components["schemas"]["Country"];
+            countryCode: null | string;
             name: null | string;
             isClient: null | boolean;
             isSupplier: null | boolean;
