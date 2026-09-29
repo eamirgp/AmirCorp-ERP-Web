@@ -165,15 +165,15 @@ export function SortMenu<T extends string>({
 }
 
 /**
- * Barra de filtros de una lista:
- * [buscador] [chips de filtro] [Limpiar filtros] ········ [n resultados] [Vistas] [Ordenar]
+ * Barra de filtros de una lista, en una sola fila:
+ * [buscador] [chips de filtro] [Limpiar filtros] ········ [n resultados] [Ordenar]
+ * Las vistas guardadas van arriba, como pestañas (ViewTabs). En las listas paginadas el total va en el pie.
  */
 export function FilterBar({
   search,
   filters,
   onClear,
   count,
-  views,
   sort,
   busy,
 }: {
@@ -182,8 +182,6 @@ export function FilterBar({
   /** Si se pasa, muestra "Limpiar filtros". Pásalo solo cuando haya filtros aplicados. */
   onClear?: () => void
   count?: string
-  /** Menú de vistas guardadas de la pantalla. */
-  views?: ReactNode
   sort?: ReactNode
   busy?: boolean
 }) {
@@ -200,7 +198,6 @@ export function FilterBar({
         <div className="ml-auto flex items-center gap-2">
           {busy && <span className="text-sm text-faint">Actualizando…</span>}
           {count && <span className="num text-sm text-faint">{count}</span>}
-          {views}
           {sort}
         </div>
       </div>

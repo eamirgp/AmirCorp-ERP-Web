@@ -646,9 +646,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["PagedResultOfListPurchasesResponseDto"];
-                        "application/json": components["schemas"]["PagedResultOfListPurchasesResponseDto"];
-                        "text/json": components["schemas"]["PagedResultOfListPurchasesResponseDto"];
+                        "text/plain": components["schemas"]["SortedPagedResultOfListPurchasesResponseDtoAndPurchaseSortBy"];
+                        "application/json": components["schemas"]["SortedPagedResultOfListPurchasesResponseDtoAndPurchaseSortBy"];
+                        "text/json": components["schemas"]["SortedPagedResultOfListPurchasesResponseDtoAndPurchaseSortBy"];
                     };
                 };
                 /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
@@ -833,9 +833,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["PagedResultOfListProductsResponseDto"];
-                        "application/json": components["schemas"]["PagedResultOfListProductsResponseDto"];
-                        "text/json": components["schemas"]["PagedResultOfListProductsResponseDto"];
+                        "text/plain": components["schemas"]["SortedPagedResultOfListProductsResponseDtoAndProductSortBy"];
+                        "application/json": components["schemas"]["SortedPagedResultOfListProductsResponseDtoAndProductSortBy"];
+                        "text/json": components["schemas"]["SortedPagedResultOfListProductsResponseDtoAndProductSortBy"];
                     };
                 };
                 /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
@@ -1825,9 +1825,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["PagedResultOfListBusinessPartnersResponseDto"];
-                        "application/json": components["schemas"]["PagedResultOfListBusinessPartnersResponseDto"];
-                        "text/json": components["schemas"]["PagedResultOfListBusinessPartnersResponseDto"];
+                        "text/plain": components["schemas"]["SortedPagedResultOfListBusinessPartnersResponseDtoAndBusinessPartnerSortBy"];
+                        "application/json": components["schemas"]["SortedPagedResultOfListBusinessPartnersResponseDtoAndBusinessPartnerSortBy"];
+                        "text/json": components["schemas"]["SortedPagedResultOfListBusinessPartnersResponseDtoAndBusinessPartnerSortBy"];
                     };
                 };
                 /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
@@ -2378,7 +2378,7 @@ export interface components {
             actionDescription: string;
         };
         /** @enum {unknown} */
-        BusinessPartnerSortBy: "Name" | "CreatedAt" | null;
+        BusinessPartnerSortBy: "Name" | "CreatedAt";
         CancelPurchaseRequest: {
             cancellationReason: null | string;
         };
@@ -2757,60 +2757,6 @@ export interface components {
             to: number;
             pageSizeOptions: number[];
         };
-        PagedResultOfListBusinessPartnersResponseDto: {
-            items: components["schemas"]["ListBusinessPartnersResponseDto"][];
-            /** Format: int32 */
-            page: number;
-            /** Format: int32 */
-            pageSize: number;
-            /** Format: int32 */
-            totalCount: number;
-            /** Format: int32 */
-            totalPages: number;
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
-            /** Format: int32 */
-            from: number;
-            /** Format: int32 */
-            to: number;
-            pageSizeOptions: number[];
-        };
-        PagedResultOfListProductsResponseDto: {
-            items: components["schemas"]["ListProductsResponseDto"][];
-            /** Format: int32 */
-            page: number;
-            /** Format: int32 */
-            pageSize: number;
-            /** Format: int32 */
-            totalCount: number;
-            /** Format: int32 */
-            totalPages: number;
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
-            /** Format: int32 */
-            from: number;
-            /** Format: int32 */
-            to: number;
-            pageSizeOptions: number[];
-        };
-        PagedResultOfListPurchasesResponseDto: {
-            items: components["schemas"]["ListPurchasesResponseDto"][];
-            /** Format: int32 */
-            page: number;
-            /** Format: int32 */
-            pageSize: number;
-            /** Format: int32 */
-            totalCount: number;
-            /** Format: int32 */
-            totalPages: number;
-            hasNextPage: boolean;
-            hasPreviousPage: boolean;
-            /** Format: int32 */
-            from: number;
-            /** Format: int32 */
-            to: number;
-            pageSizeOptions: number[];
-        };
         /** @enum {unknown} */
         PartnerRoleFilter: "Client" | "Supplier" | null;
         PreviewPurchaseLineRequest: {
@@ -2892,14 +2838,74 @@ export interface components {
             actionDescription: string;
         };
         /** @enum {unknown} */
-        ProductSortBy: "Name" | "CreatedAt" | null;
+        ProductSortBy: "Name" | "CreatedAt";
         /** @enum {unknown} */
-        PurchaseSortBy: "IssueDate" | "SupplierName" | "Total" | "CreatedAt" | null;
+        PurchaseSortBy: "IssueDate" | "SupplierName" | "Total" | "CreatedAt";
         ResetUserPasswordRequest: {
             newPassword: null | string;
         };
         /** @enum {unknown} */
         SavedViewScreen: "Products" | "BusinessPartners" | "Purchases" | "Companies" | "Users" | "Audit";
+        SortedPagedResultOfListBusinessPartnersResponseDtoAndBusinessPartnerSortBy: {
+            sortBy: components["schemas"]["BusinessPartnerSortBy"];
+            sortDescending: boolean;
+            items: components["schemas"]["ListBusinessPartnersResponseDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            totalCount: number;
+            /** Format: int32 */
+            totalPages: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            /** Format: int32 */
+            from: number;
+            /** Format: int32 */
+            to: number;
+            pageSizeOptions: number[];
+        };
+        SortedPagedResultOfListProductsResponseDtoAndProductSortBy: {
+            sortBy: components["schemas"]["ProductSortBy"];
+            sortDescending: boolean;
+            items: components["schemas"]["ListProductsResponseDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            totalCount: number;
+            /** Format: int32 */
+            totalPages: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            /** Format: int32 */
+            from: number;
+            /** Format: int32 */
+            to: number;
+            pageSizeOptions: number[];
+        };
+        SortedPagedResultOfListPurchasesResponseDtoAndPurchaseSortBy: {
+            sortBy: components["schemas"]["PurchaseSortBy"];
+            sortDescending: boolean;
+            items: components["schemas"]["ListPurchasesResponseDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            totalCount: number;
+            /** Format: int32 */
+            totalPages: number;
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            /** Format: int32 */
+            from: number;
+            /** Format: int32 */
+            to: number;
+            pageSizeOptions: number[];
+        };
         StringSegment: {
             buffer?: null | string;
             /** Format: int32 */

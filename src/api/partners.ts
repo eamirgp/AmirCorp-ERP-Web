@@ -41,8 +41,9 @@ export const partnerListQuery = (p: PartnerListParams) =>
               IsActive: toIsActive(p.status),
               PartnerRoleFilter: p.role ? roleFilter[p.role] : undefined,
               IdentityDocumentType: p.documentType,
-              SortBy: p.sortBy ?? 'Name',
-              SortDescending: p.descending,
+              // Sin orden elegido no se envía nada: la API aplica su orden por defecto y lo informa en la respuesta.
+              SortBy: p.sortBy,
+              SortDescending: p.sortBy ? p.descending : undefined,
             },
           },
         }),
@@ -54,7 +55,7 @@ export const partnerListQuery = (p: PartnerListParams) =>
 export const searchSuppliers = (term: string) =>
   unwrap(
     api.GET('/api/partners', {
-      params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, PartnerRoleFilter: 'Supplier', SortBy: 'Name' } },
+      params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, PartnerRoleFilter: 'Supplier' } },
     }),
   ).then((r) => r.items)
 

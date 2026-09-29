@@ -15,8 +15,8 @@ import { EmptyState, Loading, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
-import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
-import { applyDefaultView } from '@/features/saved-views/view-filters'
+import { ViewTabs } from '@/features/saved-views/view-tabs'
+import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { UserDialog } from '@/features/users/user-dialogs'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
@@ -153,6 +153,7 @@ function UsersPage() {
       />
 
       <section className="flex flex-col">
+        <ViewTabs screen="Users" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q }), replace: true })} placeholder="Buscar por nombre o correo" />}
@@ -162,9 +163,8 @@ function UsersPage() {
               <FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado }) })} />
             </>
           }
-          onClear={search.q || search.estado || search.rol ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, estado: undefined, rol: undefined }) }) : undefined}
+          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           count={list.data ? countLabel(rows.length, 'usuario', 'usuarios') : undefined}
-          views={<SavedViewsMenu screen="Users" search={search} onApply={(s) => navigate({ search: s as Search })} />}
         />
 
         {list.isError ? (

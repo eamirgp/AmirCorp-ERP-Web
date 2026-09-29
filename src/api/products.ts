@@ -34,8 +34,9 @@ export const productListQuery = (p: ProductListParams) =>
               PageSize: p.pageSize,
               SearchTerm: p.q || undefined,
               IsActive: toIsActive(p.status),
-              SortBy: p.sortBy ?? 'Name',
-              SortDescending: p.descending,
+              // Sin orden elegido no se envía nada: la API aplica su orden por defecto y lo informa en la respuesta.
+              SortBy: p.sortBy,
+              SortDescending: p.sortBy ? p.descending : undefined,
             },
           },
         }),
@@ -46,7 +47,7 @@ export const productListQuery = (p: ProductListParams) =>
 
 /** Productos activos que coinciden con el texto (para elegir uno en una línea de compra). */
 export const searchProducts = (term: string) =>
-  unwrap(api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SortBy: 'Name' } } })).then(
+  unwrap(api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true } } })).then(
     (r) => r.items,
   )
 

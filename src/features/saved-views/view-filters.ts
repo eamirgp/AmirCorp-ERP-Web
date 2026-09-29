@@ -19,6 +19,12 @@ export function toFilters(search: Search): string {
   return JSON.stringify(Object.fromEntries(kept))
 }
 
+/**
+ * Si la pantalla está distinta a como abre normalmente: búsqueda, filtros, orden o filas por página.
+ * Es lo mismo que guarda una vista, así "Limpiar filtros" quita también todo lo que puso una vista.
+ */
+export const isCustomized = (search: Search) => toFilters(search) !== '{}'
+
 /** Filtros guardados como parámetros de la URL. Si el texto está dañado, la vista abre sin filtros. */
 export function fromFilters(filters: string): Search {
   try {

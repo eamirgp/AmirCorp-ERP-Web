@@ -12,9 +12,9 @@ import { DataTable } from '@/components/ui/data-table'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
-import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
-import { applyDefaultView } from '@/features/saved-views/view-filters'
-import { countLabel, directionSchema, pageSchema, pageSizeSchema } from '@/lib/filters'
+import { ViewTabs } from '@/features/saved-views/view-tabs'
+import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
+import { directionSchema, pageSchema, pageSizeSchema } from '@/lib/filters'
 import { formatDate, formatMoney } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
 
@@ -35,14 +35,14 @@ const searchSchema = z.object({
 })
 type Search = z.infer<typeof searchSchema>
 
-// Por defecto: las más recientes primero.
+// Sin orden en la URL, la API usa el suyo por defecto.
 const listParams = (s: Search) => ({
   q: s.q,
   page: s.page ?? 1,
   pageSize: s.filas,
   companyId: s.empresa,
   sortBy: s.orden,
-  descending: s.dir !== 'asc',
+  descending: s.orden ? s.dir === 'desc' : undefined,
 })
 
 export const Route = createFileRoute('/_app/compras/')({
@@ -118,20 +118,22 @@ function PurchasesPage() {
       />
 
       <section className="flex flex-col">
+        <ViewTabs screen="Purchases" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar por comprobante o proveedor" />}
           filters={<FilterChip label="Empresa" options={companyOptions} value={search.empresa} onChange={(empresa) => navigate({ search: (prev) => ({ ...prev, empresa, page: undefined }) })} />}
-          onClear={hasFilters ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, empresa: undefined, page: undefined }) }) : undefined}
-          count={data ? countLabel(data.totalCount, 'compra', 'compras') : undefined}
-          views={<SavedViewsMenu screen="Purchases" search={search} onApply={(s) => navigate({ search: s as Search })} />}
+          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           sort={
-            <SortMenu
-              options={sortOptions}
-              value={search.orden ?? 'IssueDate'}
-              descending={search.dir !== 'asc'}
-              onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden: orden === 'IssueDate' ? undefined : orden, dir: desc ? undefined : 'asc', page: undefined }) })}
-            />
+            // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).
+            data && (
+              <SortMenu
+                options={sortOptions}
+                value={data.sortBy}
+                descending={data.sortDescending}
+                onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden, dir: desc ? 'desc' : 'asc', page: undefined }) })}
+              />
+            )
           }
         />
 

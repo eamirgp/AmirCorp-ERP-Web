@@ -1,100 +1,15 @@
-import * as Menu from '@radix-ui/react-dropdown-menu'
-import { useQuery } from '@tanstack/react-query'
-import { Bookmark, BookmarkPlus, Check, ChevronDown, Settings2, Star, StarOff } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { errorMessages } from '@/api/client'
-import { savedViewsQuery, useSavedViewMutations, type SavedView, type SavedViewScreen } from '@/api/saved-views'
+import { useSavedViewMutations, type SavedView, type SavedViewScreen } from '@/api/saved-views'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
-import { fromFilters, toFilters } from './view-filters'
 
-const menuClass = 'z-50 w-72 rounded-lg border border-line bg-surface p-1 shadow-float'
-const itemClass =
-  'relative flex cursor-pointer items-center gap-2 rounded py-1.5 pr-8 pl-2 text-sm outline-none data-[disabled]:cursor-default data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:shrink-0'
-
-/**
- * Menú "Vistas" de una lista: aplicar una vista guardada, guardar los filtros actuales y administrarlas.
- * La vista cuyo filtro coincide con la pantalla aparece con su nombre en el botón.
- */
-export function SavedViewsMenu({
-  screen,
-  search,
-  onApply,
-}: {
-  screen: SavedViewScreen
-  search: Record<string, unknown>
-  onApply: (search: Record<string, unknown>) => void
-}) {
-  const views = useQuery(savedViewsQuery(screen))
-  const { update } = useSavedViewMutations(screen)
-  const [dialog, setDialog] = useState<'save' | 'manage' | null>(null)
-
-  const current = toFilters(search)
-  const list = views.data ?? []
-  const active = list.find((v) => v.filters === current)
-
-  const toggleDefault = (v: SavedView) =>
-    update.mutate(
-      { id: v.id, name: v.name, filters: v.filters, isDefault: !v.isDefault },
-      {
-        onSuccess: () => toast.ok(v.isDefault ? `«${v.name}» ya no es la vista predeterminada` : `«${v.name}» es tu vista predeterminada`),
-        onError: (e) => toast.error(errorMessages(e)[0]),
-      },
-    )
-
-  return (
-    <>
-      <Menu.Root>
-        <Menu.Trigger className="inline-flex h-9 max-w-56 items-center gap-1.5 rounded-md px-2 text-sm text-muted outline-none hover:text-ink focus-visible:text-ink">
-          <Bookmark className="size-4 shrink-0" />
-          {active ? <span className="truncate font-medium text-ink">{active.name}</span> : <span>Vistas</span>}
-          <ChevronDown className="size-3.5 shrink-0 text-faint" />
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Content align="end" sideOffset={6} className={menuClass}>
-            <Menu.Label className="px-2 pt-1 pb-1.5 text-xs text-faint">Vistas guardadas</Menu.Label>
-            {list.length === 0 ? (
-              <p className="px-2 pb-2 text-sm text-muted">Guarda los filtros y el orden que más usas para volver a ellos con un clic.</p>
-            ) : (
-              list.map((v) => (
-                <Menu.Item key={v.id} className={itemClass} onSelect={() => onApply(fromFilters(v.filters))}>
-                  <span className="min-w-0 flex-1 truncate">{v.name}</span>
-                  {v.isDefault && <span className="text-xs text-faint">predeterminada</span>}
-                  {v.id === active?.id && <Check className="absolute right-2 text-accent" />}
-                </Menu.Item>
-              ))
-            )}
-            <Menu.Separator className="my-1 h-px bg-line" />
-            <Menu.Item className={itemClass} onSelect={() => setDialog('save')}>
-              <BookmarkPlus className="text-muted" />
-              Guardar filtros actuales como vista…
-            </Menu.Item>
-            {active && (
-              <Menu.Item className={itemClass} onSelect={() => toggleDefault(active)}>
-                {active.isDefault ? <StarOff className="text-muted" /> : <Star className="text-muted" />}
-                {active.isDefault ? 'Dejar de abrir con esta vista' : 'Abrir siempre con esta vista'}
-              </Menu.Item>
-            )}
-            {list.length > 0 && (
-              <Menu.Item className={itemClass} onSelect={() => setDialog('manage')}>
-                <Settings2 className="text-muted" />
-                Administrar vistas…
-              </Menu.Item>
-            )}
-          </Menu.Content>
-        </Menu.Portal>
-      </Menu.Root>
-
-      {dialog === 'save' && <SaveViewDialog screen={screen} filters={current} onClose={() => setDialog(null)} />}
-      {dialog === 'manage' && <ManageViewsDialog screen={screen} views={list} currentFilters={current} onClose={() => setDialog(null)} />}
-    </>
-  )
-}
-
-function SaveViewDialog({ screen, filters, onClose }: { screen: SavedViewScreen; filters: string; onClose: () => void }) {
+/** Guarda la bÃºsqueda, filtros, orden y filas por pÃ¡gina actuales como una vista nueva. */
+export function SaveViewDialog({ screen, filters, onClose }: { screen: SavedViewScreen; filters: string; onClose: () => void }) {
   const { create } = useSavedViewMutations(screen)
   const [name, setName] = useState('')
   const [isDefault, setIsDefault] = useState(false)
@@ -153,7 +68,8 @@ function SaveViewDialog({ screen, filters, onClose }: { screen: SavedViewScreen;
   )
 }
 
-function ManageViewsDialog({
+/** Lista de vistas: cambiar la predeterminada, renombrar, actualizar con los filtros actuales o eliminar. */
+export function ManageViewsDialog({
   screen,
   views,
   currentFilters,

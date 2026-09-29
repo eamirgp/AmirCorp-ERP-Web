@@ -15,9 +15,9 @@ import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductImportDialog } from '@/features/products/product-import-dialog'
 import { ProductsTable } from '@/features/products/products-table'
-import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
-import { applyDefaultView } from '@/features/saved-views/view-filters'
-import { countLabel, directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
+import { ViewTabs } from '@/features/saved-views/view-tabs'
+import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
+import { directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 // El estado de la pantalla vive en la URL: se puede compartir, recargar y usar el botón Atrás.
@@ -39,7 +39,7 @@ const searchSchema = z.object({
 })
 type Search = z.infer<typeof searchSchema>
 
-const listParams = (s: Search) => ({ q: s.q, page: s.page ?? 1, pageSize: s.filas, status: s.estado, sortBy: s.orden, descending: s.dir === 'desc' })
+const listParams = (s: Search) => ({ q: s.q, page: s.page ?? 1, pageSize: s.filas, status: s.estado, sortBy: s.orden, descending: s.orden ? s.dir === 'desc' : undefined })
 
 export const Route = createFileRoute('/_app/productos')({
   validateSearch: (search) => searchSchema.parse(search),
@@ -110,20 +110,22 @@ function ProductsPage() {
       />
 
       <section className="flex flex-col">
+        <ViewTabs screen="Products" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={onSearch} placeholder="Buscar por código o nombre" />}
           filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />}
-          onClear={hasFilters ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, estado: undefined, page: undefined }) }) : undefined}
-          count={data ? countLabel(data.totalCount, 'producto', 'productos') : undefined}
-          views={<SavedViewsMenu screen="Products" search={search} onApply={(s) => navigate({ search: s as Search })} />}
+          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           sort={
-            <SortMenu
-              options={sortOptions}
-              value={search.orden ?? 'Name'}
-              descending={search.dir === 'desc'}
-              onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden: orden === 'Name' ? undefined : orden, dir: desc ? 'desc' : undefined, page: undefined }) })}
-            />
+            // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).
+            data && (
+              <SortMenu
+                options={sortOptions}
+                value={data.sortBy}
+                descending={data.sortDescending}
+                onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden, dir: desc ? 'desc' : 'asc', page: undefined }) })}
+              />
+            )
           }
         />
 

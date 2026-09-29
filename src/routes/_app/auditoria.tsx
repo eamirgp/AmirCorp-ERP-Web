@@ -15,9 +15,9 @@ import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { ChangeList } from '@/features/audit/change-list'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
-import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
-import { applyDefaultView } from '@/features/saved-views/view-filters'
-import { countLabel, pageSchema, pageSizeSchema } from '@/lib/filters'
+import { ViewTabs } from '@/features/saved-views/view-tabs'
+import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
+import { pageSchema, pageSizeSchema } from '@/lib/filters'
 import { formatDateTime } from '@/lib/format'
 
 const daySchema = z
@@ -119,6 +119,7 @@ function AuditPage() {
       <PageHeader title="Auditoría" description="Quién creó, modificó, activó o anuló cada registro, y cuándo. Solo se puede consultar: nadie puede cambiar el historial." />
 
       <section className="flex flex-col">
+        <ViewTabs screen="Audit" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar por código o nombre del registro" />}
@@ -131,9 +132,7 @@ function AuditPage() {
               <DateFilter label="Hasta" value={search.hasta} onChange={(hasta) => filter({ hasta })} />
             </>
           }
-          onClear={hasFilters ? () => filter({ q: undefined, modulo: undefined, accion: undefined, usuario: undefined, desde: undefined, hasta: undefined }) : undefined}
-          count={data ? countLabel(data.totalCount, 'evento', 'eventos') : undefined}
-          views={<SavedViewsMenu screen="Audit" search={search} onApply={(s) => navigate({ search: s as Search })} />}
+          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
         />
 
         {list.isError ? (

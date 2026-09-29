@@ -69,8 +69,10 @@ El frontend no calcula montos. Cuando una pantalla necesita mostrar un resultado
 
 ## Vistas guardadas
 
-- `SavedViewsMenu` (`features/saved-views/`) va en el `FilterBar` de cada lista: aplica una vista, guarda los filtros actuales como vista nueva, la marca como predeterminada y abre "Administrar vistas" (renombrar, actualizar con los filtros actuales, eliminar).
+- `ViewTabs` (`features/saved-views/`) va arriba del `FilterBar` de cada lista, como pestañas: "Todos" (la pantalla sin vista), una pestaña por vista (★ = predeterminada), "Guardar vista" cuando lo que se ve no coincide con ninguna, y ⚙ para "Administrar vistas" (predeterminada, renombrar, actualizar con los filtros actuales, eliminar). Los diálogos están en `view-dialogs.tsx`.
 - Una vista es la URL de la pantalla sin la página ni los diálogos abiertos (`toFilters`), guardada como JSON en la API por usuario.
+- "Todos" y "Limpiar filtros" hacen lo mismo: vuelven la pantalla a como abre normalmente (`navigate({ search: {} })`), incluidos el orden y las filas por página. "Limpiar filtros" aparece cuando `isCustomized(search)`.
+- La barra de filtros queda en una sola fila: búsqueda, filtros, "Limpiar filtros" y, a la derecha, el orden. En las listas paginadas el total va solo en el pie.
 - `applyDefaultView(screen)` va en el `beforeLoad` de la ruta: al **entrar** a la pantalla sin filtros, redirige a la vista predeterminada. Estando dentro no actúa, así "Limpiar filtros" muestra todo.
 
 ## Cómo agregar una pantalla de lista
@@ -79,7 +81,7 @@ Ejemplo: `/ventas`. Usa `src/routes/_app/socios.tsx` como modelo.
 
 1. **API:** crea `src/api/sales.ts` con sus `queryOptions` (listado paginado con filtros y orden) y mutaciones. Para activar/desactivar usa `useToggleActive`.
 2. **Ruta:** crea `src/routes/_app/ventas/index.tsx` con su `validateSearch` (búsqueda, página, filtros y orden en la URL), `loader` y componente. El plugin actualiza `routeTree.gen.ts` solo.
-3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `DataTable` y `Pagination info={data}`. La página va en `?page=` y las filas por página en `?filas=`; los rangos, el total de páginas y las opciones de filas salen de la respuesta. La tabla muestra solo lo que se usa para trabajar: la auditoría no va como columna ni en los formularios. Agrega `SavedViewsMenu` en `views` y `beforeLoad: applyDefaultView('<Pantalla>')` (la pantalla debe existir en `SavedViewScreen` de la API).
+3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `DataTable` y `Pagination info={data}`. El orden va en `?orden=` y `?dir=` solo cuando el usuario elige uno; si no, no se envía y `SortMenu` muestra el que devuelve la API (`data.sortBy`, `data.sortDescending`). La página va en `?page=` y las filas por página en `?filas=`; los rangos, el total de páginas y las opciones de filas salen de la respuesta. La tabla muestra solo lo que se usa para trabajar: la auditoría no va como columna ni en los formularios. Agrega `<ViewTabs>` antes del `FilterBar` y `beforeLoad: applyDefaultView('<Pantalla>')` (la pantalla debe existir en `SavedViewScreen` de la API).
 4. **Formularios y detalle:** en `src/features/sales/`. Agrega la acción "Historial" en cada fila, que abre `HistorySheet` con el tipo de registro de la API (`AuditEntityType`) y su ID.
 5. **Menú:** agrega `to: '/ventas'` en `src/components/layout/nav.ts` (y a `NavPath`).
 6. Conecta el atajo `N` con `useHotkey('n', ...)` y agrega "Nueva venta" a la paleta de comandos.

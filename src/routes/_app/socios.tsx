@@ -15,9 +15,9 @@ import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
-import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
-import { applyDefaultView } from '@/features/saved-views/view-filters'
-import { countLabel, directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
+import { ViewTabs } from '@/features/saved-views/view-tabs'
+import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
+import { directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 const searchSchema = z.object({
@@ -41,7 +41,7 @@ const listParams = (s: Search) => ({
   role: s.rol,
   documentType: s.doc,
   sortBy: s.orden,
-  descending: s.dir === 'desc',
+  descending: s.orden ? s.dir === 'desc' : undefined,
 })
 
 export const Route = createFileRoute('/_app/socios')({
@@ -160,6 +160,7 @@ function PartnersPage() {
       />
 
       <section className="flex flex-col">
+        <ViewTabs screen="BusinessPartners" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar por documento o nombre" />}
@@ -170,16 +171,17 @@ function PartnersPage() {
               <FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />
             </>
           }
-          onClear={hasFilters ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, rol: undefined, doc: undefined, estado: undefined, page: undefined }) }) : undefined}
-          count={data ? countLabel(data.totalCount, 'registro', 'registros') : undefined}
-          views={<SavedViewsMenu screen="BusinessPartners" search={search} onApply={(s) => navigate({ search: s as Search })} />}
+          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           sort={
-            <SortMenu
-              options={sortOptions}
-              value={search.orden ?? 'Name'}
-              descending={search.dir === 'desc'}
-              onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden: orden === 'Name' ? undefined : orden, dir: desc ? 'desc' : undefined, page: undefined }) })}
-            />
+            // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).
+            data && (
+              <SortMenu
+                options={sortOptions}
+                value={data.sortBy}
+                descending={data.sortDescending}
+                onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden, dir: desc ? 'desc' : 'asc', page: undefined }) })}
+              />
+            )
           }
         />
 

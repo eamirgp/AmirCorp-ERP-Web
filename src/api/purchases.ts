@@ -30,7 +30,17 @@ export const purchaseListQuery = (p: PurchaseListParams) =>
     queryFn: () =>
       unwrap(
         api.GET('/api/purchases', {
-          params: { query: { Page: p.page, PageSize: p.pageSize, SearchTerm: p.q || undefined, CompanyId: p.companyId, SortBy: p.sortBy ?? 'IssueDate', SortDescending: p.descending ?? true } },
+          // Sin orden elegido no se envía nada: la API aplica su orden por defecto y lo informa en la respuesta.
+          params: {
+            query: {
+              Page: p.page,
+              PageSize: p.pageSize,
+              SearchTerm: p.q || undefined,
+              CompanyId: p.companyId,
+              SortBy: p.sortBy,
+              SortDescending: p.sortBy ? p.descending : undefined,
+            },
+          },
         }),
       ),
     placeholderData: keepPreviousData,

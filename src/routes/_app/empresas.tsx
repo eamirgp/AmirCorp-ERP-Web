@@ -14,8 +14,8 @@ import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
-import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
-import { applyDefaultView } from '@/features/saved-views/view-filters'
+import { ViewTabs } from '@/features/saved-views/view-tabs'
+import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
@@ -115,13 +115,13 @@ function CompaniesPage() {
       />
 
       <section className="flex flex-col">
+        <ViewTabs screen="Companies" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q }), replace: true })} placeholder="Buscar por RUC o razón social" />}
           filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado }) })} />}
-          onClear={search.q || search.estado ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, estado: undefined }) }) : undefined}
+          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           count={list.data ? countLabel(rows.length, 'empresa', 'empresas') : undefined}
-          views={<SavedViewsMenu screen="Companies" search={search} onApply={(s) => navigate({ search: s as Search })} />}
         />
 
         {list.isError ? (
