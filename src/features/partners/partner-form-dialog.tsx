@@ -72,6 +72,12 @@ export function PartnerFormDialog({
   const selectedType = docTypes.data?.find((d) => d.identityDocumentType === docType)
   const asksCountry = selectedType?.requiresCountry ?? false
 
+  // Un proveedor no puede tener DNI (lo indica la API con canBeSupplier): si "Proveedor" está marcado no se ofrece
+  // DNI, y si se eligió DNI la casilla "Proveedor" se desactiva. Así no se llega al error recién al guardar.
+  const isSupplier = form.watch('isSupplier')
+  const docTypeOptions = (docTypes.data ?? []).filter((d) => !isSupplier || d.canBeSupplier || d.identityDocumentType === docType)
+  const supplierBlocked = selectedType !== undefined && !selectedType.canBeSupplier
+
   // Buscar en SUNAT: solo si la API lo permite para este tipo (RUC con la consulta configurada).
   const lookup = useLookupRuc()
   const documentNumber = form.watch('documentNumber')
@@ -91,8 +97,9 @@ export function PartnerFormDialog({
           documentNumber: v.documentNumber,
           countryCode: asksCountry ? (v.country?.code ?? null) : null,
           name: v.name,
-          isClient: v.isClient,
-          isSupplier: v.isSupplier,
+          // Una casilla desactivada llega vacía: se envía como "no".
+          isClient: !!v.isClient,
+          isSupplier: !supplierBlocked && !!v.isSupplier,
         },
       },
       {
@@ -125,11 +132,11 @@ export function PartnerFormDialog({
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
 
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <Field label="Tipo de documento">
+          <Field label="Tipo de documento" hint={isSupplier ? 'Un proveedor necesita RUC o documento extranjero.' : undefined}>
             {(a) => (
               <Select {...a} autoFocus {...form.register('identityDocumentType')}>
                 <option value="">Elige…</option>
-                {docTypes.data?.map((d) => (
+                {docTypeOptions.map((d) => (
                   <option key={d.identityDocumentType} value={d.identityDocumentType}>
                     {d.description}
                   </option>
@@ -204,10 +211,11 @@ export function PartnerFormDialog({
             <input type="checkbox" className="size-4 [accent-color:var(--ink)]" {...form.register('isClient')} />
             Cliente
           </label>
-          <label className="flex items-center gap-2.5 text-base">
-            <input type="checkbox" className="size-4 [accent-color:var(--ink)]" {...form.register('isSupplier')} />
+          <label className={`flex items-center gap-2.5 text-base ${supplierBlocked ? 'text-faint' : ''}`}>
+            <input type="checkbox" className="size-4 [accent-color:var(--ink)]" disabled={supplierBlocked} {...form.register('isSupplier')} />
             Proveedor
           </label>
+          {supplierBlocked && <p className="pl-6.5 text-xs text-faint">Con {selectedType.description} no puede ser proveedor: no emite facturas.</p>}
         </fieldset>
       </form>
     </Dialog>
