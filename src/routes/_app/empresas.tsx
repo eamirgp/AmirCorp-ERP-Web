@@ -14,6 +14,8 @@ import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
+import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
+import { applyDefaultView } from '@/features/saved-views/view-filters'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
@@ -22,9 +24,11 @@ const searchSchema = z.object({
   estado: statusSchema,
   nuevo: z.boolean().optional().catch(undefined),
 })
+type Search = z.infer<typeof searchSchema>
 
 export const Route = createFileRoute('/_app/empresas')({
   validateSearch: (search) => searchSchema.parse(search),
+  beforeLoad: applyDefaultView('Companies'),
   loader: ({ context }) => context.queryClient.ensureQueryData(companiesQuery),
   component: CompaniesPage,
 })
@@ -117,6 +121,7 @@ function CompaniesPage() {
           filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado }) })} />}
           onClear={search.q || search.estado ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, estado: undefined }) }) : undefined}
           count={list.data ? countLabel(rows.length, 'empresa', 'empresas') : undefined}
+          views={<SavedViewsMenu screen="Companies" search={search} onApply={(s) => navigate({ search: s as Search })} />}
         />
 
         {list.isError ? (

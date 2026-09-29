@@ -15,6 +15,8 @@ import { EmptyState, Loading, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
+import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
+import { applyDefaultView } from '@/features/saved-views/view-filters'
 import { UserDialog } from '@/features/users/user-dialogs'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
@@ -25,9 +27,11 @@ const searchSchema = z.object({
   rol: z.string().optional().catch(undefined),
   nuevo: z.boolean().optional().catch(undefined),
 })
+type Search = z.infer<typeof searchSchema>
 
 export const Route = createFileRoute('/_app/usuarios')({
   validateSearch: (search) => searchSchema.parse(search),
+  beforeLoad: applyDefaultView('Users'),
   loader: ({ context }) => {
     void context.queryClient.prefetchQuery(assignableRolesQuery)
     return context.queryClient.ensureQueryData(usersQuery)
@@ -160,6 +164,7 @@ function UsersPage() {
           }
           onClear={search.q || search.estado || search.rol ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, estado: undefined, rol: undefined }) }) : undefined}
           count={list.data ? countLabel(rows.length, 'usuario', 'usuarios') : undefined}
+          views={<SavedViewsMenu screen="Users" search={search} onApply={(s) => navigate({ search: s as Search })} />}
         />
 
         {list.isError ? (

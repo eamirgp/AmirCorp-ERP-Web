@@ -18,6 +18,7 @@ Consume la API de [AmirCorp-ERP](https://github.com/eamirgp/AmirCorp-ERP) y gene
 | Usuarios | ✅ Crear, editar, cambiar rol, restablecer contraseña, activar/desactivar |
 | Compras | ✅ Lista, detalle, anulación y registro con totales calculados por la API en vivo |
 | Auditoría | ✅ Historial de cada registro (panel lateral) y pantalla general con filtros |
+| Vistas guardadas | ✅ En todas las listas: guardar filtros y orden con un nombre, y abrir la pantalla con una vista predeterminada |
 | Ventas, importaciones, inventario | 🚧 Aparecen en el menú como "pronto" |
 
 ## Tecnología

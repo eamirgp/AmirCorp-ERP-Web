@@ -402,6 +402,168 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/saved-views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    Screen?: components["schemas"]["SavedViewScreen"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ListSavedViewsResponseDto"][];
+                        "application/json": components["schemas"]["ListSavedViewsResponseDto"][];
+                        "text/json": components["schemas"]["ListSavedViewsResponseDto"][];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateSavedViewRequest"];
+                    "text/json": components["schemas"]["CreateSavedViewRequest"];
+                    "application/*+json": components["schemas"]["CreateSavedViewRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["CreatedResponseDto"];
+                        "application/json": components["schemas"]["CreatedResponseDto"];
+                        "text/json": components["schemas"]["CreatedResponseDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/saved-views/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateSavedViewRequest"];
+                    "text/json": components["schemas"]["UpdateSavedViewRequest"];
+                    "application/*+json": components["schemas"]["UpdateSavedViewRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/purchases/preview": {
         parameters: {
             query?: never;
@@ -2277,6 +2439,12 @@ export interface components {
             supplierId: null | string;
             lines: null | components["schemas"]["CreatePurchaseLineRequest"][];
         };
+        CreateSavedViewRequest: {
+            screen: null | components["schemas"]["SavedViewScreen"];
+            name: null | string;
+            filters: null | string;
+            isDefault: null | boolean;
+        };
         CreateUserRequest: {
             name: null | string;
             email: null | string;
@@ -2537,6 +2705,14 @@ export interface components {
             currencyDescription: string;
             fullNumber: string;
         };
+        ListSavedViewsResponseDto: {
+            /** Format: uuid */
+            id: string;
+            screen: components["schemas"]["SavedViewScreen"];
+            name: string;
+            filters: string;
+            isDefault: boolean;
+        };
         ListTaxDocumentTypesResponseDto: {
             taxDocumentType: components["schemas"]["TaxDocumentType"];
             description: string;
@@ -2722,6 +2898,8 @@ export interface components {
         ResetUserPasswordRequest: {
             newPassword: null | string;
         };
+        /** @enum {unknown} */
+        SavedViewScreen: "Products" | "BusinessPartners" | "Purchases" | "Companies" | "Users" | "Audit";
         StringSegment: {
             buffer?: null | string;
             /** Format: int32 */
@@ -2754,6 +2932,11 @@ export interface components {
             igvAffectation: null | components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: null | number;
+        };
+        UpdateSavedViewRequest: {
+            name: null | string;
+            filters: null | string;
+            isDefault: null | boolean;
         };
         UpdateUserProfileRequest: {
             name: null | string;

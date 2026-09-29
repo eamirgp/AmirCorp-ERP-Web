@@ -12,6 +12,8 @@ import { DataTable } from '@/components/ui/data-table'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
+import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
+import { applyDefaultView } from '@/features/saved-views/view-filters'
 import { countLabel, directionSchema, pageSchema, pageSizeSchema } from '@/lib/filters'
 import { formatDate, formatMoney } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
@@ -45,6 +47,7 @@ const listParams = (s: Search) => ({
 
 export const Route = createFileRoute('/_app/compras/')({
   validateSearch: (search) => searchSchema.parse(search),
+  beforeLoad: applyDefaultView('Purchases'),
   loaderDeps: ({ search }) => listParams(search),
   loader: ({ context, deps }) => {
     void context.queryClient.prefetchQuery(companiesQuery)
@@ -121,6 +124,7 @@ function PurchasesPage() {
           filters={<FilterChip label="Empresa" options={companyOptions} value={search.empresa} onChange={(empresa) => navigate({ search: (prev) => ({ ...prev, empresa, page: undefined }) })} />}
           onClear={hasFilters ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, empresa: undefined, page: undefined }) }) : undefined}
           count={data ? countLabel(data.totalCount, 'compra', 'compras') : undefined}
+          views={<SavedViewsMenu screen="Purchases" search={search} onApply={(s) => navigate({ search: s as Search })} />}
           sort={
             <SortMenu
               options={sortOptions}

@@ -15,6 +15,8 @@ import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { ChangeList } from '@/features/audit/change-list'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
+import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
+import { applyDefaultView } from '@/features/saved-views/view-filters'
 import { countLabel, pageSchema, pageSizeSchema } from '@/lib/filters'
 import { formatDateTime } from '@/lib/format'
 
@@ -50,6 +52,7 @@ const listParams = (s: Search) => ({
 
 export const Route = createFileRoute('/_app/auditoria')({
   validateSearch: (search) => searchSchema.parse(search),
+  beforeLoad: applyDefaultView('Audit'),
   loaderDeps: ({ search }) => listParams(search),
   loader: ({ context, deps }) => {
     void context.queryClient.prefetchQuery(auditEntityTypesQuery)
@@ -130,6 +133,7 @@ function AuditPage() {
           }
           onClear={hasFilters ? () => filter({ q: undefined, modulo: undefined, accion: undefined, usuario: undefined, desde: undefined, hasta: undefined }) : undefined}
           count={data ? countLabel(data.totalCount, 'evento', 'eventos') : undefined}
+          views={<SavedViewsMenu screen="Audit" search={search} onApply={(s) => navigate({ search: s as Search })} />}
         />
 
         {list.isError ? (

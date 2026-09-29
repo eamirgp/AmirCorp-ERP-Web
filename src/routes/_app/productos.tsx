@@ -15,6 +15,8 @@ import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductImportDialog } from '@/features/products/product-import-dialog'
 import { ProductsTable } from '@/features/products/products-table'
+import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
+import { applyDefaultView } from '@/features/saved-views/view-filters'
 import { countLabel, directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
@@ -41,6 +43,7 @@ const listParams = (s: Search) => ({ q: s.q, page: s.page ?? 1, pageSize: s.fila
 
 export const Route = createFileRoute('/_app/productos')({
   validateSearch: (search) => searchSchema.parse(search),
+  beforeLoad: applyDefaultView('Products'),
   loaderDeps: ({ search }) => listParams(search),
   loader: ({ context, deps }) => {
     void context.queryClient.prefetchQuery(unitsOfMeasureQuery)
@@ -113,6 +116,7 @@ function ProductsPage() {
           filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />}
           onClear={hasFilters ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, estado: undefined, page: undefined }) }) : undefined}
           count={data ? countLabel(data.totalCount, 'producto', 'productos') : undefined}
+          views={<SavedViewsMenu screen="Products" search={search} onApply={(s) => navigate({ search: s as Search })} />}
           sort={
             <SortMenu
               options={sortOptions}

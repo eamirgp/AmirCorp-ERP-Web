@@ -15,6 +15,8 @@ import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
+import { SavedViewsMenu } from '@/features/saved-views/saved-views-menu'
+import { applyDefaultView } from '@/features/saved-views/view-filters'
 import { countLabel, directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
@@ -44,6 +46,7 @@ const listParams = (s: Search) => ({
 
 export const Route = createFileRoute('/_app/socios')({
   validateSearch: (search) => searchSchema.parse(search),
+  beforeLoad: applyDefaultView('BusinessPartners'),
   loaderDeps: ({ search }) => listParams(search),
   loader: ({ context, deps }) => {
     void context.queryClient.prefetchQuery(identityDocumentTypesQuery)
@@ -169,6 +172,7 @@ function PartnersPage() {
           }
           onClear={hasFilters ? () => navigate({ search: (prev) => ({ ...prev, q: undefined, rol: undefined, doc: undefined, estado: undefined, page: undefined }) }) : undefined}
           count={data ? countLabel(data.totalCount, 'registro', 'registros') : undefined}
+          views={<SavedViewsMenu screen="BusinessPartners" search={search} onApply={(s) => navigate({ search: s as Search })} />}
           sort={
             <SortMenu
               options={sortOptions}
