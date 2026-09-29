@@ -409,7 +409,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Todo el catálogo: primero las activas y luego por nombre. */
+        /** Todo el catálogo, por nombre de la A a la Z. */
         get: {
             parameters: {
                 query?: never;

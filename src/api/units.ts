@@ -10,7 +10,7 @@ export const unitKeys = {
   lists: () => [...unitKeys.all, 'list'] as const,
 }
 
-/** Todo el catálogo SUNAT, para la pantalla de administración (primero las activas). */
+/** Todo el catálogo SUNAT, para la pantalla de administración (por nombre, de la A a la Z). */
 export const unitsQuery = queryOptions({
   queryKey: unitKeys.lists(),
   queryFn: () => unwrap(api.GET('/api/units-of-measure')),
