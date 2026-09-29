@@ -10,7 +10,7 @@ import { errorMessages } from '@/api/client'
 import { usersQuery } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowActions } from '@/components/ui/data-table'
-import { DateFilter, FilterBar, FilterChip } from '@/components/ui/filters'
+import { FilterBar } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { ChangeList } from '@/features/audit/change-list'
@@ -123,15 +123,13 @@ function AuditPage() {
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar en el historial" hint="Por código o nombre del registro" />}
-          filters={
-            <>
-              <FilterChip label="Módulo" options={moduleOptions} value={search.modulo} onChange={(modulo) => filter({ modulo })} />
-              <FilterChip label="Acción" options={actionOptions} value={search.accion} onChange={(accion) => filter({ accion })} />
-              <FilterChip label="Usuario" options={userOptions} value={search.usuario} onChange={(usuario) => filter({ usuario })} />
-              <DateFilter label="Desde" value={search.desde} onChange={(desde) => filter({ desde })} />
-              <DateFilter label="Hasta" value={search.hasta} onChange={(hasta) => filter({ hasta })} />
-            </>
-          }
+          filters={[
+            { kind: 'select', key: 'modulo', label: 'Módulo', options: moduleOptions, value: search.modulo, onChange: (modulo) => filter({ modulo }) },
+            { kind: 'select', key: 'accion', label: 'Acción', options: actionOptions, value: search.accion, onChange: (accion) => filter({ accion }) },
+            { kind: 'select', key: 'usuario', label: 'Usuario', options: userOptions, value: search.usuario, onChange: (usuario) => filter({ usuario }) },
+            { kind: 'date', key: 'desde', label: 'Desde', value: search.desde, onChange: (desde) => filter({ desde }) },
+            { kind: 'date', key: 'hasta', label: 'Hasta', value: search.hasta, onChange: (hasta) => filter({ hasta }) },
+          ]}
           onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
         />
 

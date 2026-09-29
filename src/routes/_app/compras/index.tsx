@@ -9,7 +9,7 @@ import { companiesQuery } from '@/api/companies'
 import { purchaseListQuery, type PurchaseRow, type PurchaseSortBy } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
-import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
+import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
@@ -122,7 +122,16 @@ function PurchasesPage() {
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar compras" hint="Por serie y número del comprobante o por proveedor" />}
-          filters={<FilterChip label="Empresa" options={companyOptions} value={search.empresa} onChange={(empresa) => navigate({ search: (prev) => ({ ...prev, empresa, page: undefined }) })} />}
+          filters={[
+            {
+              kind: 'select',
+              key: 'empresa',
+              label: 'Empresa',
+              options: companyOptions,
+              value: search.empresa,
+              onChange: (empresa) => navigate({ search: (prev) => ({ ...prev, empresa, page: undefined }) }),
+            },
+          ]}
           onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           sort={
             // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).

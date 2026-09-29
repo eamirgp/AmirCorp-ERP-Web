@@ -12,12 +12,15 @@ export function Sheet({
   title,
   description,
   children,
+  footer,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
   description?: string
   children: ReactNode
+  /** Botones fijos al pie del panel (ej.: "Limpiar todo" y "Listo"). */
+  footer?: ReactNode
 }) {
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -38,6 +41,7 @@ export function Sheet({
             </RadixDialog.Close>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">{children}</div>
+          {footer && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line px-6 py-4">{footer}</div>}
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>

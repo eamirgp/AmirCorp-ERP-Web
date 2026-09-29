@@ -7,7 +7,7 @@ import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
 import { productListQuery, useToggleProduct, type ProductRow, type ProductSortBy } from '@/api/products'
 import { Button } from '@/components/ui/button'
-import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
+import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
@@ -122,7 +122,16 @@ function ProductsPage() {
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={onSearch} placeholder="Buscar productos" hint="Por código interno, código de proveedor o nombre" />}
-          filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />}
+          filters={[
+            {
+              kind: 'select',
+              key: 'estado',
+              label: 'Estado',
+              options: statusOptions,
+              value: search.estado,
+              onChange: (estado) => navigate({ search: (prev) => ({ ...prev, estado: estado as Search['estado'], page: undefined }) }),
+            },
+          ]}
           onClear={isCustomized(search) ? clearFilters : undefined}
           sort={
             // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).

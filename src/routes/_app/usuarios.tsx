@@ -9,7 +9,7 @@ import { errorMessages } from '@/api/client'
 import { usersQuery, useToggleUser, type UserRow } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
-import { FilterBar, FilterChip } from '@/components/ui/filters'
+import { FilterBar } from '@/components/ui/filters'
 import { EmptyState, Loading, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
@@ -136,12 +136,17 @@ function UsersPage() {
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q }), replace: true })} placeholder="Buscar usuarios" hint="Por nombre o correo" />}
-          filters={
-            <>
-              <FilterChip label="Rol" options={roleOptions} value={search.rol} onChange={(rol) => navigate({ search: (prev) => ({ ...prev, rol }) })} />
-              <FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado }) })} />
-            </>
-          }
+          filters={[
+            { kind: 'select', key: 'rol', label: 'Rol', options: roleOptions, value: search.rol, onChange: (rol) => navigate({ search: (prev) => ({ ...prev, rol }) }) },
+            {
+              kind: 'select',
+              key: 'estado',
+              label: 'Estado',
+              options: statusOptions,
+              value: search.estado,
+              onChange: (estado) => navigate({ search: (prev) => ({ ...prev, estado: estado as Search['estado'] }) }),
+            },
+          ]}
           onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           count={list.data ? countLabel(rows.length, 'usuario', 'usuarios') : undefined}
         />

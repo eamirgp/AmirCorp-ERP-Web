@@ -9,7 +9,7 @@ import { errorMessages } from '@/api/client'
 import { partnerListQuery, useTogglePartner, type PartnerRole, type PartnerRow, type PartnerSortBy } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
-import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
+import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
@@ -163,13 +163,32 @@ function PartnersPage() {
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar clientes y proveedores" hint="Por número de documento o nombre" />}
-          filters={
-            <>
-              <FilterChip label="Rol" options={roleOptions} value={search.rol} onChange={(rol) => navigate({ search: (prev) => ({ ...prev, rol, page: undefined }) })} />
-              <FilterChip label="Documento" options={docOptions} value={search.doc} onChange={(doc) => navigate({ search: (prev) => ({ ...prev, doc, page: undefined }) })} />
-              <FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />
-            </>
-          }
+          filters={[
+            {
+              kind: 'select',
+              key: 'rol',
+              label: 'Rol',
+              options: roleOptions,
+              value: search.rol,
+              onChange: (rol) => navigate({ search: (prev) => ({ ...prev, rol: rol as Search['rol'], page: undefined }) }),
+            },
+            {
+              kind: 'select',
+              key: 'doc',
+              label: 'Documento',
+              options: docOptions,
+              value: search.doc,
+              onChange: (doc) => navigate({ search: (prev) => ({ ...prev, doc: doc as Search['doc'], page: undefined }) }),
+            },
+            {
+              kind: 'select',
+              key: 'estado',
+              label: 'Estado',
+              options: statusOptions,
+              value: search.estado,
+              onChange: (estado) => navigate({ search: (prev) => ({ ...prev, estado: estado as Search['estado'], page: undefined }) }),
+            },
+          ]}
           onClear={isCustomized(search) ? clearFilters : undefined}
           sort={
             // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).

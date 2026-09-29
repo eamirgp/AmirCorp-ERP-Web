@@ -87,7 +87,7 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 - **Estados como pastillas** de color suave (`Pill`): verde jade para activo, gris para inactivo, rojo para anulado.
 - **Confirmar lo que quita algo:** desactivar pide confirmación con `ConfirmDialog` (`useConfirmToggle`), explicando qué pasa; activar no. El botón queda bloqueado mientras se guarda.
 - **Avisos:** los de éxito se van solos a los 5 s; los de error se quedan hasta que el usuario los cierra.
-- **Filtros como chips**, al estilo de Stripe o Linear: `⊕ Estado` punteado sin valor, `Estado: Activos ✕` con valor. A la derecha, el número de resultados y el menú "Ordenar". "Limpiar filtros" aparece solo con filtros aplicados. Por defecto no hay filtros: se ve todo y lo inactivo aparece atenuado.
+- **Filtros al estilo de Shopify:** la barra tiene el buscador, un botón **"Filtros"** con el número de filtros aplicados y, a la derecha, "Ordenar". El botón abre un panel lateral con todos los filtros, que se aplican al instante. Debajo de la barra aparecen **solo los filtros aplicados**, como chips `Estado: Activos ✕`, y "Limpiar filtros". Así la barra se ve igual con 1 filtro o con 10. Cada pantalla describe sus filtros (`FilterDef`) y `FilterBar` los dibuja. Por defecto no hay filtros: se ve todo y lo inactivo aparece atenuado.
 - **Estados como punto de color + texto** (`Pill`), sin fondo.
 - **Atajos discretos:** se enseñan en Inicio y como ayuda al pasar el mouse. No hay cajitas de teclas en cada botón.
 - **Todo se puede hacer con teclado:** `/` para buscar, `N` para crear, flechas y Enter.
