@@ -306,7 +306,7 @@ function NewPurchasePage() {
                           />
                         )}
                       />
-                      {result?.error && <p className="mt-1.5 text-xs text-bad">{result.error}</p>}
+                      {result?.error && <p className="mt-1.5 text-sm text-bad">{result.error}</p>}
                     </td>
                     <td className="px-2 py-2">
                       <Select aria-label="Afectación al IGV" className="min-w-28" {...form.register(`lines.${i}.invoiceIgvAffectation`)}>

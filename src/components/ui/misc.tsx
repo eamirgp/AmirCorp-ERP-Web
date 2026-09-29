@@ -2,21 +2,16 @@ import type { ReactNode } from 'react'
 
 type Tone = 'ok' | 'warn' | 'bad' | 'neutral'
 
-const dots: Record<Tone, string> = {
-  ok: 'bg-ok',
-  warn: 'bg-warn',
-  bad: 'bg-bad',
-  neutral: 'bg-faint',
+const tones: Record<Tone, string> = {
+  ok: 'bg-accent-soft text-accent-text',
+  warn: 'bg-warn-soft text-warn-text',
+  bad: 'bg-bad-soft text-bad',
+  neutral: 'bg-surface-2 text-muted ring-1 ring-inset ring-line',
 }
 
-/** Estado como punto de color + texto: "Activo", "Pendiente", "Anulado". */
+/** Estado como pastilla de color suave: "Activo", "Pendiente", "Anulada". El color ayuda; el texto dice el estado. */
 export function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-2 text-sm whitespace-nowrap text-muted">
-      <span className={`size-2 rounded-full ${dots[tone]}`} aria-hidden />
-      {children}
-    </span>
-  )
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-medium whitespace-nowrap ${tones[tone]}`}>{children}</span>
 }
 
 /** Tecla de un atajo: <Kbd>Ctrl</Kbd><Kbd>K</Kbd> */

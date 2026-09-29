@@ -8,14 +8,14 @@ import { errorMessages } from '@/api/client'
 import { productListQuery, useToggleProduct, type ProductRow, type ProductSortBy } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
+import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
-import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ProductExportDialog, useProductExport } from '@/features/products/product-export-dialog'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductImportDialog } from '@/features/products/product-import-dialog'
 import { ProductsTable } from '@/features/products/products-table'
+import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
@@ -78,14 +78,19 @@ function ProductsPage() {
 
   const onSearch = useCallback((q: string | undefined) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true }), [navigate])
 
-  const onToggle = useCallback(
-    (p: ProductRow) =>
-      toggle.mutate(
-        { id: p.id, active: !p.isActive },
-        { onSuccess: () => toast.ok(`${p.code} ${p.isActive ? 'desactivado' : 'activado'}`), onError: (e) => toast.error(errorMessages(e)[0]) },
-      ),
-    [toggle],
-  )
+  const activation = useConfirmToggle<ProductRow>(toggle, {
+    title: '¿Desactivar este producto?',
+    body: (p) => (
+      <>
+        <strong className="font-medium text-ink">
+          {p.code} · {p.name}
+        </strong>{' '}
+        dejará de aparecer al registrar compras y ventas. Su historial se conserva y puedes activarlo de nuevo cuando quieras.
+      </>
+    ),
+    done: (p, active) => `${p.code} ${active ? 'activado' : 'desactivado'}`,
+  })
+  const clearFilters = () => navigate({ search: {} })
 
   const data = list.data
 
@@ -112,13 +117,13 @@ function ProductsPage() {
         }
       />
 
-      <section className="flex flex-col">
+      <ListPanel>
         <ViewTabs screen="Products" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={onSearch} placeholder="Buscar por código o nombre" />}
           filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />}
-          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
+          onClear={isCustomized(search) ? clearFilters : undefined}
           sort={
             // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).
             data && (
@@ -140,11 +145,12 @@ function ProductsPage() {
           <ProductsTable
             rows={data.items}
             onEdit={setEditing}
-            onToggle={onToggle}
+            onToggle={activation.request}
+            busyId={activation.busyId}
             onHistory={(p) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` })}
           />
         ) : hasFilters ? (
-          <EmptyState icon={<PackagePlus strokeWidth={1.5} />} text="Ningún producto coincide con la búsqueda o el filtro." />
+          <EmptyState icon={<PackagePlus strokeWidth={1.5} />} text="Ningún producto coincide con la búsqueda o el filtro." action={<Button onClick={clearFilters}>Limpiar filtros</Button>} />
         ) : (
           <EmptyState
             icon={<PackagePlus strokeWidth={1.5} />}
@@ -164,11 +170,13 @@ function ProductsPage() {
           onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })}
           onPageSize={(filas) => navigate({ search: (prev) => ({ ...prev, filas, page: undefined }) })}
         />
-      </section>
+      </ListPanel>
 
       <ProductFormDialog open={!!search.nuevo || editing !== null} product={editing} onClose={closeForm} />
       <HistorySheet target={history} onClose={() => setHistory(null)} />
-      {exporting && <ProductExportDialog open params={exportParams} matching={data?.totalCount} onClose={() => setExporting(false)} />}
+      {/* Mientras llega la lista con los filtros nuevos no se muestra el conteo anterior. */}
+      {exporting && <ProductExportDialog open params={exportParams} matching={list.isPlaceholderData ? undefined : data?.totalCount} onClose={() => setExporting(false)} />}
+      {activation.dialog}
       <ProductImportDialog
         open={!!search.importar}
         onClose={closeImport}

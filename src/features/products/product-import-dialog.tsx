@@ -91,7 +91,8 @@ export function ProductImportDialog({
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => !o && onClose()}
+      // Mientras se guarda no se puede cerrar: así nadie cree que canceló una importación que sigue en curso.
+      onOpenChange={(o) => !o && !confirm.isPending && onClose()}
       title={title}
       description={step === 'review' && file ? file.name : undefined}
       width={step === 'review' ? 'max-w-4xl' : 'max-w-xl'}
@@ -105,7 +106,16 @@ export function ProductImportDialog({
           </>
         ) : step === 'review' ? (
           <>
-            <Button onClick={() => setStep('upload')}>Subir otro archivo</Button>
+            <Button
+              disabled={confirm.isPending}
+              onClick={() => {
+                // Al volver a subir se limpia el error de la importación anterior.
+                confirm.reset()
+                setStep('upload')
+              }}
+            >
+              Subir otro archivo
+            </Button>
             <Button variant="primary" disabled={!preview?.canImport} loading={confirm.isPending} onClick={runImport}>
               {preview?.canImport ? `Importar ${countLabel(preview.toImport, 'producto', 'productos')}` : 'Importar'}
             </Button>
@@ -186,7 +196,7 @@ function UploadStep({
         <p className="text-sm text-muted">
           <strong className="font-medium text-ink">1.</strong> Descarga la plantilla y llénala en Excel. Para cambiar productos que ya tienes (por ejemplo, sus precios),
           descárgalos con{' '}
-          <button type="button" onClick={onExport} className="font-medium text-accent underline underline-offset-4 hover:text-ink">
+          <button type="button" onClick={onExport} className="font-medium text-accent-text underline underline-offset-4 hover:text-ink">
             Exportar
           </button>
           , edítalos y súbelos aquí.
@@ -305,7 +315,7 @@ function ReviewStep({ preview, errors }: { preview: ProductImportPreview; errors
                 <td className="px-3 py-2.5">
                   <Pill tone={r.action ? tones[r.action] : 'neutral'}>{r.actionDescription}</Pill>
                   {r.errors.length > 0 && (
-                    <ul className="mt-1 text-xs text-bad">
+                    <ul className="mt-1 text-sm text-bad">
                       {r.errors.map((e) => (
                         <li key={e}>{e}</li>
                       ))}

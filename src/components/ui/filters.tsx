@@ -186,7 +186,7 @@ export function FilterBar({
   busy?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-3 pb-4">
+    <div className="flex flex-col gap-3 px-4 py-3">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {search}
         {filters}

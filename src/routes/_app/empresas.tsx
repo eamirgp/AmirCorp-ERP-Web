@@ -2,18 +2,18 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Building2, HistoryIcon, Pencil, Plus, Power } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { errorMessages } from '@/api/client'
 import { companiesQuery, useToggleCompany, type CompanyRow } from '@/api/companies'
 import { Button } from '@/components/ui/button'
-import { DataTable, RowActions } from '@/components/ui/data-table'
+import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar, FilterChip } from '@/components/ui/filters'
-import { EmptyState, Loading, SearchBox } from '@/components/ui/list-controls'
+import { EmptyState, Loading, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
-import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
+import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
@@ -50,14 +50,17 @@ function CompaniesPage() {
   }
   useHotkey('n', openNew)
 
-  const onToggle = useCallback(
-    (c: CompanyRow) =>
-      toggle.mutate(
-        { id: c.id, active: !c.isActive },
-        { onSuccess: () => toast.ok(`${c.name} ${c.isActive ? 'desactivada' : 'activada'}`), onError: (e) => toast.error(errorMessages(e)[0]) },
-      ),
-    [toggle],
-  )
+  const activation = useConfirmToggle<CompanyRow>(toggle, {
+    title: '¿Desactivar esta empresa?',
+    body: (c) => (
+      <>
+        <strong className="font-medium text-ink">{c.name}</strong> (RUC {c.ruc}) ya no podrá usarse en compras ni ventas nuevas. Sus registros se conservan y
+        puedes activarla de nuevo cuando quieras.
+      </>
+    ),
+    done: (c, active) => `${c.name} ${active ? 'activada' : 'desactivada'}`,
+  })
+  const { request: onToggle, busyId } = activation
 
   // La API devuelve todas las empresas (son pocas): buscar y filtrar aquí es solo presentación.
   const rows = useMemo(() => {
@@ -75,30 +78,25 @@ function CompaniesPage() {
       col.display({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,
-        cell: (c) => (
-          <RowActions>
-            <Button size="sm" variant="ghost" onClick={() => setEditing(c.row.original)}>
-              <Pencil />
-              <span className="max-md:sr-only">Editar</span>
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
-              <Power />
-              <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setHistory({ entityType: 'Company', entityId: c.row.original.id, label: `${c.row.original.ruc} · ${c.row.original.name}` })}
-              aria-label={`Historial de ${c.row.original.name}`}
-              title="Historial"
-            >
-              <HistoryIcon />
-            </Button>
-          </RowActions>
-        ),
+        cell: (c) => {
+          const co = c.row.original
+          return (
+            <RowMenu
+              label={co.name}
+              busy={busyId === co.id}
+              items={[
+                { label: 'Editar', icon: <Pencil />, onSelect: () => setEditing(co) },
+                { label: 'Ver historial', icon: <HistoryIcon />, onSelect: () => setHistory({ entityType: 'Company', entityId: co.id, label: `${co.ruc} · ${co.name}` }) },
+                co.isActive
+                  ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(co), danger: true }
+                  : { label: 'Activar', icon: <Power />, onSelect: () => onToggle(co) },
+              ]}
+            />
+          )
+        },
       }),
     ],
-    [onToggle],
+    [onToggle, busyId],
   )
 
   return (
@@ -114,7 +112,7 @@ function CompaniesPage() {
         }
       />
 
-      <section className="flex flex-col">
+      <ListPanel>
         <ViewTabs screen="Companies" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
@@ -145,9 +143,10 @@ function CompaniesPage() {
             }
           />
         )}
-      </section>
+      </ListPanel>
 
       <CompanyFormDialog open={!!search.nuevo || editing !== null} company={editing} onClose={closeForm} />
+      {activation.dialog}
       <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )

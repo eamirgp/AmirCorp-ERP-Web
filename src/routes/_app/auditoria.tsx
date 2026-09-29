@@ -11,7 +11,7 @@ import { usersQuery } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowActions } from '@/components/ui/data-table'
 import { DateFilter, FilterBar, FilterChip } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
+import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { ChangeList } from '@/features/audit/change-list'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
@@ -118,7 +118,7 @@ function AuditPage() {
     <>
       <PageHeader title="Auditoría" description="Quién creó, modificó, activó o anuló cada registro, y cuándo. Solo se puede consultar: nadie puede cambiar el historial." />
 
-      <section className="flex flex-col">
+      <ListPanel>
         <ViewTabs screen="Audit" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
@@ -142,7 +142,7 @@ function AuditPage() {
         ) : data.items.length > 0 ? (
           <DataTable data={data.items} columns={columns} getRowId={(r) => r.id} onOpen={openHistory} />
         ) : hasFilters ? (
-          <EmptyState icon={<HistoryIcon strokeWidth={1.5} />} text="Ningún evento coincide con la búsqueda o los filtros." />
+          <EmptyState icon={<HistoryIcon strokeWidth={1.5} />} text="Ningún evento coincide con la búsqueda o los filtros." action={<Button onClick={() => navigate({ search: {} })}>Limpiar filtros</Button>} />
         ) : (
           <EmptyState
             icon={<HistoryIcon strokeWidth={1.5} />}
@@ -156,7 +156,7 @@ function AuditPage() {
           onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })}
           onPageSize={(filas) => navigate({ search: (prev) => ({ ...prev, filas, page: undefined }) })}
         />
-      </section>
+      </ListPanel>
 
       <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>

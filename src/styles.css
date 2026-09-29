@@ -18,14 +18,16 @@
 :root {
   color-scheme: light;
   /* Neutros puros, en la línea del gris #737373 del manual. */
-  --bg: #ffffff;
+  /* Página gris claro y tarjetas blancas encima (estilo Stripe/Shopify): la tabla se separa del resto. */
+  --bg: #f4f4f3;
   --surface: #ffffff;
-  --surface-2: #f7f7f7;
-  --line: #ebebeb;
-  --line-strong: #d6d6d6;
+  --surface-2: #f8f8f7;
+  --line: #e8e8e6;
+  --line-strong: #d4d4d2;
   --ink: #0a0a0a;
-  --muted: #737373; /* gris del manual */
-  --faint: #a3a3a3;
+  /* Contraste AA (4.5:1 o más) sobre blanco, pensado para usuarios mayores: */
+  --muted: #525252; /* texto secundario, 7.8:1 */
+  --faint: #737373; /* gris del manual, lo más tenue que se usa para texto: 4.7:1 */
   /* Acción principal: el negro "base" del manual. */
   --primary: #0a0a0a;
   --primary-hover: #2a2a2a;
@@ -36,6 +38,8 @@
   --accent-text: #2a7445; /* jade oscurecido para texto sobre fondo claro (contraste AA) */
   --ok: #5aaf76;
   --warn: #d48a1f;
+  --warn-soft: #fdf4e6;
+  --warn-text: #8a5a12;
   --bad: #d4453d;
   --bad-soft: #fdf1f0;
   --overlay: rgb(0 0 0 / 0.35);
@@ -46,13 +50,13 @@
   :root:not([data-theme="light"]) {
     color-scheme: dark;
     --bg: #0a0a0a;
-    --surface: #0a0a0a;
-    --surface-2: #141414;
-    --line: #1f1f1f;
-    --line-strong: #2e2e2e;
+    --surface: #141414;
+    --surface-2: #1b1b1b;
+    --line: #262626;
+    --line-strong: #333333;
     --ink: #f2f2f2;
-    --muted: #a3a3a3;
-    --faint: #737373;
+    --muted: #b3b3b3;
+    --faint: #8f8f8f;
     --primary: #f2f2f2;
     --primary-hover: #d9d9d9;
     --primary-ink: #0a0a0a;
@@ -60,6 +64,8 @@
     --accent-text: #6cc08a;
     --bad: #ef7c74;
     --bad-soft: #2a1414;
+    --warn-soft: #2a2010;
+    --warn-text: #f0b457;
     --overlay: rgb(0 0 0 / 0.6);
     --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
   }
@@ -68,13 +74,13 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #0a0a0a;
-  --surface: #0a0a0a;
-  --surface-2: #141414;
-  --line: #1f1f1f;
-  --line-strong: #2e2e2e;
+  --surface: #141414;
+  --surface-2: #1b1b1b;
+  --line: #262626;
+  --line-strong: #333333;
   --ink: #f2f2f2;
-  --muted: #a3a3a3;
-  --faint: #737373;
+  --muted: #b3b3b3;
+  --faint: #8f8f8f;
   --primary: #f2f2f2;
   --primary-hover: #d9d9d9;
   --primary-ink: #0a0a0a;
@@ -82,6 +88,8 @@
   --accent-text: #6cc08a;
   --bad: #ef7c74;
   --bad-soft: #2a1414;
+  --warn-soft: #2a2010;
+  --warn-text: #f0b457;
   --overlay: rgb(0 0 0 / 0.6);
   --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
 }
@@ -127,6 +135,8 @@
   --color-accent-text: var(--accent-text);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-text: var(--warn-text);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
   --color-overlay: var(--overlay);

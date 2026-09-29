@@ -2,8 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { HistoryIcon, Pencil, Power } from 'lucide-react'
 import { useMemo } from 'react'
 import type { ProductRow } from '@/api/products'
-import { Button } from '@/components/ui/button'
-import { DataTable, RowActions } from '@/components/ui/data-table'
+import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { Pill } from '@/components/ui/misc'
 import { formatPen } from '@/lib/format'
 
@@ -14,18 +13,30 @@ export function ProductsTable({
   onEdit,
   onToggle,
   onHistory,
+  busyId,
 }: {
   rows: ProductRow[]
   onEdit: (p: ProductRow) => void
   onToggle: (p: ProductRow) => void
   onHistory: (p: ProductRow) => void
+  /** Producto que se está activando o desactivando: su botón queda bloqueado. */
+  busyId?: string
 }) {
   const columns = useMemo(
     () => [
       col.accessor('code', { header: 'Código', cell: (c) => <span className="font-mono text-xs whitespace-nowrap text-muted">{c.getValue()}</span> }),
       col.accessor('name', { header: 'Producto' }),
       col.accessor('unitOfMeasureDescription', { header: 'Unidad', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
-      col.accessor('igvAffectationDescription', { header: 'IGV', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      // Nombre corto en la tabla; el completo de SUNAT aparece al pasar el mouse.
+      col.accessor('igvAffectationShortDescription', {
+        header: 'IGV',
+        meta: { hideOnMobile: true },
+        cell: (c) => (
+          <span className="text-muted" title={c.row.original.igvAffectationDescription}>
+            {c.getValue()}
+          </span>
+        ),
+      }),
       col.accessor('salePrice', {
         header: () => <span className="block text-right">Precio</span>,
         cell: (c) => <span className="num block text-right">{formatPen(Number(c.getValue()))}</span>,
@@ -34,24 +45,25 @@ export function ProductsTable({
       col.display({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,
-        cell: (c) => (
-          <RowActions>
-            <Button size="sm" variant="ghost" onClick={() => onEdit(c.row.original)} aria-label={`Editar ${c.row.original.name}`}>
-              <Pencil />
-              <span className="max-md:sr-only">Editar</span>
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
-              <Power />
-              <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => onHistory(c.row.original)} aria-label={`Historial de ${c.row.original.name}`} title="Historial">
-              <HistoryIcon />
-            </Button>
-          </RowActions>
-        ),
+        cell: (c) => {
+          const p = c.row.original
+          return (
+            <RowMenu
+              label={p.name}
+              busy={busyId === p.id}
+              items={[
+                { label: 'Editar', icon: <Pencil />, onSelect: () => onEdit(p) },
+                { label: 'Ver historial', icon: <HistoryIcon />, onSelect: () => onHistory(p) },
+                p.isActive
+                  ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(p), danger: true }
+                  : { label: 'Activar', icon: <Power />, onSelect: () => onToggle(p) },
+              ]}
+            />
+          )
+        },
       }),
     ],
-    [onEdit, onToggle, onHistory],
+    [onEdit, onToggle, onHistory, busyId],
   )
 
   return <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={onEdit} isMuted={(r) => !r.isActive} />

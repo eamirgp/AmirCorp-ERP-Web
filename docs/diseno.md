@@ -21,7 +21,7 @@ Las pantallas no nombran la marca directamente: usan `brand` y `<Logo />`. Para 
 |---|---|---|
 | Negro (base) | `#000000` (`#0A0A0A` en pantalla) | Texto principal y **acción principal**: botón negro, blanco en modo oscuro |
 | Verde jade (secundario) | `#5AAF76` | Acento puntual: ícono de la pantalla activa, foco de las filas, estado "Activo", marca de selección |
-| Gris (acento) | `#737373` | Texto secundario. Cumple el contraste mínimo sobre blanco |
+| Gris (acento) | `#737373` | Texto de apoyo (lo más tenue permitido). Cumple el contraste mínimo sobre blanco |
 
 Decisiones de uso:
 - **El jade no se usa en bloques grandes.** Aparece en detalles: la marca se reconoce sin cargar la pantalla.
@@ -35,7 +35,7 @@ Tokens en `src/styles.css`, usados como utilidades de Tailwind:
 |---|---|
 | `bg`, `surface`, `surface-2` | Fondo, paneles y fondo suave del ítem o fila activa |
 | `line`, `line-strong` | Bordes finos; `line-strong` en controles |
-| `ink`, `muted`, `faint` | Texto principal, secundario (gris del manual) y de apoyo |
+| `ink`, `muted`, `faint` | Texto principal, secundario (`#525252`, 7.8:1) y de apoyo (el gris del manual `#737373`, 4.7:1). Todo texto cumple el contraste AA: los dueños son personas mayores |
 | `primary`, `primary-ink` | Botón principal: negro con texto blanco, invertido en modo oscuro |
 | `accent`, `accent-soft`, `accent-text` | Jade: acento, fondo suave y jade legible como texto |
 | `ok`, `warn`, `bad` | Color del punto de estado: activo o aceptado, pendiente, anulado o error |
@@ -80,7 +80,11 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 
 ## Reglas
 
-- **Tablas limpias:** cabecera sin fondo, filas separadas por una línea fina, acciones visibles al pasar el mouse o al enfocar la fila.
+- **Listas en tarjeta (estilo Stripe/Shopify):** la página es gris claro (`--bg`) y cada lista va en una tarjeta blanca (`ListPanel`) con, de arriba abajo: pestañas de vistas como pastillas, barra de filtros, tabla y pie de paginación. La cabecera de la tabla tiene fondo `surface-2` y letra `text-sm`; las filas se separan con una línea fina.
+- **Acciones de fila:** un clic en la fila la abre. Las demás acciones van en un solo botón **"⋯"** siempre visible (`RowMenu`), con los nombres escritos; lo que quita algo (desactivar) va al final, en rojo y separado. No se usan íconos sueltos: un ícono sin texto no le dice a una persona mayor qué hace.
+- **Estados como pastillas** de color suave (`Pill`): verde jade para activo, gris para inactivo, rojo para anulado.
+- **Confirmar lo que quita algo:** desactivar pide confirmación con `ConfirmDialog` (`useConfirmToggle`), explicando qué pasa; activar no. El botón queda bloqueado mientras se guarda.
+- **Avisos:** los de éxito se van solos a los 5 s; los de error se quedan hasta que el usuario los cierra.
 - **Filtros como chips**, al estilo de Stripe o Linear: `⊕ Estado` punteado sin valor, `Estado: Activos ✕` con valor. A la derecha, el número de resultados y el menú "Ordenar". "Limpiar filtros" aparece solo con filtros aplicados. Por defecto no hay filtros: se ve todo y lo inactivo aparece atenuado.
 - **Estados como punto de color + texto** (`Pill`), sin fondo.
 - **Atajos discretos:** se enseñan en Inicio y como ayuda al pasar el mouse. No hay cajitas de teclas en cada botón.
@@ -96,7 +100,7 @@ En `src/components/ui/`:
 | Componente | Uso |
 |---|---|
 | `Button`, `Input`, `Select`, `Field` | Controles de formulario; `Field` enlaza etiqueta, control y ayuda |
-| `Dialog`, `toast` | Ventanas modales y avisos breves |
+| `Dialog`, `ConfirmDialog`, `toast` | Ventanas modales, confirmaciones y avisos |
 | `DataTable`, `RowActions` | Tabla estándar con navegación por teclado y acciones por fila |
 | `FilterBar`, `FilterChip`, `SortMenu` | Barra de filtros, chips y menú de orden |
 | `SearchBox`, `Pagination`, `EmptyState`, `Loading` | Piezas de las listas |

@@ -44,6 +44,14 @@ export function SearchBox({ value, onSearch, placeholder }: { value?: string; on
   )
 }
 
+/**
+ * Tarjeta blanca que contiene una lista completa (pestañas de vistas, filtros, tabla y pie), sobre el fondo gris
+ * de la página, al estilo de Stripe o Shopify: la tabla se distingue del resto de la pantalla.
+ */
+export function ListPanel({ children }: { children: ReactNode }) {
+  return <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-surface">{children}</section>
+}
+
 /** Datos de paginación que devuelve la API en cada lista paginada. */
 export interface PageInfo {
   page: number
@@ -64,7 +72,7 @@ export interface PageInfo {
 export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | undefined; onPage: (page: number) => void; onPageSize: (size: number) => void }) {
   if (!info || info.totalCount === 0) return null
   return (
-    <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-4 text-sm text-muted">
+    <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line px-4 py-3 text-sm text-muted">
       <span className="num">
         {formatInt(info.from)}–{formatInt(info.to)} de {formatInt(info.totalCount)}
       </span>

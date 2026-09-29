@@ -2,19 +2,19 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
 import { HistoryIcon, Pencil, Plus, Power, Users } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
 import { partnerListQuery, useTogglePartner, type PartnerRole, type PartnerRow, type PartnerSortBy } from '@/api/partners'
 import { Button } from '@/components/ui/button'
-import { DataTable, RowActions } from '@/components/ui/data-table'
+import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar, FilterChip, SortMenu, type Option } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
+import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
-import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
+import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
@@ -86,14 +86,18 @@ function PartnersPage() {
   }
   useHotkey('n', openNew)
 
-  const onToggle = useCallback(
-    (p: PartnerRow) =>
-      toggle.mutate(
-        { id: p.id, active: !p.isActive },
-        { onSuccess: () => toast.ok(`${p.name} ${p.isActive ? 'desactivado' : 'activado'}`), onError: (e) => toast.error(errorMessages(e)[0]) },
-      ),
-    [toggle],
-  )
+  const activation = useConfirmToggle<PartnerRow>(toggle, {
+    title: '¿Desactivar este cliente o proveedor?',
+    body: (p) => (
+      <>
+        <strong className="font-medium text-ink">{p.name}</strong> dejará de aparecer al registrar compras y ventas. Su historial se conserva y puedes activarlo
+        de nuevo cuando quieras.
+      </>
+    ),
+    done: (p, active) => `${p.name} ${active ? 'activado' : 'desactivado'}`,
+  })
+  const { request: onToggle, busyId } = activation
+  const clearFilters = () => navigate({ search: {} })
 
   const columns = useMemo(
     () => [
@@ -118,30 +122,25 @@ function PartnersPage() {
       col.display({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,
-        cell: (c) => (
-          <RowActions>
-            <Button size="sm" variant="ghost" onClick={() => setEditing(c.row.original)}>
-              <Pencil />
-              <span className="max-md:sr-only">Editar</span>
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => onToggle(c.row.original)}>
-              <Power />
-              <span className="max-md:sr-only">{c.row.original.isActive ? 'Desactivar' : 'Activar'}</span>
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setHistory({ entityType: 'BusinessPartner', entityId: c.row.original.id, label: `${c.row.original.documentNumber} · ${c.row.original.name}` })}
-              aria-label={`Historial de ${c.row.original.name}`}
-              title="Historial"
-            >
-              <HistoryIcon />
-            </Button>
-          </RowActions>
-        ),
+        cell: (c) => {
+          const p = c.row.original
+          return (
+            <RowMenu
+              label={p.name}
+              busy={busyId === p.id}
+              items={[
+                { label: 'Editar', icon: <Pencil />, onSelect: () => setEditing(p) },
+                { label: 'Ver historial', icon: <HistoryIcon />, onSelect: () => setHistory({ entityType: 'BusinessPartner', entityId: p.id, label: `${p.documentNumber} · ${p.name}` }) },
+                p.isActive
+                  ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(p), danger: true }
+                  : { label: 'Activar', icon: <Power />, onSelect: () => onToggle(p) },
+              ]}
+            />
+          )
+        },
       }),
     ],
-    [onToggle],
+    [onToggle, busyId],
   )
 
   const data = list.data
@@ -159,7 +158,7 @@ function PartnersPage() {
         }
       />
 
-      <section className="flex flex-col">
+      <ListPanel>
         <ViewTabs screen="BusinessPartners" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
@@ -171,7 +170,7 @@ function PartnersPage() {
               <FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />
             </>
           }
-          onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
+          onClear={isCustomized(search) ? clearFilters : undefined}
           sort={
             // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).
             data && (
@@ -192,7 +191,7 @@ function PartnersPage() {
         ) : data.items.length > 0 ? (
           <DataTable data={data.items} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />
         ) : hasFilters ? (
-          <EmptyState icon={<Users strokeWidth={1.5} />} text="Nadie coincide con la búsqueda o los filtros." />
+          <EmptyState icon={<Users strokeWidth={1.5} />} text="Nadie coincide con la búsqueda o los filtros." action={<Button onClick={clearFilters}>Limpiar filtros</Button>} />
         ) : (
           <EmptyState
             icon={<Users strokeWidth={1.5} />}
@@ -212,9 +211,10 @@ function PartnersPage() {
           onPage={(p) => navigate({ search: (prev) => ({ ...prev, page: p === 1 ? undefined : p }) })}
           onPageSize={(filas) => navigate({ search: (prev) => ({ ...prev, filas, page: undefined }) })}
         />
-      </section>
+      </ListPanel>
 
       <PartnerFormDialog open={!!search.nuevo || editing !== null} partner={editing} onClose={closeForm} />
+      {activation.dialog}
       <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )

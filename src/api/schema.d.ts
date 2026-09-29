@@ -2690,6 +2690,7 @@ export interface components {
             rowVersion: number;
             unitOfMeasureDescription: string;
             igvAffectationDescription: string;
+            igvAffectationShortDescription: string;
         };
         ListPurchasesResponseDto: {
             /** Format: uuid */

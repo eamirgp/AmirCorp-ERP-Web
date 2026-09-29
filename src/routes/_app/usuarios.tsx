@@ -1,22 +1,21 @@
-import * as Menu from '@radix-ui/react-dropdown-menu'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { createColumnHelper } from '@tanstack/react-table'
-import { HistoryIcon, KeyRound, MoreHorizontal, Pencil, Plus, Power, ShieldCheck, UserRound } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { HistoryIcon, KeyRound, Pencil, Plus, Power, ShieldCheck, UserRound } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { assignableRolesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
 import { usersQuery, useToggleUser, type UserRow } from '@/api/users'
 import { Button } from '@/components/ui/button'
-import { DataTable, RowActions } from '@/components/ui/data-table'
+import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar, FilterChip } from '@/components/ui/filters'
-import { EmptyState, Loading, SearchBox } from '@/components/ui/list-controls'
+import { EmptyState, Loading, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
-import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
+import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { UserDialog } from '@/features/users/user-dialogs'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
@@ -57,14 +56,17 @@ function UsersPage() {
   }
   useHotkey('n', openNew)
 
-  const onToggle = useCallback(
-    (u: UserRow) =>
-      toggle.mutate(
-        { id: u.id, active: !u.isActive },
-        { onSuccess: () => toast.ok(`${u.name} ${u.isActive ? 'desactivado' : 'activado'}`), onError: (e) => toast.error(errorMessages(e)[0]) },
-      ),
-    [toggle],
-  )
+  const activation = useConfirmToggle<UserRow>(toggle, {
+    title: '¿Desactivar este usuario?',
+    body: (u) => (
+      <>
+        <strong className="font-medium text-ink">{u.name}</strong> ({u.email}) ya no podrá iniciar sesión. Lo que registró se conserva y puedes activarlo de nuevo
+        cuando quieras.
+      </>
+    ),
+    done: (u, active) => `${u.name} ${active ? 'activado' : 'desactivado'}`,
+  })
+  const onToggle = activation.request
 
   // La API devuelve todos los usuarios (son pocos): buscar y filtrar aquí es solo presentación.
   const rows = useMemo(() => {
@@ -84,8 +86,6 @@ function UsersPage() {
     return [...seen].map(([value, label]) => ({ value, label }))
   }, [list.data])
 
-  const itemClass = 'flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-surface-2 [&_svg]:size-4 [&_svg]:text-muted'
-
   const columns = useMemo(
     () => [
       col.accessor('name', { header: 'Nombre' }),
@@ -98,45 +98,24 @@ function UsersPage() {
         cell: (c) => {
           const u = c.row.original
           return (
-            <RowActions>
-              <Menu.Root>
-                <Menu.Trigger asChild>
-                  <Button size="sm" variant="ghost" aria-label={`Acciones para ${u.name}`}>
-                    <MoreHorizontal />
-                  </Button>
-                </Menu.Trigger>
-                <Menu.Portal>
-                  <Menu.Content align="end" sideOffset={4} className="z-50 w-52 rounded-lg border border-line bg-surface p-1 shadow-float">
-                    <Menu.Item className={itemClass} onSelect={() => setAction({ mode: 'profile', user: u })}>
-                      <Pencil />
-                      Editar nombre y correo
-                    </Menu.Item>
-                    <Menu.Item className={itemClass} onSelect={() => setAction({ mode: 'role', user: u })}>
-                      <ShieldCheck />
-                      Cambiar rol
-                    </Menu.Item>
-                    <Menu.Item className={itemClass} onSelect={() => setAction({ mode: 'password', user: u })}>
-                      <KeyRound />
-                      Restablecer contraseña
-                    </Menu.Item>
-                    <Menu.Item className={itemClass} onSelect={() => setHistory({ entityType: 'User', entityId: u.id, label: `${u.name} · ${u.email}` })}>
-                      <HistoryIcon />
-                      Ver historial
-                    </Menu.Item>
-                    <Menu.Separator className="my-1 h-px bg-line" />
-                    <Menu.Item className={itemClass} onSelect={() => onToggle(u)}>
-                      <Power />
-                      {u.isActive ? 'Desactivar' : 'Activar'}
-                    </Menu.Item>
-                  </Menu.Content>
-                </Menu.Portal>
-              </Menu.Root>
-            </RowActions>
+            <RowMenu
+              label={u.name}
+              busy={activation.busyId === u.id}
+              items={[
+                { label: 'Editar nombre y correo', icon: <Pencil />, onSelect: () => setAction({ mode: 'profile', user: u }) },
+                { label: 'Cambiar rol', icon: <ShieldCheck />, onSelect: () => setAction({ mode: 'role', user: u }) },
+                { label: 'Restablecer contraseña', icon: <KeyRound />, onSelect: () => setAction({ mode: 'password', user: u }) },
+                { label: 'Ver historial', icon: <HistoryIcon />, onSelect: () => setHistory({ entityType: 'User', entityId: u.id, label: `${u.name} · ${u.email}` }) },
+                u.isActive
+                  ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(u), danger: true }
+                  : { label: 'Activar', icon: <Power />, onSelect: () => onToggle(u) },
+              ]}
+            />
           )
         },
       }),
     ],
-    [onToggle],
+    [onToggle, activation.busyId],
   )
 
   return (
@@ -152,7 +131,7 @@ function UsersPage() {
         }
       />
 
-      <section className="flex flex-col">
+      <ListPanel>
         <ViewTabs screen="Users" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
@@ -176,10 +155,11 @@ function UsersPage() {
         ) : (
           <EmptyState icon={<UserRound strokeWidth={1.5} />} text="Ningún usuario coincide con la búsqueda o el filtro." />
         )}
-      </section>
+      </ListPanel>
 
       <UserDialog mode={search.nuevo ? 'create' : (action?.mode ?? null)} user={action?.user ?? null} onClose={closeDialog} />
       <HistorySheet target={history} onClose={() => setHistory(null)} />
+      {activation.dialog}
     </>
   )
 }
