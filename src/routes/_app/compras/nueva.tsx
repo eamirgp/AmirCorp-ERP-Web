@@ -310,7 +310,7 @@ function NewPurchasePage() {
                                 )}
                               </span>
                             )}
-                            placeholder="Busca por código, código del proveedor o nombre"
+                            placeholder="Busca el producto"
                             aria-label={`Producto de la línea ${i + 1}`}
                           />
                         )}

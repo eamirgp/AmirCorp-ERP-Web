@@ -162,7 +162,7 @@ function PartnersPage() {
         <ViewTabs screen="BusinessPartners" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
-          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar por documento o nombre" />}
+          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar clientes y proveedores" hint="Por número de documento o nombre" />}
           filters={
             <>
               <FilterChip label="Rol" options={roleOptions} value={search.rol} onChange={(rol) => navigate({ search: (prev) => ({ ...prev, rol, page: undefined }) })} />

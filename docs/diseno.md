@@ -82,6 +82,8 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 
 - **Listas en tarjeta (estilo Stripe/Shopify):** la página es gris claro (`--bg`) y cada lista va en una tarjeta blanca (`ListPanel`) con, de arriba abajo: pestañas de vistas como pastillas, barra de filtros, tabla y pie de paginación. La cabecera de la tabla tiene fondo `surface-2` y letra `text-sm`; las filas se separan con una línea fina.
 - **Acciones de fila:** un clic en la fila la abre. Las demás acciones van en un solo botón **"⋯"** siempre visible (`RowMenu`), con los nombres escritos; lo que quita algo (desactivar) va al final, en rojo y separado. No se usan íconos sueltos: un ícono sin texto no le dice a una persona mayor qué hace.
+- **Paginación con íconos:** cuatro botones cuadrados con borde (primera, anterior, siguiente, última) y "3 / 21" al medio. Las flechas se reconocen sin texto; el nombre sale al pasar el mouse.
+- **Buscadores con texto corto** ("Buscar productos") para que se lea completo; en qué campos busca aparece al pasar el mouse (`hint` de `SearchBox`).
 - **Estados como pastillas** de color suave (`Pill`): verde jade para activo, gris para inactivo, rojo para anulado.
 - **Confirmar lo que quita algo:** desactivar pide confirmación con `ConfirmDialog` (`useConfirmToggle`), explicando qué pasa; activar no. El botón queda bloqueado mientras se guarda.
 - **Avisos:** los de éxito se van solos a los 5 s; los de error se quedan hasta que el usuario los cierra.

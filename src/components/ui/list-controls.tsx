@@ -7,9 +7,20 @@ import { Input, Select } from './field'
 
 /**
  * Buscador de una lista. Avisa el texto 250 ms después de dejar de escribir.
- * El atajo "/" lo enfoca.
+ * El atajo "/" lo enfoca. El placeholder es corto ("Buscar productos") para que se lea completo; en qué campos
+ * busca va en `hint`, que aparece al pasar el mouse y lo leen los lectores de pantalla.
  */
-export function SearchBox({ value, onSearch, placeholder }: { value?: string; onSearch: (value: string | undefined) => void; placeholder: string }) {
+export function SearchBox({
+  value,
+  onSearch,
+  placeholder,
+  hint,
+}: {
+  value?: string
+  onSearch: (value: string | undefined) => void
+  placeholder: string
+  hint?: string
+}) {
   const [term, setTerm] = useState(value ?? '')
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -37,8 +48,8 @@ export function SearchBox({ value, onSearch, placeholder }: { value?: string; on
         onChange={(e) => setTerm(e.target.value)}
         placeholder={placeholder}
         className="pl-9"
-        aria-label={placeholder}
-        title="Atajo: /"
+        aria-label={hint ? `${placeholder}: ${hint}` : placeholder}
+        title={hint ? `${hint}. Atajo: /` : 'Atajo: /'}
       />
     </div>
   )
@@ -89,30 +100,36 @@ export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | unde
           </Select>
         </label>
         {info.totalPages > 1 && (
-          <div className="flex flex-wrap items-center gap-1">
-            <Button size="sm" variant="ghost" disabled={!info.hasPreviousPage} onClick={() => onPage(1)} title="Ir a la primera página">
+          // Solo íconos, como en Shopify o Stripe: las flechas de página se reconocen sin texto. El nombre sale al
+          // pasar el mouse y lo leen los lectores de pantalla.
+          <div className="flex items-center gap-1.5">
+            <PageButton label="Primera página" disabled={!info.hasPreviousPage} onClick={() => onPage(1)}>
               <ChevronsLeft />
-              Primera
-            </Button>
-            <Button size="sm" variant="ghost" disabled={!info.hasPreviousPage} onClick={() => onPage(info.page - 1)}>
+            </PageButton>
+            <PageButton label="Página anterior" disabled={!info.hasPreviousPage} onClick={() => onPage(info.page - 1)}>
               <ChevronLeft />
-              Anterior
-            </Button>
-            <span className="num px-2">
+            </PageButton>
+            <span className="num px-2 whitespace-nowrap">
               {info.page} / {info.totalPages}
             </span>
-            <Button size="sm" variant="ghost" disabled={!info.hasNextPage} onClick={() => onPage(info.page + 1)}>
-              Siguiente
+            <PageButton label="Página siguiente" disabled={!info.hasNextPage} onClick={() => onPage(info.page + 1)}>
               <ChevronRight />
-            </Button>
-            <Button size="sm" variant="ghost" disabled={!info.hasNextPage} onClick={() => onPage(info.totalPages)} title="Ir a la última página">
-              Última
+            </PageButton>
+            <PageButton label="Última página" disabled={!info.hasNextPage} onClick={() => onPage(info.totalPages)}>
               <ChevronsRight />
-            </Button>
+            </PageButton>
           </div>
         )}
       </div>
     </footer>
+  )
+}
+
+function PageButton({ label, disabled, onClick, children }: { label: string; disabled: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <Button size="sm" className="w-9 px-0 [&_svg]:size-5" disabled={disabled} onClick={onClick} aria-label={label} title={label}>
+      {children}
+    </Button>
   )
 }
 

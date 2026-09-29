@@ -122,7 +122,7 @@ function AuditPage() {
         <ViewTabs screen="Audit" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
-          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar por código o nombre del registro" />}
+          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar en el historial" hint="Por código o nombre del registro" />}
           filters={
             <>
               <FilterChip label="Módulo" options={moduleOptions} value={search.modulo} onChange={(modulo) => filter({ modulo })} />

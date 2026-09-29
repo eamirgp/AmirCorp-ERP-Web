@@ -121,7 +121,7 @@ function PurchasesPage() {
         <ViewTabs screen="Purchases" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
-          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar por comprobante o proveedor" />}
+          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true })} placeholder="Buscar compras" hint="Por serie y número del comprobante o por proveedor" />}
           filters={<FilterChip label="Empresa" options={companyOptions} value={search.empresa} onChange={(empresa) => navigate({ search: (prev) => ({ ...prev, empresa, page: undefined }) })} />}
           onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           sort={

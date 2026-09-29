@@ -135,7 +135,7 @@ function UsersPage() {
         <ViewTabs screen="Users" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
-          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q }), replace: true })} placeholder="Buscar por nombre o correo" />}
+          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q }), replace: true })} placeholder="Buscar usuarios" hint="Por nombre o correo" />}
           filters={
             <>
               <FilterChip label="Rol" options={roleOptions} value={search.rol} onChange={(rol) => navigate({ search: (prev) => ({ ...prev, rol }) })} />

@@ -116,7 +116,7 @@ function CompaniesPage() {
         <ViewTabs screen="Companies" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
-          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q }), replace: true })} placeholder="Buscar por RUC o razón social" />}
+          search={<SearchBox value={search.q} onSearch={(q) => navigate({ search: (prev) => ({ ...prev, q }), replace: true })} placeholder="Buscar empresas" hint="Por RUC o razón social" />}
           filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado }) })} />}
           onClear={isCustomized(search) ? () => navigate({ search: {} }) : undefined}
           count={list.data ? countLabel(rows.length, 'empresa', 'empresas') : undefined}
