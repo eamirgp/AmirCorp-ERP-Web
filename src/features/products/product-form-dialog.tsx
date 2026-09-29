@@ -50,7 +50,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             code: product.code,
             name: product.name,
             // El contrato marca los enums como opcionales aunque la API siempre los envía.
-            unitOfMeasure: product.unitOfMeasure ?? '',
+            unitOfMeasure: product.unitOfMeasureCode,
             igvAffectation: product.igvAffectation ?? '',
             salePrice: formatNumberInput(product.salePrice, 2),
             supplierCodes: product.supplierCodes.map((c) => ({
@@ -71,7 +71,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
         input: {
           code: v.code,
           name: v.name,
-          unitOfMeasure: (v.unitOfMeasure || null) as Schemas['UnitOfMeasure'] | null,
+          unitOfMeasureCode: v.unitOfMeasure || null,
           igvAffectation: (v.igvAffectation || null) as Schemas['IgvAffectation'] | null,
           salePrice: parseNumberInput(v.salePrice),
           supplierCodes: v.supplierCodes.map((c) => ({ supplierId: c.supplier?.id ?? null, code: c.code })),
@@ -125,8 +125,8 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
               <Select {...a} {...form.register('unitOfMeasure')}>
                 <option value="">Elige…</option>
                 {units.data?.map((u) => (
-                  <option key={u.unitOfMeasure} value={u.unitOfMeasure ?? ''}>
-                    {u.description}
+                  <option key={u.code} value={u.code}>
+                    {u.name}
                   </option>
                 ))}
               </Select>

@@ -7,6 +7,8 @@ import { useMutation, useQueryClient, type QueryKey } from '@tanstack/react-quer
 export function useToggleActive<T extends { id: string; isActive: boolean }>(
   listKey: QueryKey,
   request: (id: string, active: boolean) => Promise<unknown>,
+  /** Otras consultas que dependen del estado (ej.: el catálogo de unidades activas que usan los formularios). */
+  alsoInvalidate: QueryKey[] = [],
 ) {
   const qc = useQueryClient()
 
@@ -27,6 +29,9 @@ export function useToggleActive<T extends { id: string; isActive: boolean }>(
     },
     onError: (_e, _v, context) => context?.snapshot.forEach(([key, data]) => qc.setQueryData(key, data)),
     // Se recarga todo el recurso (listas y detalles): el detalle muestra quién lo modificó por última vez.
-    onSettled: () => qc.invalidateQueries({ queryKey: listKey.slice(0, 1) }),
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: listKey.slice(0, 1) })
+      alsoInvalidate.forEach((queryKey) => void qc.invalidateQueries({ queryKey }))
+    },
   })
 }

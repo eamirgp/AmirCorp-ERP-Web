@@ -402,6 +402,193 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/units-of-measure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Todo el catálogo: primero las activas y luego por nombre. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["UnitOfMeasureListItemDto"][];
+                        "application/json": components["schemas"]["UnitOfMeasureListItemDto"][];
+                        "text/json": components["schemas"]["UnitOfMeasureListItemDto"][];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/units-of-measure/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Cambia el nombre corto. El código y el nombre de SUNAT no se cambian. */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateUnitOfMeasureRequest"];
+                    "text/json": components["schemas"]["UpdateUnitOfMeasureRequest"];
+                    "application/*+json": components["schemas"]["UpdateUnitOfMeasureRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/units-of-measure/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/units-of-measure/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** No se puede desactivar una unidad que usa algún producto (409 con el motivo). */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/saved-views": {
         parameters: {
             query?: never;
@@ -2368,7 +2555,7 @@ export interface components {
             to: string;
         };
         /** @enum {unknown} */
-        AuditEntityType: "Product" | "BusinessPartner" | "Company" | "User" | "Purchase";
+        AuditEntityType: "Product" | "BusinessPartner" | "Company" | "User" | "Purchase" | "UnitOfMeasure";
         AuditEntryDto: {
             /** Format: uuid */
             id: string;
@@ -2415,7 +2602,7 @@ export interface components {
         CreateProductRequest: {
             code: null | string;
             name: null | string;
-            unitOfMeasure: null | components["schemas"]["UnitOfMeasure"];
+            unitOfMeasureCode: null | string;
             igvAffectation: null | components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: null | number;
@@ -2425,7 +2612,7 @@ export interface components {
             /** Format: uuid */
             productId: null | string;
             invoiceIgvAffectation: null | components["schemas"]["IgvAffectation"];
-            invoiceUnitOfMeasure: null | components["schemas"]["UnitOfMeasure"];
+            invoiceUnitOfMeasureCode: null | string;
             /** Format: double */
             invoiceQuantity: null | number;
             /** Format: double */
@@ -2526,7 +2713,8 @@ export interface components {
             id: string;
             code: string;
             name: string;
-            unitOfMeasure: components["schemas"]["UnitOfMeasure"];
+            unitOfMeasureCode: string;
+            unitOfMeasureName: string;
             igvAffectation: components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: number;
@@ -2538,7 +2726,6 @@ export interface components {
             /** Format: date-time */
             updatedAt: null | string;
             updatedByName: null | string;
-            unitOfMeasureDescription: string;
             igvAffectationDescription: string;
         };
         GetPurchaseLineResponseDto: {
@@ -2549,7 +2736,8 @@ export interface components {
             productCode: string;
             productName: string;
             invoiceIgvAffectation: components["schemas"]["IgvAffectation"];
-            invoiceUnitOfMeasure: components["schemas"]["UnitOfMeasure"];
+            invoiceUnitOfMeasureCode: string;
+            invoiceUnitOfMeasureName: string;
             /** Format: double */
             invoiceQuantity: number;
             /** Format: double */
@@ -2561,7 +2749,6 @@ export interface components {
             /** Format: double */
             total: number;
             invoiceIgvAffectationDescription: string;
-            invoiceUnitOfMeasureDescription: string;
         };
         GetPurchaseResponseDto: {
             /** Format: uuid */
@@ -2684,7 +2871,8 @@ export interface components {
             id: string;
             code: string;
             name: string;
-            unitOfMeasure: components["schemas"]["UnitOfMeasure"];
+            unitOfMeasureCode: string;
+            unitOfMeasureName: string;
             igvAffectation: components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: number;
@@ -2694,7 +2882,6 @@ export interface components {
             searchMatch: null | string;
             /** Format: uint32 */
             rowVersion: number;
-            unitOfMeasureDescription: string;
             igvAffectationDescription: string;
             igvAffectationShortDescription: string;
         };
@@ -2735,8 +2922,8 @@ export interface components {
             description: string;
         };
         ListUnitsOfMeasureResponseDto: {
-            unitOfMeasure: components["schemas"]["UnitOfMeasure"];
-            description: string;
+            code: string;
+            name: string;
             /** Format: double */
             fixedConversionFactor: null | number;
         };
@@ -2778,7 +2965,7 @@ export interface components {
         PartnerRoleFilter: "Client" | "Supplier" | null;
         PreviewPurchaseLineRequest: {
             invoiceIgvAffectation: null | components["schemas"]["IgvAffectation"];
-            invoiceUnitOfMeasure: null | components["schemas"]["UnitOfMeasure"];
+            invoiceUnitOfMeasureCode: null | string;
             /** Format: double */
             invoiceQuantity: null | number;
             /** Format: double */
@@ -2946,8 +3133,20 @@ export interface components {
         };
         /** @enum {unknown} */
         TaxDocumentType: "Factura" | "Boleta" | null;
-        /** @enum {unknown} */
-        UnitOfMeasure: "NIU" | "C62" | "DZN" | "BX" | null;
+        UnitOfMeasureListItemDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            sunatName: string;
+            /** Format: double */
+            fixedConversionFactor: null | number;
+            isActive: boolean;
+            /** Format: int32 */
+            productCount: number;
+            conversionDescription: string;
+            productCountDescription: string;
+        };
         UpdateBusinessPartnerRequest: {
             identityDocumentType: null | components["schemas"]["IdentityDocumentType"];
             documentNumber: null | string;
@@ -2963,7 +3162,7 @@ export interface components {
         UpdateProductRequest: {
             code: null | string;
             name: null | string;
-            unitOfMeasure: null | components["schemas"]["UnitOfMeasure"];
+            unitOfMeasureCode: null | string;
             igvAffectation: null | components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: null | number;
@@ -2975,6 +3174,9 @@ export interface components {
             name: null | string;
             filters: null | string;
             isDefault: null | boolean;
+        };
+        UpdateUnitOfMeasureRequest: {
+            name: null | string;
         };
         UpdateUserProfileRequest: {
             name: null | string;

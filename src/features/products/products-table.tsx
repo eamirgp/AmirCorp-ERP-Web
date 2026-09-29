@@ -35,7 +35,7 @@ export function ProductsTable({
           </span>
         ),
       }),
-      col.accessor('unitOfMeasureDescription', { header: 'Unidad', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('unitOfMeasureName', { header: 'Unidad', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       // Nombre corto en la tabla; el completo de SUNAT aparece al pasar el mouse.
       col.accessor('igvAffectationShortDescription', {
         header: 'IGV',

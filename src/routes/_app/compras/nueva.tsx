@@ -93,7 +93,7 @@ function NewPurchasePage() {
   }, [companies.data, form])
 
   /** Factor de conversión fijo de la unidad, según el catálogo de la API (null si lo define la compra). */
-  const fixedFactor = (unit: string) => units.data?.find((u) => u.unitOfMeasure === unit)?.fixedConversionFactor ?? null
+  const fixedFactor = (unit: string) => units.data?.find((u) => u.code === unit)?.fixedConversionFactor ?? null
   const applyUnit = (index: number, unit: string) => {
     const f = fixedFactor(unit)
     if (f != null) form.setValue(`lines.${index}.conversionFactor`, String(f))
@@ -106,7 +106,7 @@ function NewPurchasePage() {
       invoicePriceType: orNull<Schemas['InvoicePriceType']>(watched.invoicePriceType),
       lines: (watched.lines ?? []).map((l) => ({
         invoiceIgvAffectation: orNull<Schemas['IgvAffectation']>(l?.invoiceIgvAffectation),
-        invoiceUnitOfMeasure: orNull<Schemas['UnitOfMeasure']>(l?.invoiceUnitOfMeasure),
+        invoiceUnitOfMeasureCode: l?.invoiceUnitOfMeasure || null,
         invoiceQuantity: parseNumberInput(l?.invoiceQuantity),
         invoiceAmount: parseNumberInput(l?.invoiceAmount),
         conversionFactor: parseNumberInput(l?.conversionFactor),
@@ -133,7 +133,7 @@ function NewPurchasePage() {
         lines: v.lines.map((l) => ({
           productId: l.product?.id ?? null,
           invoiceIgvAffectation: orNull<Schemas['IgvAffectation']>(l.invoiceIgvAffectation),
-          invoiceUnitOfMeasure: orNull<Schemas['UnitOfMeasure']>(l.invoiceUnitOfMeasure),
+          invoiceUnitOfMeasureCode: l.invoiceUnitOfMeasure || null,
           invoiceQuantity: parseNumberInput(l.invoiceQuantity),
           invoiceAmount: parseNumberInput(l.invoiceAmount),
           conversionFactor: parseNumberInput(l.conversionFactor),
@@ -287,8 +287,8 @@ function NewPurchasePage() {
                               // Se proponen la afectación y la unidad del producto; el usuario puede cambiarlas.
                               if (p) {
                                 form.setValue(`lines.${i}.invoiceIgvAffectation`, p.igvAffectation ?? '')
-                                form.setValue(`lines.${i}.invoiceUnitOfMeasure`, p.unitOfMeasure ?? '')
-                                applyUnit(i, p.unitOfMeasure ?? '')
+                                form.setValue(`lines.${i}.invoiceUnitOfMeasure`, p.unitOfMeasureCode)
+                                applyUnit(i, p.unitOfMeasureCode)
                               }
                             }}
                             queryKey="products"
@@ -331,8 +331,8 @@ function NewPurchasePage() {
                       <Select aria-label="Unidad de medida" className="min-w-24" {...form.register(`lines.${i}.invoiceUnitOfMeasure`, { onChange: (e) => applyUnit(i, e.target.value) })}>
                         <option value="">—</option>
                         {units.data?.map((u) => (
-                          <option key={u.unitOfMeasure} value={u.unitOfMeasure ?? ''}>
-                            {u.description}
+                          <option key={u.code} value={u.code}>
+                            {u.name}
                           </option>
                         ))}
                       </Select>

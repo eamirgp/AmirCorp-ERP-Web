@@ -105,7 +105,7 @@ function PurchaseDetailPage() {
                     {l.productCode} · {l.invoiceIgvAffectationDescription}
                   </span>
                 </Td>
-                <Td className="text-muted">{l.invoiceUnitOfMeasureDescription}</Td>
+                <Td className="text-muted">{l.invoiceUnitOfMeasureName}</Td>
                 <Td right>{formatDecimal(l.invoiceQuantity)}</Td>
                 <Td right>{formatDecimal(l.invoiceUnitAmount)}</Td>
                 <Td right>{money(l.baseAmount)}</Td>

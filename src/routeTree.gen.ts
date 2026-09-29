@@ -16,6 +16,7 @@ import { Route as AppAuditoriaRouteImport } from './routes/_app/auditoria'
 import { Route as AppEmpresasRouteImport } from './routes/_app/empresas'
 import { Route as AppProductosRouteImport } from './routes/_app/productos'
 import { Route as AppSociosRouteImport } from './routes/_app/socios'
+import { Route as AppUnidadesMedidaRouteImport } from './routes/_app/unidades-medida'
 import { Route as AppUsuariosRouteImport } from './routes/_app/usuarios'
 import { Route as AppComprasIndexRouteImport } from './routes/_app/compras/index'
 import { Route as AppComprasIdRouteImport } from './routes/_app/compras/$id'
@@ -55,6 +56,11 @@ const AppSociosRoute = AppSociosRouteImport.update({
   path: '/socios',
   getParentRoute: () => AppRoute,
 } as any)
+const AppUnidadesMedidaRoute = AppUnidadesMedidaRouteImport.update({
+  id: '/unidades-medida',
+  path: '/unidades-medida',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppUsuariosRoute = AppUsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/empresas': typeof AppEmpresasRoute
   '/productos': typeof AppProductosRoute
   '/socios': typeof AppSociosRoute
+  '/unidades-medida': typeof AppUnidadesMedidaRoute
   '/usuarios': typeof AppUsuariosRoute
   '/compras/$id': typeof AppComprasIdRoute
   '/compras/nueva': typeof AppComprasNuevaRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/empresas': typeof AppEmpresasRoute
   '/productos': typeof AppProductosRoute
   '/socios': typeof AppSociosRoute
+  '/unidades-medida': typeof AppUnidadesMedidaRoute
   '/usuarios': typeof AppUsuariosRoute
   '/': typeof AppIndexRoute
   '/compras/$id': typeof AppComprasIdRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/_app/empresas': typeof AppEmpresasRoute
   '/_app/productos': typeof AppProductosRoute
   '/_app/socios': typeof AppSociosRoute
+  '/_app/unidades-medida': typeof AppUnidadesMedidaRoute
   '/_app/usuarios': typeof AppUsuariosRoute
   '/_app/': typeof AppIndexRoute
   '/_app/compras/$id': typeof AppComprasIdRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/empresas'
     | '/productos'
     | '/socios'
+    | '/unidades-medida'
     | '/usuarios'
     | '/compras/$id'
     | '/compras/nueva'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
     | '/empresas'
     | '/productos'
     | '/socios'
+    | '/unidades-medida'
     | '/usuarios'
     | '/'
     | '/compras/$id'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/_app/empresas'
     | '/_app/productos'
     | '/_app/socios'
+    | '/_app/unidades-medida'
     | '/_app/usuarios'
     | '/_app/'
     | '/_app/compras/$id'
@@ -210,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSociosRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/unidades-medida': {
+      id: '/_app/unidades-medida'
+      path: '/unidades-medida'
+      fullPath: '/unidades-medida'
+      preLoaderRoute: typeof AppUnidadesMedidaRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/usuarios': {
       id: '/_app/usuarios'
       path: '/usuarios'
@@ -246,6 +265,7 @@ interface AppRouteChildren {
   AppEmpresasRoute: typeof AppEmpresasRoute
   AppProductosRoute: typeof AppProductosRoute
   AppSociosRoute: typeof AppSociosRoute
+  AppUnidadesMedidaRoute: typeof AppUnidadesMedidaRoute
   AppUsuariosRoute: typeof AppUsuariosRoute
   AppIndexRoute: typeof AppIndexRoute
   AppComprasIdRoute: typeof AppComprasIdRoute
@@ -258,6 +278,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppEmpresasRoute: AppEmpresasRoute,
   AppProductosRoute: AppProductosRoute,
   AppSociosRoute: AppSociosRoute,
+  AppUnidadesMedidaRoute: AppUnidadesMedidaRoute,
   AppUsuariosRoute: AppUsuariosRoute,
   AppIndexRoute: AppIndexRoute,
   AppComprasIdRoute: AppComprasIdRoute,
