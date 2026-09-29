@@ -89,7 +89,7 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
       <form id="partner-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
 
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Tipo de documento">
             {(a) => (
               <Select {...a} autoFocus {...form.register('identityDocumentType')}>
@@ -126,11 +126,11 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
           <legend className="mb-1.5 text-xs font-medium text-muted">Rol</legend>
           <label className="flex items-center gap-2.5 text-base">
             <input type="checkbox" className="size-4 [accent-color:var(--ink)]" {...form.register('isClient')} />
-            Cliente: le vendemos
+            Cliente
           </label>
           <label className="flex items-center gap-2.5 text-base">
             <input type="checkbox" className="size-4 [accent-color:var(--ink)]" {...form.register('isSupplier')} />
-            Proveedor: le compramos
+            Proveedor
           </label>
         </fieldset>
       </form>
