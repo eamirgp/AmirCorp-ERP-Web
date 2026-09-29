@@ -292,17 +292,21 @@ function NewPurchasePage() {
                               }
                             }}
                             queryKey="products"
-                            fetchItems={searchProducts}
+                            // Con el proveedor elegido, cada producto trae el código de ese proveedor (el de su factura).
+                            scope={watched.supplier?.id}
+                            fetchItems={(term) => searchProducts(term, watched.supplier?.id)}
                             itemKey={(p) => p.id}
                             itemLabel={(p) => `${p.code} · ${p.name}`}
                             renderItem={(p) => (
                               <span>
                                 <span className="mr-2 font-mono text-xs text-faint">{p.code}</span>
                                 {p.name}
-                                {p.supplierCodes.length > 0 && (
-                                  <span className="block font-mono text-xs text-faint">
-                                    {p.supplierCodes.map((s) => `${s.supplierName}: ${s.code}`).join(' · ')}
+                                {p.supplierCode ? (
+                                  <span className="block text-xs text-faint">
+                                    Código del proveedor: <span className="font-mono">{p.supplierCode}</span>
                                   </span>
+                                ) : (
+                                  p.searchMatch && <span className="block text-xs text-faint">{p.searchMatch}</span>
                                 )}
                               </span>
                             )}

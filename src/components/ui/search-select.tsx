@@ -5,16 +5,42 @@ import { Input } from './field'
 /** Alto máximo de la lista de resultados (px), el de max-h-72. */
 const LIST_MAX_HEIGHT = 288
 
-/** Zona visible donde cabe la lista: el contenedor con scroll más cercano o, si no hay, la ventana. */
-function clippingArea(el: HTMLElement): { top: number; bottom: number } {
+/**
+ * Elemento respecto al cual se ubica un `position: fixed`: el ancestro más cercano con transform (por ejemplo el
+ * diálogo, que se centra con translate) o, si no hay, la ventana (null).
+ */
+function fixedOrigin(el: HTMLElement): DOMRect | null {
   for (let node = el.parentElement; node; node = node.parentElement) {
-    const { overflowY, overflowX } = getComputedStyle(node)
-    if (overflowY !== 'visible' || overflowX !== 'visible') {
-      const r = node.getBoundingClientRect()
-      return { top: Math.max(r.top, 0), bottom: Math.min(r.bottom, window.innerHeight) }
-    }
+    const s = getComputedStyle(node)
+    if (s.transform !== 'none' || s.translate !== 'none' || s.filter !== 'none' || s.perspective !== 'none' || /paint|layout|strict|content/.test(s.contain))
+      return node.getBoundingClientRect()
   }
-  return { top: 0, bottom: window.innerHeight }
+  return null
+}
+
+interface Placement {
+  left: number
+  width: number
+  top?: number
+  bottom?: number
+  maxHeight: number
+}
+
+/**
+ * Posición de la lista junto al campo. Va con `position: fixed` para que ningún contenedor con scroll (el cuerpo
+ * de un diálogo, una tabla ancha) la corte. Si abajo no cabe, se abre hacia arriba.
+ */
+function placeList(field: HTMLElement): Placement {
+  const box = field.getBoundingClientRect()
+  const origin = fixedOrigin(field)
+  const below = window.innerHeight - box.bottom - 12
+  const above = box.top - 12
+  const up = below < LIST_MAX_HEIGHT && above > below
+  const maxHeight = Math.max(120, Math.min(LIST_MAX_HEIGHT, up ? above : below))
+  const left = box.left - (origin?.left ?? 0)
+  return up
+    ? { left, width: box.width, bottom: (origin?.bottom ?? window.innerHeight) - box.top + 4, maxHeight }
+    : { left, width: box.width, top: box.bottom - (origin?.top ?? 0) + 4, maxHeight }
 }
 
 /**
@@ -26,6 +52,7 @@ export function SearchSelect<T>({
   value,
   onChange,
   queryKey,
+  scope,
   fetchItems,
   itemKey,
   itemLabel,
@@ -39,6 +66,8 @@ export function SearchSelect<T>({
   onChange: (value: T | null) => void
   /** Raíz de las claves del recurso ('products', 'partners'): al guardar o desactivar uno, la búsqueda también se refresca. */
   queryKey: string
+  /** Lo que cambia los resultados además del texto (por ejemplo, el proveedor de la compra). */
+  scope?: string
   fetchItems: (term: string) => Promise<T[]>
   itemKey: (item: T) => string
   itemLabel: (item: T) => string
@@ -60,7 +89,7 @@ export function SearchSelect<T>({
   }, [term])
 
   const results = useQuery({
-    queryKey: [queryKey, 'search', debounced],
+    queryKey: [queryKey, 'search', scope ?? '', debounced],
     queryFn: () => fetchItems(debounced),
     enabled: open,
     staleTime: 30_000,
@@ -70,18 +99,20 @@ export function SearchSelect<T>({
 
   useEffect(() => setActive(0), [debounced])
 
-  // Dentro de un contenedor con scroll (un diálogo, una tabla) la lista se cortaría en el borde: si abajo
-  // no hay espacio, se abre hacia arriba, y su alto se ajusta al espacio que queda.
+  // La lista sigue al campo mientras está abierta, aunque se haga scroll o cambie el tamaño de la ventana.
   const wrapper = useRef<HTMLDivElement>(null)
-  const [placement, setPlacement] = useState<{ up: boolean; maxHeight: number }>({ up: false, maxHeight: LIST_MAX_HEIGHT })
+  const [placement, setPlacement] = useState<Placement | null>(null)
   useLayoutEffect(() => {
     if (!open || !wrapper.current) return
-    const box = wrapper.current.getBoundingClientRect()
-    const area = clippingArea(wrapper.current)
-    const below = area.bottom - box.bottom - 8
-    const above = box.top - area.top - 8
-    const up = below < LIST_MAX_HEIGHT && above > below
-    setPlacement({ up, maxHeight: Math.max(120, Math.min(LIST_MAX_HEIGHT, up ? above : below)) })
+    const field = wrapper.current
+    const update = () => setPlacement(placeList(field))
+    update()
+    window.addEventListener('scroll', update, true)
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update, true)
+      window.removeEventListener('resize', update)
+    }
   }, [open])
 
   const choose = (item: T) => {
@@ -124,12 +155,12 @@ export function SearchSelect<T>({
         onKeyDown={onKeyDown}
         {...aria}
       />
-      {open && (
+      {open && placement && (
         <ul
           id={listId}
           role="listbox"
-          style={{ maxHeight: placement.maxHeight }}
-          className={`absolute right-0 left-0 z-40 overflow-y-auto rounded-md border border-line bg-surface p-1 shadow-float ${placement.up ? 'bottom-full mb-1' : 'top-full mt-1'}`}
+          style={placement}
+          className="fixed z-50 overflow-y-auto rounded-md border border-line bg-surface p-1 shadow-float"
         >
           {items.length === 0 ? (
             <li className="px-2.5 py-2 text-sm text-faint">{results.isFetching ? 'Buscando…' : 'Sin resultados.'}</li>

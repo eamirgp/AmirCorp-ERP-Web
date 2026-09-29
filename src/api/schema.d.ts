@@ -820,6 +820,7 @@ export interface paths {
                     IsActive?: boolean;
                     SortBy?: components["schemas"]["ProductSortBy"];
                     SortDescending?: boolean;
+                    SupplierId?: string;
                 };
                 header?: never;
                 path?: never;
@@ -2689,6 +2690,8 @@ export interface components {
             salePrice: number;
             isActive: boolean;
             supplierCodes: components["schemas"]["ProductSupplierCodeResponseDto"][];
+            supplierCode: null | string;
+            searchMatch: null | string;
             /** Format: uint32 */
             rowVersion: number;
             unitOfMeasureDescription: string;

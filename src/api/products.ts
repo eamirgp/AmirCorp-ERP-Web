@@ -46,11 +46,14 @@ export const productListQuery = (p: ProductListParams) =>
     placeholderData: keepPreviousData,
   })
 
-/** Productos activos que coinciden con el texto (para elegir uno en una línea de compra). */
-export const searchProducts = (term: string) =>
-  unwrap(api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true } } })).then(
-    (r) => r.items,
-  )
+/**
+ * Productos activos que coinciden con el texto (para elegir uno en una línea de compra). Con el proveedor de la
+ * compra, cada producto trae el código de ese proveedor.
+ */
+export const searchProducts = (term: string, supplierId?: string) =>
+  unwrap(
+    api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SupplierId: supplierId } } }),
+  ).then((r) => r.items)
 
 export function useSaveProduct() {
   const qc = useQueryClient()

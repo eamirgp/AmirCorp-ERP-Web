@@ -27,21 +27,13 @@ export function ProductsTable({
       col.accessor('code', { header: 'Código', cell: (c) => <span className="font-mono text-xs whitespace-nowrap text-muted">{c.getValue()}</span> }),
       col.accessor('name', {
         header: 'Producto',
-        // Debajo, los códigos de los proveedores: así se ve por qué aparece al buscar uno de ellos.
-        cell: (c) => {
-          const codes = c.row.original.supplierCodes
-          return (
-            <span>
-              {c.getValue()}
-              {codes.length > 0 && (
-                <span className="block text-xs text-faint" title={codes.map((s) => `${s.supplierName}: ${s.code}`).join('\n')}>
-                  {codes.length === 1 ? 'Proveedor: ' : 'Proveedores: '}
-                  <span className="font-mono">{codes.map((s) => s.code).join(' · ')}</span>
-                </span>
-              )}
-            </span>
-          )
-        },
+        // Solo si apareció al buscar un código de proveedor, la API dice cuál: así se entiende por qué salió.
+        cell: (c) => (
+          <span>
+            {c.getValue()}
+            {c.row.original.searchMatch && <span className="block text-xs text-faint">{c.row.original.searchMatch}</span>}
+          </span>
+        ),
       }),
       col.accessor('unitOfMeasureDescription', { header: 'Unidad', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       // Nombre corto en la tabla; el completo de SUNAT aparece al pasar el mouse.

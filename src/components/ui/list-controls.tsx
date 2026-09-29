@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { formatInt } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
@@ -66,7 +66,8 @@ export interface PageInfo {
 }
 
 /**
- * Pie de una lista paginada: "1–20 de 57", filas por página y botones de página.
+ * Pie de una lista paginada: "1–20 de 57", filas por página y botones para ir a la primera, anterior,
+ * siguiente y última página.
  * Todo sale de la respuesta de la API: la pantalla no calcula páginas ni rangos.
  */
 export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | undefined; onPage: (page: number) => void; onPageSize: (size: number) => void }) {
@@ -88,7 +89,11 @@ export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | unde
           </Select>
         </label>
         {info.totalPages > 1 && (
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-1">
+            <Button size="sm" variant="ghost" disabled={!info.hasPreviousPage} onClick={() => onPage(1)} title="Ir a la primera página">
+              <ChevronsLeft />
+              Primera
+            </Button>
             <Button size="sm" variant="ghost" disabled={!info.hasPreviousPage} onClick={() => onPage(info.page - 1)}>
               <ChevronLeft />
               Anterior
@@ -99,6 +104,10 @@ export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | unde
             <Button size="sm" variant="ghost" disabled={!info.hasNextPage} onClick={() => onPage(info.page + 1)}>
               Siguiente
               <ChevronRight />
+            </Button>
+            <Button size="sm" variant="ghost" disabled={!info.hasNextPage} onClick={() => onPage(info.totalPages)} title="Ir a la última página">
+              Última
+              <ChevronsRight />
             </Button>
           </div>
         )}
