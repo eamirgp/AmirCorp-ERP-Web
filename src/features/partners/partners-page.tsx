@@ -111,11 +111,12 @@ export function PartnersPage({
   const isSuppliers = config.role === 'proveedores'
   const list = useQuery(partnerListQuery(partnerListParams(config.role, search)))
   const docTypes = useQuery(identityDocumentTypesQuery)
-  // En Proveedores no se ofrece un documento que un proveedor no puede tener (DNI): lo indica la API.
+  // Cada lista ofrece solo los documentos que su rol puede tener (lo indica la API): en Proveedores no hay DNI y,
+  // mientras solo se venda en Perú, en Clientes no hay documento extranjero.
   const docOptions = useMemo(
     () =>
       (docTypes.data ?? [])
-        .filter((d) => !isSuppliers || d.canBeSupplier)
+        .filter((d) => (isSuppliers ? d.canBeSupplier : d.canBeClient))
         .map((d) => ({ value: d.identityDocumentType, label: d.description })),
     [docTypes.data, isSuppliers],
   )

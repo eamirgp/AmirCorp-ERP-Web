@@ -2915,6 +2915,7 @@ export interface components {
             supportsLookup: boolean;
             requiresCountry: boolean;
             canBeSupplier: boolean;
+            canBeClient: boolean;
         };
         ListIgvAffectationsResponseDto: {
             igvAffectation: components["schemas"]["IgvAffectation"];

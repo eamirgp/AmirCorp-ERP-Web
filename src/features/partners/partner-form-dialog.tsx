@@ -72,11 +72,18 @@ export function PartnerFormDialog({
   const selectedType = docTypes.data?.find((d) => d.identityDocumentType === docType)
   const asksCountry = selectedType?.requiresCountry ?? false
 
-  // Un proveedor no puede tener DNI (lo indica la API con canBeSupplier): si "Proveedor" está marcado no se ofrece
-  // DNI, y si se eligió DNI la casilla "Proveedor" se desactiva. Así no se llega al error recién al guardar.
+  // Qué documento puede tener cada rol lo indica la API (canBeSupplier, canBeClient): un proveedor no puede tener
+  // DNI y, mientras solo se venda en Perú, un cliente no puede tener documento extranjero. Con un rol marcado no se
+  // ofrecen los documentos que no le corresponden, y con un documento elegido se desactiva el rol que no admite.
+  // Así no se llega al error recién al guardar.
   const isSupplier = form.watch('isSupplier')
-  const docTypeOptions = (docTypes.data ?? []).filter((d) => !isSupplier || d.canBeSupplier || d.identityDocumentType === docType)
+  const isClient = form.watch('isClient')
+  const docTypeOptions = (docTypes.data ?? []).filter(
+    (d) => d.identityDocumentType === docType || ((!isSupplier || d.canBeSupplier) && (!isClient || d.canBeClient)),
+  )
   const supplierBlocked = selectedType !== undefined && !selectedType.canBeSupplier
+  const clientBlocked = selectedType !== undefined && !selectedType.canBeClient
+  const docHint = isSupplier && isClient ? 'Cliente y proveedor a la vez necesita RUC.' : isSupplier ? 'Un proveedor necesita RUC o documento extranjero.' : isClient ? 'Un cliente necesita RUC o DNI.' : undefined
 
   // Buscar en SUNAT: solo si la API lo permite para este tipo (RUC con la consulta configurada).
   const lookup = useLookupRuc()
@@ -98,7 +105,7 @@ export function PartnerFormDialog({
           countryCode: asksCountry ? (v.country?.code ?? null) : null,
           name: v.name,
           // Una casilla desactivada llega vacía: se envía como "no".
-          isClient: !!v.isClient,
+          isClient: !clientBlocked && !!v.isClient,
           isSupplier: !supplierBlocked && !!v.isSupplier,
         },
       },
@@ -132,7 +139,7 @@ export function PartnerFormDialog({
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
 
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <Field label="Tipo de documento" hint={isSupplier ? 'Un proveedor necesita RUC o documento extranjero.' : undefined}>
+          <Field label="Tipo de documento" hint={docHint}>
             {(a) => (
               <Select {...a} autoFocus {...form.register('identityDocumentType')}>
                 <option value="">Elige…</option>
@@ -207,10 +214,11 @@ export function PartnerFormDialog({
 
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1.5 text-xs font-medium text-muted">Rol (puede ser los dos)</legend>
-          <label className="flex items-center gap-2.5 text-base">
-            <input type="checkbox" className="size-4 [accent-color:var(--ink)]" {...form.register('isClient')} />
+          <label className={`flex items-center gap-2.5 text-base ${clientBlocked ? 'text-faint' : ''}`}>
+            <input type="checkbox" className="size-4 [accent-color:var(--ink)]" disabled={clientBlocked} {...form.register('isClient')} />
             Cliente
           </label>
+          {clientBlocked && <p className="pl-6.5 text-xs text-faint">Con {selectedType.description.toLowerCase()} no puede ser cliente: por ahora solo se vende en Perú.</p>}
           <label className={`flex items-center gap-2.5 text-base ${supplierBlocked ? 'text-faint' : ''}`}>
             <input type="checkbox" className="size-4 [accent-color:var(--ink)]" disabled={supplierBlocked} {...form.register('isSupplier')} />
             Proveedor
