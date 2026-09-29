@@ -77,6 +77,10 @@ export function FilterChip<T extends string>({
   )
 }
 
+// Al elegir una opción el menú sigue abierto: se elige el campo y la dirección de una vez, y la lista de atrás
+// se reordena al instante. Se cierra con un clic afuera o con Esc.
+const keepOpen = (e: Event) => e.preventDefault()
+
 /** Menú "Ordenar": campo y dirección. Las opciones son las que la API permite ordenar. */
 export function SortMenu<T extends string>({
   options,
@@ -105,7 +109,7 @@ export function SortMenu<T extends string>({
           <Menu.Label className="px-2 pt-1 pb-1.5 text-xs text-faint">Ordenar por</Menu.Label>
           <Menu.RadioGroup value={current.value} onValueChange={(v) => onChange(v as T, descending)}>
             {options.map((o) => (
-              <Menu.RadioItem key={o.value} value={o.value} className={itemClass}>
+              <Menu.RadioItem key={o.value} value={o.value} className={itemClass} onSelect={keepOpen}>
                 {o.label}
                 <Menu.ItemIndicator className="absolute right-2">
                   <Check className="text-accent" />
@@ -115,14 +119,14 @@ export function SortMenu<T extends string>({
           </Menu.RadioGroup>
           <Menu.Separator className="my-1 h-px bg-line" />
           <Menu.RadioGroup value={descending ? 'desc' : 'asc'} onValueChange={(v) => onChange(current.value, v === 'desc')}>
-            <Menu.RadioItem value="asc" className={itemClass}>
+            <Menu.RadioItem value="asc" className={itemClass} onSelect={keepOpen}>
               <ArrowUpNarrowWide className="text-muted" />
               Ascendente
               <Menu.ItemIndicator className="absolute right-2">
                 <Check className="text-accent" />
               </Menu.ItemIndicator>
             </Menu.RadioItem>
-            <Menu.RadioItem value="desc" className={itemClass}>
+            <Menu.RadioItem value="desc" className={itemClass} onSelect={keepOpen}>
               <ArrowDownWideNarrow className="text-muted" />
               Descendente
               <Menu.ItemIndicator className="absolute right-2">
