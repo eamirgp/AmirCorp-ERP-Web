@@ -98,14 +98,15 @@ export function SortMenu<T extends string>({
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-sm text-muted outline-none hover:text-ink focus-visible:text-ink">
-        <DirIcon className="size-4" />
+      {/* Con el mismo aspecto que el botón "Filtros", a su lado: el orden siempre a la vista y a un clic. */}
+      <Menu.Trigger className="inline-flex h-10 items-center gap-2 rounded-md border border-line-strong bg-surface px-4 text-base font-medium text-ink outline-none hover:border-ink/40 focus-visible:border-ink/40">
+        <DirIcon className="size-4 text-muted" />
         <span>
-          Ordenar: <span className="text-ink">{current.label}</span>
+          <span className="font-normal text-muted">Ordenar:</span> {current.label}
         </span>
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Content align="end" sideOffset={6} className={menuClass}>
+        <Menu.Content align="start" sideOffset={6} className={menuClass}>
           <Menu.Label className="px-2 pt-1 pb-1.5 text-xs text-faint">Ordenar por</Menu.Label>
           <Menu.RadioGroup value={current.value} onValueChange={(v) => onChange(v as T, descending)}>
             {options.map((o) => (
@@ -159,7 +160,7 @@ const clearLinkClass = 'px-1 text-sm text-muted underline-offset-4 hover:text-in
 
 /**
  * Barra de filtros de una lista, al estilo de Shopify:
- *   [buscador] [Filtros (2)] [Limpiar filtros] ········ [Actualizando…] [Ordenar]
+ *   [buscador] [Filtros (2)] [Ordenar: Nombre] [Limpiar filtros] ········ [Actualizando…] [n resultados]
  *   Estado: Activos ✕   Desde: 28/09/2026 ✕   Limpiar filtros        ← solo si hay filtros aplicados
  * Todos los filtros viven en un panel lateral que abre "Filtros": la barra se ve igual con 1 o con 10.
  * Debajo solo aparece lo aplicado, para ver siempre qué filtra la lista y quitarlo con un clic.
@@ -197,16 +198,18 @@ export function FilterBar({
             )}
           </Button>
         )}
+        {sort}
         {onClear && applied.length === 0 && (
           <button type="button" onClick={onClear} className={clearLinkClass}>
             Limpiar filtros
           </button>
         )}
-        <div className="ml-auto flex items-center gap-2">
-          {busy && <span className="text-sm text-faint">Actualizando…</span>}
-          {count && <span className="num text-sm text-faint">{count}</span>}
-          {sort}
-        </div>
+        {(busy || count) && (
+          <div className="ml-auto flex items-center gap-2">
+            {busy && <span className="text-sm text-faint">Actualizando…</span>}
+            {count && <span className="num text-sm text-faint">{count}</span>}
+          </div>
+        )}
       </div>
 
       {applied.length > 0 && (
