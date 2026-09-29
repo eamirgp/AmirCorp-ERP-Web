@@ -13,8 +13,10 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppAuditoriaRouteImport } from './routes/_app/auditoria'
+import { Route as AppClientesRouteImport } from './routes/_app/clientes'
 import { Route as AppEmpresasRouteImport } from './routes/_app/empresas'
 import { Route as AppProductosRouteImport } from './routes/_app/productos'
+import { Route as AppProveedoresRouteImport } from './routes/_app/proveedores'
 import { Route as AppSociosRouteImport } from './routes/_app/socios'
 import { Route as AppUnidadesMedidaRouteImport } from './routes/_app/unidades-medida'
 import { Route as AppUsuariosRouteImport } from './routes/_app/usuarios'
@@ -41,6 +43,11 @@ const AppAuditoriaRoute = AppAuditoriaRouteImport.update({
   path: '/auditoria',
   getParentRoute: () => AppRoute,
 } as any)
+const AppClientesRoute = AppClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppEmpresasRoute = AppEmpresasRouteImport.update({
   id: '/empresas',
   path: '/empresas',
@@ -49,6 +56,11 @@ const AppEmpresasRoute = AppEmpresasRouteImport.update({
 const AppProductosRoute = AppProductosRouteImport.update({
   id: '/productos',
   path: '/productos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProveedoresRoute = AppProveedoresRouteImport.update({
+  id: '/proveedores',
+  path: '/proveedores',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSociosRoute = AppSociosRouteImport.update({
@@ -86,8 +98,10 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
   '/auditoria': typeof AppAuditoriaRoute
+  '/clientes': typeof AppClientesRoute
   '/empresas': typeof AppEmpresasRoute
   '/productos': typeof AppProductosRoute
+  '/proveedores': typeof AppProveedoresRoute
   '/socios': typeof AppSociosRoute
   '/unidades-medida': typeof AppUnidadesMedidaRoute
   '/usuarios': typeof AppUsuariosRoute
@@ -98,8 +112,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/auditoria': typeof AppAuditoriaRoute
+  '/clientes': typeof AppClientesRoute
   '/empresas': typeof AppEmpresasRoute
   '/productos': typeof AppProductosRoute
+  '/proveedores': typeof AppProveedoresRoute
   '/socios': typeof AppSociosRoute
   '/unidades-medida': typeof AppUnidadesMedidaRoute
   '/usuarios': typeof AppUsuariosRoute
@@ -113,8 +129,10 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
   '/_app/auditoria': typeof AppAuditoriaRoute
+  '/_app/clientes': typeof AppClientesRoute
   '/_app/empresas': typeof AppEmpresasRoute
   '/_app/productos': typeof AppProductosRoute
+  '/_app/proveedores': typeof AppProveedoresRoute
   '/_app/socios': typeof AppSociosRoute
   '/_app/unidades-medida': typeof AppUnidadesMedidaRoute
   '/_app/usuarios': typeof AppUsuariosRoute
@@ -129,8 +147,10 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/auditoria'
+    | '/clientes'
     | '/empresas'
     | '/productos'
+    | '/proveedores'
     | '/socios'
     | '/unidades-medida'
     | '/usuarios'
@@ -141,8 +161,10 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/auditoria'
+    | '/clientes'
     | '/empresas'
     | '/productos'
+    | '/proveedores'
     | '/socios'
     | '/unidades-medida'
     | '/usuarios'
@@ -155,8 +177,10 @@ export interface FileRouteTypes {
     | '/_app'
     | '/login'
     | '/_app/auditoria'
+    | '/_app/clientes'
     | '/_app/empresas'
     | '/_app/productos'
+    | '/_app/proveedores'
     | '/_app/socios'
     | '/_app/unidades-medida'
     | '/_app/usuarios'
@@ -201,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAuditoriaRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/clientes': {
+      id: '/_app/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof AppClientesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/empresas': {
       id: '/_app/empresas'
       path: '/empresas'
@@ -213,6 +244,13 @@ declare module '@tanstack/react-router' {
       path: '/productos'
       fullPath: '/productos'
       preLoaderRoute: typeof AppProductosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/proveedores': {
+      id: '/_app/proveedores'
+      path: '/proveedores'
+      fullPath: '/proveedores'
+      preLoaderRoute: typeof AppProveedoresRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/socios': {
@@ -262,8 +300,10 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAuditoriaRoute: typeof AppAuditoriaRoute
+  AppClientesRoute: typeof AppClientesRoute
   AppEmpresasRoute: typeof AppEmpresasRoute
   AppProductosRoute: typeof AppProductosRoute
+  AppProveedoresRoute: typeof AppProveedoresRoute
   AppSociosRoute: typeof AppSociosRoute
   AppUnidadesMedidaRoute: typeof AppUnidadesMedidaRoute
   AppUsuariosRoute: typeof AppUsuariosRoute
@@ -275,8 +315,10 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAuditoriaRoute: AppAuditoriaRoute,
+  AppClientesRoute: AppClientesRoute,
   AppEmpresasRoute: AppEmpresasRoute,
   AppProductosRoute: AppProductosRoute,
+  AppProveedoresRoute: AppProveedoresRoute,
   AppSociosRoute: AppSociosRoute,
   AppUnidadesMedidaRoute: AppUnidadesMedidaRoute,
   AppUsuariosRoute: AppUsuariosRoute,

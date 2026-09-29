@@ -1,6 +1,6 @@
-import { Boxes, Building2, FileText, HistoryIcon, House, Package, Ruler, ShieldCheck, ShoppingCart, Ship, Users, type LucideIcon } from 'lucide-react'
+import { Boxes, Building2, FileText, HistoryIcon, House, Package, Ruler, ShieldCheck, ShoppingCart, Ship, Truck, Users, type LucideIcon } from 'lucide-react'
 
-export type NavPath = '/' | '/productos' | '/empresas' | '/socios' | '/usuarios' | '/compras' | '/unidades-medida' | '/auditoria'
+export type NavPath = '/' | '/productos' | '/empresas' | '/clientes' | '/proveedores' | '/usuarios' | '/compras' | '/unidades-medida' | '/auditoria'
 
 export interface NavItem {
   label: string
@@ -9,16 +9,22 @@ export interface NavItem {
   to?: NavPath
 }
 
+// Clientes y proveedores son el mismo registro por dentro, pero cada uno aparece donde se usa:
+// clientes junto a Ventas y proveedores junto a Compras.
 export const navGroups: { label?: string; items: NavItem[] }[] = [
   { items: [{ label: 'Inicio', icon: House, to: '/' }] },
   {
     label: 'Comercial',
-    items: [{ label: 'Ventas', icon: FileText }],
+    items: [
+      { label: 'Ventas', icon: FileText },
+      { label: 'Clientes', icon: Users, to: '/clientes' },
+    ],
   },
   {
     label: 'Abastecimiento',
     items: [
       { label: 'Compras', icon: ShoppingCart, to: '/compras' },
+      { label: 'Proveedores', icon: Truck, to: '/proveedores' },
       { label: 'Importaciones', icon: Ship },
       { label: 'Inventario', icon: Boxes },
     ],
@@ -27,7 +33,6 @@ export const navGroups: { label?: string; items: NavItem[] }[] = [
     label: 'Maestros',
     items: [
       { label: 'Productos', icon: Package, to: '/productos' },
-      { label: 'Clientes y proveedores', icon: Users, to: '/socios' },
       { label: 'Empresas', icon: Building2, to: '/empresas' },
     ],
   },

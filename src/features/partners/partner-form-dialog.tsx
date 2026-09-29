@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { useLookupRuc, useSavePartner, type PartnerRow } from '@/api/partners'
+import { useLookupRuc, useSavePartner, type PartnerRole, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -26,7 +26,22 @@ interface Values {
 
 const empty: Values = { identityDocumentType: '', documentNumber: '', country: null, name: '', isClient: false, isSupplier: false }
 
-export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; partner: PartnerRow | null; onClose: () => void }) {
+/**
+ * Formulario de cliente o proveedor. `role` es la lista desde la que se abre: define el título y qué rol viene
+ * marcado al crear. Las dos casillas siguen disponibles, porque una empresa puede ser cliente y proveedor.
+ */
+export function PartnerFormDialog({
+  open,
+  partner,
+  role,
+  onClose,
+}: {
+  open: boolean
+  partner: PartnerRow | null
+  role: PartnerRole
+  onClose: () => void
+}) {
+  const noun = role === 'proveedores' ? 'proveedor' : 'cliente'
   const docTypes = useQuery(identityDocumentTypesQuery)
   const countries = useQuery(countriesQuery)
   // La API envía todos los países (son pocos y fijos): buscar entre ellos es solo presentación, sin tildes.
@@ -47,10 +62,10 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
             isClient: partner.isClient,
             isSupplier: partner.isSupplier,
           }
-        : empty,
+        : { ...empty, isClient: role === 'clientes', isSupplier: role === 'proveedores' },
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, partner])
+  }, [open, partner, role])
 
   // El país solo se pregunta con documento extranjero: con DNI o RUC es Perú (lo indica la API en el catálogo).
   const docType = form.watch('identityDocumentType')
@@ -82,7 +97,7 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
       },
       {
         onSuccess: () => {
-          toast.ok(partner ? 'Registro actualizado' : 'Registro creado')
+          toast.ok(partner ? `${noun[0].toUpperCase()}${noun.slice(1)} actualizado` : `${noun[0].toUpperCase()}${noun.slice(1)} creado`)
           onClose()
         },
       },
@@ -95,13 +110,13 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
       onOpenChange={(o) => !o && onClose()}
       // Un poco más ancho que el estándar: el número de documento lleva al lado el botón "SUNAT".
       width="max-w-xl"
-      title={partner ? 'Editar cliente o proveedor' : 'Nuevo cliente o proveedor'}
+      title={partner ? `Editar ${noun}` : `Nuevo ${noun}`}
       description={partner ? `${partner.identityDocumentTypeDescription} ${partner.documentNumber}` : 'Queda disponible para todas las empresas.'}
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
           <Button variant="primary" type="submit" form="partner-form" loading={save.isPending}>
-            {partner ? 'Guardar cambios' : 'Crear'}
+            {partner ? 'Guardar cambios' : `Crear ${noun}`}
           </Button>
         </>
       }
@@ -184,7 +199,7 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
         )}
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-xs font-medium text-muted">Rol</legend>
+          <legend className="mb-1.5 text-xs font-medium text-muted">Rol (puede ser los dos)</legend>
           <label className="flex items-center gap-2.5 text-base">
             <input type="checkbox" className="size-4 [accent-color:var(--ink)]" {...form.register('isClient')} />
             Cliente

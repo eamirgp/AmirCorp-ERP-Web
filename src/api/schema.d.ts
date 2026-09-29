@@ -2914,6 +2914,7 @@ export interface components {
             description: string;
             supportsLookup: boolean;
             requiresCountry: boolean;
+            canBeSupplier: boolean;
         };
         ListIgvAffectationsResponseDto: {
             igvAffectation: components["schemas"]["IgvAffectation"];
@@ -3126,7 +3127,7 @@ export interface components {
             newPassword: null | string;
         };
         /** @enum {unknown} */
-        SavedViewScreen: "Products" | "BusinessPartners" | "Purchases" | "Companies" | "Users" | "Audit";
+        SavedViewScreen: "Products" | "Suppliers" | "Purchases" | "Companies" | "Users" | "Audit" | "Clients";
         SortedPagedResultOfListBusinessPartnersResponseDtoAndBusinessPartnerSortBy: {
             sortBy: components["schemas"]["BusinessPartnerSortBy"];
             sortDescending: boolean;
