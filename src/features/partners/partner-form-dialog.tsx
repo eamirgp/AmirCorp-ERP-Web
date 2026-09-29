@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
+import { Search, TriangleAlert } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { useSavePartner, type PartnerRow } from '@/api/partners'
+import { useLookupRuc, useSavePartner, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -53,7 +54,18 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
 
   // El país solo se pregunta con documento extranjero: con DNI o RUC es Perú (lo indica la API en el catálogo).
   const docType = form.watch('identityDocumentType')
-  const asksCountry = docTypes.data?.find((d) => d.identityDocumentType === docType)?.requiresCountry ?? false
+  const selectedType = docTypes.data?.find((d) => d.identityDocumentType === docType)
+  const asksCountry = selectedType?.requiresCountry ?? false
+
+  // Buscar en SUNAT: solo si la API lo permite para este tipo (RUC con la consulta configurada).
+  const lookup = useLookupRuc()
+  const documentNumber = form.watch('documentNumber')
+  useEffect(() => lookup.reset(), [open, docType, documentNumber]) // eslint-disable-line react-hooks/exhaustive-deps
+  const searchSunat = () =>
+    lookup.mutate(documentNumber, {
+      // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
+      onSuccess: (r) => form.setValue('name', r.name),
+    })
 
   const onSubmit = form.handleSubmit((v) =>
     save.mutate(
@@ -81,6 +93,8 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
     <Dialog
       open={open}
       onOpenChange={(o) => !o && onClose()}
+      // Un poco más ancho que el estándar: el número de documento lleva al lado el botón "SUNAT".
+      width="max-w-xl"
       title={partner ? 'Editar cliente o proveedor' : 'Nuevo cliente o proveedor'}
       description={partner ? `${partner.identityDocumentTypeDescription} ${partner.documentNumber}` : 'Queda disponible para todas las empresas.'}
       footer={
@@ -95,7 +109,7 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
       <form id="partner-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
           <Field label="Tipo de documento">
             {(a) => (
               <Select {...a} autoFocus {...form.register('identityDocumentType')}>
@@ -108,8 +122,41 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
               </Select>
             )}
           </Field>
-          <Field label="Número de documento">{(a) => <Input {...a} className="font-mono" {...form.register('documentNumber')} />}</Field>
+          <Field label="Número de documento">
+            {(a) =>
+              selectedType?.supportsLookup ? (
+                <div className="flex gap-2">
+                  <Input {...a} className="min-w-0 flex-1 font-mono" {...form.register('documentNumber')} />
+                  <Button onClick={searchSunat} loading={lookup.isPending} title="Trae la razón social desde SUNAT">
+                    <Search />
+                    SUNAT
+                  </Button>
+                </div>
+              ) : (
+                <Input {...a} className="font-mono" {...form.register('documentNumber')} />
+              )
+            }
+          </Field>
         </div>
+
+        {lookup.isError && <ErrorList messages={errorMessages(lookup.error)} />}
+        {lookup.data && (
+          <div className="flex flex-col gap-2 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
+            <p>
+              <span className="text-muted">Según SUNAT: </span>
+              <span className="font-medium">{lookup.data.status}</span>
+              <span className="text-muted"> · </span>
+              <span className="font-medium">{lookup.data.condition}</span>
+            </p>
+            {lookup.data.address && <p className="text-muted">{lookup.data.address}</p>}
+            {lookup.data.warnings.map((w) => (
+              <p key={w} className="flex gap-2 rounded bg-warn-soft px-3 py-2 text-warn-text">
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+                {w}
+              </p>
+            ))}
+          </div>
+        )}
 
         <Field label="Nombre o razón social">{(a) => <Input {...a} {...form.register('name')} />}</Field>
 

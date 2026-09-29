@@ -2082,6 +2082,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/partners/ruc-lookup/{ruc}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Busca un RUC en SUNAT (razón social, estado, condición y dirección) para llenar el formulario.
+         *     503 si la consulta no está configurada o el servicio no responde; el formulario sigue funcionando a mano.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    ruc: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LookupRucResponseDto"];
+                        "application/json": components["schemas"]["LookupRucResponseDto"];
+                        "text/json": components["schemas"]["LookupRucResponseDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/partners/identity-document-types": {
         parameters: {
             query?: never;
@@ -2860,6 +2912,7 @@ export interface components {
         ListIdentityDocumentTypesResponseDto: {
             identityDocumentType: components["schemas"]["IdentityDocumentType"];
             description: string;
+            supportsLookup: boolean;
             requiresCountry: boolean;
         };
         ListIgvAffectationsResponseDto: {
@@ -2946,6 +2999,14 @@ export interface components {
         };
         LoginResponseDto: {
             token: string;
+        };
+        LookupRucResponseDto: {
+            ruc: string;
+            name: string;
+            status: string;
+            condition: string;
+            address: null | string;
+            warnings: string[];
         };
         PagedResultOfAuditEntryDto: {
             items: components["schemas"]["AuditEntryDto"][];

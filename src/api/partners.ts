@@ -59,6 +59,14 @@ export const searchSuppliers = (term: string) =>
     }),
   ).then((r) => r.items)
 
+export type RucLookup = Schemas['LookupRucResponseDto']
+
+/** Busca el RUC en SUNAT (a través de la API) para llenar la razón social. */
+export const useLookupRuc = () =>
+  useMutation({
+    mutationFn: (ruc: string) => unwrap(api.GET('/api/partners/ruc-lookup/{ruc}', { params: { path: { ruc } } })),
+  })
+
 export function useSavePartner() {
   const qc = useQueryClient()
   return useMutation({
