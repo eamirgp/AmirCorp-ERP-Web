@@ -6,10 +6,10 @@ import { errorMessages, type Schemas } from '@/api/client'
 import { useSaveProduct, type ProductRow } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
-import { Field, Input, Select } from '@/components/ui/field'
+import { Field, Input, NumberInput, Select } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
-import { parseNumberInput } from '@/lib/number-input'
+import { formatNumberInput, parseNumberInput } from '@/lib/number-input'
 
 // Sin reglas de negocio aquí: la API valida y devuelve los mensajes que se muestran arriba del formulario.
 interface Values {
@@ -40,7 +40,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             // El contrato marca los enums como opcionales aunque la API siempre los envía.
             unitOfMeasure: product.unitOfMeasure ?? '',
             igvAffectation: product.igvAffectation ?? '',
-            salePrice: String(product.salePrice),
+            salePrice: formatNumberInput(product.salePrice, 2),
           }
         : empty,
     )
@@ -92,7 +92,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             {(a) => <Input {...a} className="font-mono" autoFocus placeholder="EL-1003" {...form.register('code')} />}
           </Field>
           <Field label="Precio de venta (S/, con IGV)">
-            {(a) => <Input {...a} className="num text-right" inputMode="decimal" placeholder="0.00" {...form.register('salePrice')} />}
+            {(a) => <NumberInput {...a} className="text-right" minDecimals={2} placeholder="0.00" {...form.register('salePrice')} />}
           </Field>
         </div>
 

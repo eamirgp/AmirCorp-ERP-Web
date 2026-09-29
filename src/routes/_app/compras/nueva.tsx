@@ -10,7 +10,7 @@ import { searchSuppliers, type PartnerRow } from '@/api/partners'
 import { searchProducts, type ProductRow } from '@/api/products'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
-import { Field, Input, Select } from '@/components/ui/field'
+import { Field, Input, NumberInput, Select } from '@/components/ui/field'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
@@ -233,7 +233,7 @@ function NewPurchasePage() {
             </Select>
           )}
         </Field>
-        <Field label="Tipo de cambio">{(a) => <Input {...a} className="num" inputMode="decimal" placeholder="0.000" {...form.register('exchangeRate')} />}</Field>
+        <Field label="Tipo de cambio">{(a) => <NumberInput {...a} placeholder="0.000" {...form.register('exchangeRate')} />}</Field>
         <div className="sm:col-span-2">
           <Field label="Los montos de la factura están en">
             {(a) => (
@@ -329,16 +329,15 @@ function NewPurchasePage() {
                       </Select>
                     </td>
                     <td className="px-2 py-2">
-                      <Input aria-label="Cantidad" className="num w-24 text-right" inputMode="decimal" {...form.register(`lines.${i}.invoiceQuantity`)} />
+                      <NumberInput aria-label="Cantidad" className="w-24 text-right" {...form.register(`lines.${i}.invoiceQuantity`)} />
                     </td>
                     <td className="px-2 py-2">
-                      <Input aria-label={amountLabel} className="num w-28 text-right" inputMode="decimal" {...form.register(`lines.${i}.invoiceAmount`)} />
+                      <NumberInput aria-label={amountLabel} className="w-28 text-right" minDecimals={2} {...form.register(`lines.${i}.invoiceAmount`)} />
                     </td>
                     <td className="px-2 py-2">
-                      <Input
+                      <NumberInput
                         aria-label="Factor de conversión"
-                        className="num w-20 text-right read-only:bg-surface-2 read-only:text-muted"
-                        inputMode="decimal"
+                        className="w-20 text-right read-only:bg-surface-2 read-only:text-muted"
                         readOnly={locked}
                         title={locked ? 'Fijo para esta unidad de medida' : 'Unidades de inventario por cada unidad de la factura'}
                         {...form.register(`lines.${i}.conversionFactor`)}

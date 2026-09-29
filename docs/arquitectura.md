@@ -47,7 +47,7 @@ const data = await unwrap(api.GET('/api/products', { params: { query: { Page: 1 
 - `unwrap` devuelve los datos o lanza `ApiError` con los mensajes que envió la API (`{ errors: [...] }`), listos para mostrar.
 - Un **401** cierra la sesión y lleva al login, conservando la pantalla a la que se quería ir.
 - Si una pantalla no se puede cargar (API apagada, error del servidor), `RouteError` muestra el mensaje en español con "Reintentar" (`defaultErrorComponent` en `main.tsx`).
-- Los números escritos a mano (precios, cantidades, tipo de cambio) se leen con `parseNumberInput`: acepta "12,90", "1,500" y "1,234.50", con la misma regla que la API usa para el Excel. Si no es un número, envía `null` y la API responde el mensaje.
+- **Números, sin comas:** se muestran con punto decimal y un espacio para los miles ("S/ 1 234.50", `lib/format.ts`), igual que los textos que arma la API. Se escriben con `NumberInput`: solo dígitos y punto; si hay una coma avisa "Usa punto para los decimales. No uses comas." y no la adivina; al salir del campo reordena el número ("1500.5" → "1 500.50", sin redondear). `parseNumberInput` lo lee para enviarlo; si no es un número envía `null` y la API responde el mensaje.
 
 ## Sesión
 

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { Option } from '@/components/ui/filters'
+import { formatInt } from './format'
 
 export type ActiveFilter = 'activos' | 'inactivos'
 
@@ -19,4 +20,4 @@ export const pageSizeSchema = z.coerce.number().int().min(1).optional().catch(un
 export const toIsActive = (filter: ActiveFilter | undefined): boolean | undefined => (filter === undefined ? undefined : filter === 'activos')
 
 /** "57 productos", "1 producto" */
-export const countLabel = (n: number, singular: string, plural: string) => `${n.toLocaleString('es-PE')} ${n === 1 ? singular : plural}`
+export const countLabel = (n: number, singular: string, plural: string) => `${formatInt(n)} ${n === 1 ? singular : plural}`
