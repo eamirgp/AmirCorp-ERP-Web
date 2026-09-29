@@ -18,6 +18,7 @@ import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
+import { matchesText } from '@/lib/text'
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -63,12 +64,13 @@ function CompaniesPage() {
   const { request: onToggle, busyId } = activation
 
   // La API devuelve todas las empresas (son pocas): buscar y filtrar aquí es solo presentación.
-  const rows = useMemo(() => {
-    const q = search.q?.toLowerCase()
-    return (list.data ?? []).filter(
-      (c) => (!search.estado || c.isActive === (search.estado === 'activos')) && (!q || c.name.toLowerCase().includes(q) || c.ruc.includes(q)),
-    )
-  }, [list.data, search.q, search.estado])
+  const rows = useMemo(
+    () =>
+      (list.data ?? []).filter(
+        (c) => (!search.estado || c.isActive === (search.estado === 'activos')) && (!search.q || matchesText(search.q, c.name, c.ruc)),
+      ),
+    [list.data, search.q, search.estado],
+  )
 
   const columns = useMemo(
     () => [

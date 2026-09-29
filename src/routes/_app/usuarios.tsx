@@ -19,6 +19,7 @@ import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { UserDialog } from '@/features/users/user-dialogs'
 import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
+import { matchesText } from '@/lib/text'
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -69,15 +70,16 @@ function UsersPage() {
   const onToggle = activation.request
 
   // La API devuelve todos los usuarios (son pocos): buscar y filtrar aquí es solo presentación.
-  const rows = useMemo(() => {
-    const q = search.q?.toLowerCase()
-    return (list.data ?? []).filter(
-      (u) =>
-        (!search.estado || u.isActive === (search.estado === 'activos')) &&
-        (!search.rol || u.role === search.rol) &&
-        (!q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)),
-    )
-  }, [list.data, search.q, search.estado, search.rol])
+  const rows = useMemo(
+    () =>
+      (list.data ?? []).filter(
+        (u) =>
+          (!search.estado || u.isActive === (search.estado === 'activos')) &&
+          (!search.rol || u.role === search.rol) &&
+          (!search.q || matchesText(search.q, u.name, u.email)),
+      ),
+    [list.data, search.q, search.estado, search.rol],
+  )
 
   // Roles presentes en la lista, con la descripción que envía la API.
   const roleOptions = useMemo(() => {
