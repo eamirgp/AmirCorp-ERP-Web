@@ -3,6 +3,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ApiError } from '@/api/client'
+import { RouteError } from '@/components/layout/route-error'
 import { Toaster } from '@/components/ui/toast'
 import { session } from '@/lib/session'
 import { routeTree } from './routeTree.gen'
@@ -27,6 +28,8 @@ const router = createRouter({
   // La caché la maneja TanStack Query; el router no guarda una copia propia.
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
+  // Si una pantalla no se puede cargar (API apagada, error del servidor), mensaje en español con "Reintentar".
+  defaultErrorComponent: RouteError,
 })
 
 declare module '@tanstack/react-router' {

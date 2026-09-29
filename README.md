@@ -11,7 +11,7 @@ Consume la API de [AmirCorp-ERP](https://github.com/eamirgp/AmirCorp-ERP) y gene
 | Pantalla | Estado |
 |---|---|
 | Inicio de sesión | ✅ |
-| Layout, menú, paleta de comandos (Ctrl+K), tema claro/oscuro | ✅ |
+| Layout, menú, tema claro/oscuro | ✅ |
 | Productos | ✅ Buscar, filtrar, ordenar, crear, editar, activar/desactivar, importar y exportar con Excel |
 | Clientes y proveedores | ✅ Filtros por rol, tipo de documento y estado |
 | Empresas | ✅ |
@@ -31,7 +31,7 @@ Consume la API de [AmirCorp-ERP](https://github.com/eamirgp/AmirCorp-ERP) y gene
 | TanStack Table 8 | Tablas |
 | React Hook Form + Zod | Formularios y validación |
 | Tailwind CSS 4 | Estilos, sobre el sistema de diseño propio de `src/styles.css` |
-| Radix UI + cmdk | Diálogos, menús y paleta de comandos accesibles |
+| Radix UI | Diálogos y menús accesibles |
 | openapi-typescript + openapi-fetch | Cliente de la API con tipos generados |
 
 ## Puesta en marcha
@@ -73,7 +73,6 @@ La API es la única fuente de verdad. El frontend **no valida reglas de negocio,
 
 | Atajo | Acción |
 |---|---|
-| `Ctrl` `K` | Paleta de comandos: buscar productos, crear, ir a otra pantalla, cerrar sesión |
 | `N` | Nuevo registro en la pantalla actual |
 | `/` | Ir al buscador de la tabla |
 | `↑` `↓` `Enter` | Recorrer la tabla y abrir un registro |

@@ -312,10 +312,17 @@ function ReviewStep({ preview, errors }: { preview: ProductImportPreview; errors
                     </ul>
                   )}
                   {r.changes.length > 0 && (
-                    <ul className="mt-1 text-xs text-muted">
+                    <ul className="mt-1 text-sm text-muted">
+                      {/* En un producto nuevo no hay valor anterior: se muestra solo el que se va a crear. */}
                       {r.changes.map((c) => (
                         <li key={c.field}>
-                          {c.field}: <span className="line-through">{c.from}</span> → <span className="text-ink">{c.to}</span>
+                          {c.field}:{' '}
+                          {c.from != null && (
+                            <>
+                              <span className="line-through">{c.from}</span> →{' '}
+                            </>
+                          )}
+                          <span className="text-ink">{c.to}</span>
                         </li>
                       ))}
                     </ul>

@@ -26,7 +26,7 @@ Las pantallas no nombran la marca directamente: usan `brand` y `<Logo />`. Para 
 Decisiones de uso:
 - **El jade no se usa en bloques grandes.** Aparece en detalles: la marca se reconoce sin cargar la pantalla.
 - **Neutros puros**, sin tinte, en la línea del gris del manual.
-- **Sin sombras en la página.** Los bloques se separan con líneas finas o solo con espacio. Las sombras quedan para lo que flota: diálogos, menús y la paleta.
+- **Sin sombras en la página.** Los bloques se separan con líneas finas o solo con espacio. Las sombras quedan para lo que flota: diálogos, menús y paneles laterales.
 - **El jade como texto** se oscurece (`accent-text`, `#2A7445`) para leerse sobre blanco. En modo oscuro se aclara (`#6CC08A`).
 
 Tokens en `src/styles.css`, usados como utilidades de Tailwind:
@@ -83,7 +83,7 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 - **Tablas limpias:** cabecera sin fondo, filas separadas por una línea fina, acciones visibles al pasar el mouse o al enfocar la fila.
 - **Filtros como chips**, al estilo de Stripe o Linear: `⊕ Estado` punteado sin valor, `Estado: Activos ✕` con valor. A la derecha, el número de resultados y el menú "Ordenar". "Limpiar filtros" aparece solo con filtros aplicados. Por defecto no hay filtros: se ve todo y lo inactivo aparece atenuado.
 - **Estados como punto de color + texto** (`Pill`), sin fondo.
-- **Atajos discretos:** se enseñan en Inicio, en la paleta y como ayuda al pasar el mouse. No hay cajitas de teclas en cada botón.
+- **Atajos discretos:** se enseñan en Inicio y como ayuda al pasar el mouse. No hay cajitas de teclas en cada botón.
 - **Todo se puede hacer con teclado:** `/` para buscar, `N` para crear, flechas y Enter.
 - **Los mensajes hablan como el usuario** y vienen de la API.
 - **Nada de emojis, degradados ni íconos decorativos.**

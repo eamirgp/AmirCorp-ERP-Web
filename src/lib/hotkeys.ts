@@ -1,37 +1,34 @@
 import { useEffect, useRef } from 'react'
 
-export const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
-export const modKey = isMac ? '⌘' : 'Ctrl'
-
 function isTyping(target: EventTarget | null) {
   const el = target as HTMLElement | null
   return !!el && (el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName))
 }
 
+/** Hay un diálogo, panel o menú abierto: los atajos de la pantalla de atrás no deben actuar. */
+const overlayOpen = () => !!document.querySelector('[role="dialog"], [role="alertdialog"], [role="menu"]')
+
 /**
- * Atajo de teclado global. Ejemplos: "mod+k", "n", "/".
- * Los atajos sin modificador se ignoran mientras el usuario escribe en un campo.
+ * Atajo de teclado de una sola tecla. Ejemplos: "n", "/".
+ * No actúa mientras el usuario escribe en un campo, ni con Ctrl/Alt/⌘ pulsadas, ni con un diálogo abierto.
  */
-export function useHotkey(combo: string, handler: (e: KeyboardEvent) => void, enabled = true) {
+export function useHotkey(key: string, handler: (e: KeyboardEvent) => void, enabled = true) {
   const handlerRef = useRef(handler)
   handlerRef.current = handler
 
   useEffect(() => {
     if (!enabled) return
-    const parts = combo.toLowerCase().split('+')
-    const key = parts.pop()!
-    const needsMod = parts.includes('mod')
+    const expected = key.toLowerCase()
 
     const onKeyDown = (e: KeyboardEvent) => {
-      const mod = isMac ? e.metaKey : e.ctrlKey
-      if (needsMod !== mod || e.altKey) return
-      if (!needsMod && isTyping(e.target)) return
-      if (e.key.toLowerCase() !== key) return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (isTyping(e.target) || overlayOpen()) return
+      if (e.key.toLowerCase() !== expected) return
       e.preventDefault()
       handlerRef.current(e)
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [combo, enabled])
+  }, [key, enabled])
 }

@@ -2686,6 +2686,8 @@ export interface components {
             /** Format: double */
             salePrice: number;
             isActive: boolean;
+            /** Format: uint32 */
+            rowVersion: number;
             unitOfMeasureDescription: string;
             igvAffectationDescription: string;
         };
@@ -2810,7 +2812,7 @@ export interface components {
         ProductImportAction: "Create" | "Update" | "Skip" | "Unchanged" | "Error";
         ProductImportChangeDto: {
             field: string;
-            from: string;
+            from: null | string;
             to: string;
         };
         ProductImportPreviewDto: {
@@ -2946,6 +2948,8 @@ export interface components {
             igvAffectation: null | components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: null | number;
+            /** Format: uint32 */
+            rowVersion: null | number;
         };
         UpdateSavedViewRequest: {
             name: null | string;

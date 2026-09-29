@@ -16,6 +16,7 @@ import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
 import { Totals } from '@/features/purchases/totals'
 import { formatDecimal, formatMoney, todayIso } from '@/lib/format'
+import { parseNumberInput } from '@/lib/number-input'
 import { useDebounced } from '@/lib/use-debounced'
 
 export const Route = createFileRoute('/_app/compras/nueva')({
@@ -57,7 +58,6 @@ interface Values {
 const emptyLine: LineValues = { product: null, invoiceIgvAffectation: '', invoiceUnitOfMeasure: '', invoiceQuantity: '', invoiceAmount: '', conversionFactor: '' }
 
 /** Texto → número para el contrato de la API; si no es un número, va null y la API responde con el mensaje. */
-const toNumber = (value: string | undefined) => (!value || value.trim() === '' || Number.isNaN(Number(value)) ? null : Number(value))
 const orNull = <T,>(value: string | undefined) => (value ? (value as T) : null)
 
 function NewPurchasePage() {
@@ -107,9 +107,9 @@ function NewPurchasePage() {
       lines: (watched.lines ?? []).map((l) => ({
         invoiceIgvAffectation: orNull<Schemas['IgvAffectation']>(l?.invoiceIgvAffectation),
         invoiceUnitOfMeasure: orNull<Schemas['UnitOfMeasure']>(l?.invoiceUnitOfMeasure),
-        invoiceQuantity: toNumber(l?.invoiceQuantity),
-        invoiceAmount: toNumber(l?.invoiceAmount),
-        conversionFactor: toNumber(l?.conversionFactor),
+        invoiceQuantity: parseNumberInput(l?.invoiceQuantity),
+        invoiceAmount: parseNumberInput(l?.invoiceAmount),
+        conversionFactor: parseNumberInput(l?.conversionFactor),
       })),
     }),
     [watched],
@@ -128,15 +128,15 @@ function NewPurchasePage() {
         number: v.number,
         issueDate: v.issueDate || null,
         currency: orNull<Schemas['Currency']>(v.currency),
-        exchangeRate: toNumber(v.exchangeRate),
+        exchangeRate: parseNumberInput(v.exchangeRate),
         invoicePriceType: orNull<Schemas['InvoicePriceType']>(v.invoicePriceType),
         lines: v.lines.map((l) => ({
           productId: l.product?.id ?? null,
           invoiceIgvAffectation: orNull<Schemas['IgvAffectation']>(l.invoiceIgvAffectation),
           invoiceUnitOfMeasure: orNull<Schemas['UnitOfMeasure']>(l.invoiceUnitOfMeasure),
-          invoiceQuantity: toNumber(l.invoiceQuantity),
-          invoiceAmount: toNumber(l.invoiceAmount),
-          conversionFactor: toNumber(l.conversionFactor),
+          invoiceQuantity: parseNumberInput(l.invoiceQuantity),
+          invoiceAmount: parseNumberInput(l.invoiceAmount),
+          conversionFactor: parseNumberInput(l.conversionFactor),
         })),
       },
       {

@@ -4,14 +4,12 @@ import { ArrowRight } from 'lucide-react'
 import { meQuery } from '@/api/account'
 import { navGroups } from '@/components/layout/nav'
 import { Kbd, PageHeader } from '@/components/ui/misc'
-import { modKey } from '@/lib/hotkeys'
 
 export const Route = createFileRoute('/_app/')({
   component: HomePage,
 })
 
 const shortcuts: { keys: string[]; label: string }[] = [
-  { keys: [modKey, 'K'], label: 'Buscar productos o ir a cualquier pantalla' },
   { keys: ['N'], label: 'Crear un registro en la pantalla actual' },
   { keys: ['/'], label: 'Ir al buscador de la tabla' },
   { keys: ['↑', '↓', 'Enter'], label: 'Moverte por la tabla y abrir un registro' },

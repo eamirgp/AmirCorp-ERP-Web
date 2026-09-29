@@ -2,20 +2,16 @@ import * as Sheet from '@radix-ui/react-dialog'
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Check, LogOut, Menu as MenuIcon, Monitor, Moon, Search, Sun, X } from 'lucide-react'
+import { Check, LogOut, Menu as MenuIcon, Monitor, Moon, Sun, X } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { meQuery } from '@/api/account'
 import { brand } from '@/brand'
 import { Logo, LogoMark } from '@/brand/logo'
-import { modKey } from '@/lib/hotkeys'
 import { session } from '@/lib/session'
 import { getTheme, setTheme, type ThemeChoice } from '@/lib/theme'
-import { CommandPalette } from './command-palette'
 import { navGroups } from './nav'
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const [paletteOpen, setPaletteOpen] = useState(false)
-
   // Cierra la sesión justo cuando vence el token, sin esperar a que falle una petición.
   useEffect(() => {
     const t = setTimeout(() => session.end(), session.msUntilExpiry)
@@ -31,21 +27,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link to="/" className="flex items-center lg:hidden" aria-label={`${brand.name}, inicio`}>
             <LogoMark height={30} />
           </Link>
-          <button
-            type="button"
-            onClick={() => setPaletteOpen(true)}
-            className="flex min-w-0 items-center gap-2.5 text-base text-faint transition-colors hover:text-ink"
-          >
-            <Search className="size-4 shrink-0" />
-            <span className="truncate">Buscar o ir a…</span>
-            <span className="hidden text-xs sm:inline">{modKey} K</span>
-          </button>
           <div className="flex-1" />
           <UserMenu />
         </header>
         <main className="mx-auto flex w-full max-w-[1200px] min-w-0 flex-col gap-6 px-4 py-8 sm:px-8">{children}</main>
       </div>
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   )
 }

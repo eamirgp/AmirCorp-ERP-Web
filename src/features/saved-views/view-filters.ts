@@ -6,7 +6,7 @@ import { savedViewsQuery, type SavedViewScreen } from '@/api/saved-views'
  * Parámetros de la URL que no forman parte de una vista: la página actual y los diálogos abiertos.
  * Todo lo demás (búsqueda, filtros, orden, filas por página) se guarda tal cual.
  */
-const TRANSIENT = new Set(['page', 'nuevo', 'editar', 'importar'])
+const TRANSIENT = new Set(['page', 'nuevo', 'importar'])
 
 type Search = Record<string, unknown>
 

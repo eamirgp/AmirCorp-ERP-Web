@@ -22,7 +22,7 @@ src/
     products/            Tabla y formulario de productos
   components/
     ui/                  Piezas reutilizables: botón, campos, diálogo, avisos
-    layout/              Menú, barra superior, paleta de comandos
+    layout/              Menú, barra superior, pantalla de error
   lib/                   Utilidades sin UI: sesión, formatos, atajos, tema
 ```
 
@@ -46,6 +46,8 @@ const data = await unwrap(api.GET('/api/products', { params: { query: { Page: 1 
 - `api` es el cliente de `openapi-fetch`, tipado con `schema.d.ts`: rutas, parámetros y respuestas se validan al compilar.
 - `unwrap` devuelve los datos o lanza `ApiError` con los mensajes que envió la API (`{ errors: [...] }`), listos para mostrar.
 - Un **401** cierra la sesión y lleva al login, conservando la pantalla a la que se quería ir.
+- Si una pantalla no se puede cargar (API apagada, error del servidor), `RouteError` muestra el mensaje en español con "Reintentar" (`defaultErrorComponent` en `main.tsx`).
+- Los números escritos a mano (precios, cantidades, tipo de cambio) se leen con `parseNumberInput`: acepta "12,90", "1,500" y "1,234.50", con la misma regla que la API usa para el Excel. Si no es un número, envía `null` y la API responde el mensaje.
 
 ## Sesión
 
@@ -85,4 +87,4 @@ Ejemplo: `/ventas`. Usa `src/routes/_app/socios.tsx` como modelo.
 3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `DataTable` y `Pagination info={data}`. El orden va en `?orden=` y `?dir=` solo cuando el usuario elige uno; si no, no se envía y `SortMenu` muestra el que devuelve la API (`data.sortBy`, `data.sortDescending`). La página va en `?page=` y las filas por página en `?filas=`; los rangos, el total de páginas y las opciones de filas salen de la respuesta. La tabla muestra solo lo que se usa para trabajar: la auditoría no va como columna ni en los formularios. Agrega `<ViewTabs>` antes del `FilterBar` y `beforeLoad: applyDefaultView('<Pantalla>')` (la pantalla debe existir en `SavedViewScreen` de la API).
 4. **Formularios y detalle:** en `src/features/sales/`. Agrega la acción "Historial" en cada fila, que abre `HistorySheet` con el tipo de registro de la API (`AuditEntityType`) y su ID.
 5. **Menú:** agrega `to: '/ventas'` en `src/components/layout/nav.ts` (y a `NavPath`).
-6. Conecta el atajo `N` con `useHotkey('n', ...)` y agrega "Nueva venta" a la paleta de comandos.
+6. Conecta el atajo `N` con `useHotkey('n', ...)`.

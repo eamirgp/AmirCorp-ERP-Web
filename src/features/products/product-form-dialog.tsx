@@ -9,6 +9,7 @@ import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
+import { parseNumberInput } from '@/lib/number-input'
 
 // Sin reglas de negocio aquí: la API valida y devuelve los mensajes que se muestran arriba del formulario.
 interface Values {
@@ -20,9 +21,6 @@ interface Values {
 }
 
 const empty: Values = { code: '', name: '', unitOfMeasure: '', igvAffectation: '', salePrice: '' }
-
-/** Convierte lo escrito a número; si no es un número, envía null y la API responde con el mensaje. */
-const toNumber = (value: string) => (value.trim() === '' || Number.isNaN(Number(value)) ? null : Number(value))
 
 export function ProductFormDialog({ open, product, onClose }: { open: boolean; product: ProductRow | null; onClose: () => void }) {
   const units = useQuery(unitsOfMeasureQuery)
@@ -52,13 +50,14 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
   const onSubmit = form.handleSubmit((v) =>
     save.mutate(
       {
-        id: product?.id,
+        // Al editar se envía la versión que se abrió: si otra persona lo cambió mientras tanto, la API avisa.
+        edit: product ? { id: product.id, rowVersion: product.rowVersion } : undefined,
         input: {
           code: v.code,
           name: v.name,
           unitOfMeasure: (v.unitOfMeasure || null) as Schemas['UnitOfMeasure'] | null,
           igvAffectation: (v.igvAffectation || null) as Schemas['IgvAffectation'] | null,
-          salePrice: toNumber(v.salePrice),
+          salePrice: parseNumberInput(v.salePrice),
         },
       },
       {

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Download, FileSpreadsheet, PackagePlus, Plus } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { z } from 'zod'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
@@ -35,7 +35,6 @@ const searchSchema = z.object({
   orden: z.enum(['Name', 'CreatedAt']).optional().catch(undefined),
   dir: directionSchema,
   nuevo: z.boolean().optional().catch(undefined),
-  editar: z.string().optional().catch(undefined),
   importar: z.boolean().optional().catch(undefined),
 })
 type Search = z.infer<typeof searchSchema>
@@ -69,14 +68,6 @@ function ProductsPage() {
   // Sin filtros descarga todo al instante; con filtros pregunta si solo lo que se ve o todo.
   const startExport = () => (hasFilters ? setExporting(true) : void exporter.run(exportParams))
   const closeImport = () => navigate({ search: (prev) => ({ ...prev, importar: undefined }), replace: true })
-
-  // Abrir un producto desde la paleta de comandos (?editar=id).
-  useEffect(() => {
-    if (!search.editar || !list.data) return
-    const found = list.data.items.find((p) => p.id === search.editar)
-    if (found) setEditing(found)
-    navigate({ search: (prev) => ({ ...prev, editar: undefined }), replace: true })
-  }, [search.editar, list.data, navigate])
 
   const openNew = () => navigate({ search: (prev) => ({ ...prev, nuevo: true }) })
   const closeForm = () => {

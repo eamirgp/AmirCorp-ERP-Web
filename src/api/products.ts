@@ -55,9 +55,10 @@ export const searchProducts = (term: string) =>
 export function useSaveProduct() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, input }: { id?: string; input: ProductInput }) =>
-      id
-        ? unwrap(api.PUT('/api/products/{id}', { params: { path: { id } }, body: input })).then(() => id)
+    // Al editar se envía la versión que se abrió; si otra persona lo cambió mientras tanto, la API responde 409.
+    mutationFn: ({ edit, input }: { edit?: { id: string; rowVersion: number }; input: ProductInput }) =>
+      edit
+        ? unwrap(api.PUT('/api/products/{id}', { params: { path: { id: edit.id } }, body: { ...input, rowVersion: edit.rowVersion } })).then(() => edit.id)
         : unwrap(api.POST('/api/products', { body: input })).then((r) => r.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
   })

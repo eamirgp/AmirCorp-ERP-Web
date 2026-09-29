@@ -8,7 +8,7 @@ import { Field, Input } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 
-/** Guarda la bÃºsqueda, filtros, orden y filas por pÃ¡gina actuales como una vista nueva. */
+/** Guarda la búsqueda, filtros, orden y filas por página actuales como una vista nueva. */
 export function SaveViewDialog({ screen, filters, onClose }: { screen: SavedViewScreen; filters: string; onClose: () => void }) {
   const { create } = useSavedViewMutations(screen)
   const [name, setName] = useState('')
