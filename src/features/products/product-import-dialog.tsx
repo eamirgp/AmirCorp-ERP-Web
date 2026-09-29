@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
 import { errorMessages } from '@/api/client'
 import {
   downloadProductTemplate,
-  exportProducts,
   previewProductImport,
   useImportProducts,
   type ProductImportPreview,
@@ -37,7 +36,16 @@ const MAX_ROWS_SHOWN = 200
  * Carga masiva de productos: subir el Excel, revisar qué pasará con cada fila y confirmar.
  * Todo lo decide la API; esta pantalla solo envía el archivo y muestra la respuesta.
  */
-export function ProductImportDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function ProductImportDialog({
+  open,
+  onClose,
+  onExport,
+}: {
+  open: boolean
+  onClose: () => void
+  /** Cierra la importación y abre la exportación, para editar productos que ya existen. */
+  onExport: () => void
+}) {
   const [step, setStep] = useState<Step>('upload')
   const [file, setFile] = useState<File | null>(null)
   const [updateExisting, setUpdateExisting] = useState(false)
@@ -110,7 +118,14 @@ export function ProductImportDialog({ open, onClose }: { open: boolean; onClose:
       }
     >
       {step === 'upload' && (
-        <UploadStep file={file} onFile={setFile} updateExisting={updateExisting} onUpdateExisting={setUpdateExisting} errors={review.isError ? errorMessages(review.error) : []} />
+        <UploadStep
+          file={file}
+          onFile={setFile}
+          updateExisting={updateExisting}
+          onUpdateExisting={setUpdateExisting}
+          onExport={onExport}
+          errors={review.isError ? errorMessages(review.error) : []}
+        />
       )}
       {step === 'review' && preview && <ReviewStep preview={preview} errors={confirm.isError ? errorMessages(confirm.error) : []} />}
       {step === 'done' && result && (
@@ -130,27 +145,29 @@ function UploadStep({
   onFile,
   updateExisting,
   onUpdateExisting,
+  onExport,
   errors,
 }: {
   file: File | null
   onFile: (file: File | null) => void
   updateExisting: boolean
   onUpdateExisting: (value: boolean) => void
+  onExport: () => void
   errors: string[]
 }) {
   const input = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
-  const [downloading, setDownloading] = useState<'template' | 'export' | null>(null)
+  const [downloading, setDownloading] = useState(false)
 
-  const get = async (kind: 'template' | 'export') => {
-    setDownloading(kind)
+  const getTemplate = async () => {
+    setDownloading(true)
     try {
-      const { blob, fileName } = await (kind === 'template' ? downloadProductTemplate() : exportProducts())
+      const { blob, fileName } = await downloadProductTemplate()
       saveBlob(blob, fileName)
     } catch (e) {
       toast.error(errorMessages(e)[0])
     } finally {
-      setDownloading(null)
+      setDownloading(false)
     }
   }
 
@@ -168,16 +185,16 @@ function UploadStep({
       <section className="flex flex-col gap-2">
         <p className="text-sm text-muted">
           <strong className="font-medium text-ink">1.</strong> Descarga la plantilla y llénala en Excel. Para cambiar productos que ya tienes (por ejemplo, sus precios),
-          descarga tus productos actuales, edítalos y súbelos.
+          descárgalos con{' '}
+          <button type="button" onClick={onExport} className="font-medium text-accent underline underline-offset-4 hover:text-ink">
+            Exportar
+          </button>
+          , edítalos y súbelos aquí.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" onClick={() => get('template')} loading={downloading === 'template'}>
+          <Button size="sm" onClick={getTemplate} loading={downloading}>
             <Download />
             Descargar plantilla
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => get('export')} loading={downloading === 'export'}>
-            <Download />
-            Descargar productos actuales
           </Button>
         </div>
       </section>

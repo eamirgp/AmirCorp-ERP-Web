@@ -59,6 +59,7 @@ El frontend no calcula montos. Cuando una pantalla necesita mostrar un resultado
 
 - **Descargar:** `download()` en `src/api/products.ts` pide el archivo como `blob` y `lib/download.ts` lo guarda con el nombre que manda la API en `Content-Disposition` (la API expone esa cabecera en CORS).
 - **Subir:** los endpoints `multipart/form-data` reciben un `FormData` armado en el `bodySerializer` de la llamada (`importForm`).
+- **Exportar productos:** botón "Exportar" en `/productos`. Sin filtros descarga todo; con filtros, `ProductExportDialog` pregunta si solo lo que se ve (con los filtros y el orden de la pantalla) o todo. La API filtra y genera el Excel.
 - **Carga masiva de productos** (`features/products/product-import-dialog.tsx`, `/productos?importar=true`): subir → revisar → listo. La revisión muestra lo que devuelve `POST /api/products/import/preview` (resumen, acción y cambios por fila); el botón Importar se habilita solo si la API responde `canImport`. El frontend no lee el Excel ni valida filas.
 
 ## Historial (auditoría)

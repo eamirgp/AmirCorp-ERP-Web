@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { FileSpreadsheet, PackagePlus, Plus } from 'lucide-react'
+import { Download, FileSpreadsheet, PackagePlus, Plus } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { z } from 'zod'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
@@ -12,6 +12,7 @@ import { EmptyState, Loading, Pagination, SearchBox } from '@/components/ui/list
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
+import { ProductExportDialog, useProductExport } from '@/features/products/product-export-dialog'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductImportDialog } from '@/features/products/product-import-dialog'
 import { ProductsTable } from '@/features/products/products-table'
@@ -61,6 +62,13 @@ function ProductsPage() {
   const toggle = useToggleProduct()
   const [editing, setEditing] = useState<ProductRow | null>(null)
   const [history, setHistory] = useState<HistoryTarget | null>(null)
+  const [exporting, setExporting] = useState(false)
+  const exporter = useProductExport()
+  const { q, status, sortBy, descending } = listParams(search)
+  const exportParams = { q, status, sortBy, descending }
+  // Sin filtros descarga todo al instante; con filtros pregunta si solo lo que se ve o todo.
+  const startExport = () => (hasFilters ? setExporting(true) : void exporter.run(exportParams))
+  const closeImport = () => navigate({ search: (prev) => ({ ...prev, importar: undefined }), replace: true })
 
   // Abrir un producto desde la paleta de comandos (?editar=id).
   useEffect(() => {
@@ -100,6 +108,10 @@ function ProductsPage() {
             <Button onClick={() => navigate({ search: (prev) => ({ ...prev, importar: true }) })}>
               <FileSpreadsheet />
               Importar
+            </Button>
+            <Button onClick={startExport} loading={exporter.busy}>
+              <Download />
+              Exportar
             </Button>
             <Button variant="primary" onClick={openNew} title="Atajo: N">
               <Plus />
@@ -165,7 +177,15 @@ function ProductsPage() {
 
       <ProductFormDialog open={!!search.nuevo || editing !== null} product={editing} onClose={closeForm} />
       <HistorySheet target={history} onClose={() => setHistory(null)} />
-      <ProductImportDialog open={!!search.importar} onClose={() => navigate({ search: (prev) => ({ ...prev, importar: undefined }), replace: true })} />
+      {exporting && <ProductExportDialog open params={exportParams} matching={data?.totalCount} onClose={() => setExporting(false)} />}
+      <ProductImportDialog
+        open={!!search.importar}
+        onClose={closeImport}
+        onExport={() => {
+          closeImport()
+          startExport()
+        }}
+      />
     </>
   )
 }

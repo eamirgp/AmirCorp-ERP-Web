@@ -20,7 +20,8 @@ export interface ProductListParams {
 export const productKeys = {
   all: ['products'] as const,
   lists: () => [...productKeys.all, 'list'] as const,
-  list: (p: ProductListParams) => [...productKeys.lists(), p] as const,}
+  list: (p: ProductListParams) => [...productKeys.lists(), p] as const,
+}
 
 export const productListQuery = (p: ProductListParams) =>
   queryOptions({
@@ -76,7 +77,25 @@ async function download(request: Promise<{ data?: Blob; error?: unknown; respons
 
 export const downloadProductTemplate = () => download(api.GET('/api/products/import/template', { parseAs: 'blob' }), 'plantilla-productos.xlsx')
 
-export const exportProducts = () => download(api.GET('/api/products/export', { parseAs: 'blob' }), 'productos.xlsx')
+/** Filtros y orden de la pantalla que se pueden exportar (sin página ni filas por página). */
+export type ProductExportParams = Pick<ProductListParams, 'q' | 'status' | 'sortBy' | 'descending'>
+
+/** Productos en Excel. Sin filtros, todos; con filtros, solo los que coinciden y en el mismo orden de la pantalla. */
+export const exportProducts = (p: ProductExportParams = {}) =>
+  download(
+    api.GET('/api/products/export', {
+      params: {
+        query: {
+          SearchTerm: p.q || undefined,
+          IsActive: toIsActive(p.status),
+          SortBy: p.sortBy,
+          SortDescending: p.sortBy ? p.descending : undefined,
+        },
+      },
+      parseAs: 'blob',
+    }),
+    'productos.xlsx',
+  )
 
 /** El archivo va como multipart/form-data; el navegador arma los límites del envío. */
 const importForm = (file: File, updateExisting: boolean) => ({
