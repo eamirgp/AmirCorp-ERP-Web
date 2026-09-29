@@ -1,15 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
+import { Plus, X } from 'lucide-react'
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
+import { searchSuppliers } from '@/api/partners'
 import { useSaveProduct, type ProductRow } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, NumberInput, Select } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
+import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
 import { formatNumberInput, parseNumberInput } from '@/lib/number-input'
+
+/** Proveedor elegido en una fila de códigos: lo mínimo para mostrarlo y enviarlo (un PartnerRow también sirve). */
+interface SupplierOption {
+  id: string
+  name: string
+  documentNumber: string
+}
 
 // Sin reglas de negocio aquí: la API valida y devuelve los mensajes que se muestran arriba del formulario.
 interface Values {
@@ -18,15 +28,17 @@ interface Values {
   unitOfMeasure: string
   igvAffectation: string
   salePrice: string
+  supplierCodes: { supplier: SupplierOption | null; code: string }[]
 }
 
-const empty: Values = { code: '', name: '', unitOfMeasure: '', igvAffectation: '', salePrice: '' }
+const empty: Values = { code: '', name: '', unitOfMeasure: '', igvAffectation: '', salePrice: '', supplierCodes: [] }
 
 export function ProductFormDialog({ open, product, onClose }: { open: boolean; product: ProductRow | null; onClose: () => void }) {
   const units = useQuery(unitsOfMeasureQuery)
   const igv = useQuery(igvAffectationsQuery)
   const save = useSaveProduct()
   const form = useForm<Values>({ defaultValues: empty })
+  const supplierCodes = useFieldArray({ control: form.control, name: 'supplierCodes' })
 
   // Carga los datos del producto a editar (o limpia el formulario) cada vez que se abre.
   useEffect(() => {
@@ -41,6 +53,10 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             unitOfMeasure: product.unitOfMeasure ?? '',
             igvAffectation: product.igvAffectation ?? '',
             salePrice: formatNumberInput(product.salePrice, 2),
+            supplierCodes: product.supplierCodes.map((c) => ({
+              supplier: { id: c.supplierId, name: c.supplierName, documentNumber: c.supplierDocumentNumber },
+              code: c.code,
+            })),
           }
         : empty,
     )
@@ -58,6 +74,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
           unitOfMeasure: (v.unitOfMeasure || null) as Schemas['UnitOfMeasure'] | null,
           igvAffectation: (v.igvAffectation || null) as Schemas['IgvAffectation'] | null,
           salePrice: parseNumberInput(v.salePrice),
+          supplierCodes: v.supplierCodes.map((c) => ({ supplierId: c.supplier?.id ?? null, code: c.code })),
         },
       },
       {
@@ -73,6 +90,8 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
     <Dialog
       open={open}
       onOpenChange={(o) => !o && onClose()}
+      // Más ancho que el estándar: cada código de proveedor muestra el nombre completo del proveedor.
+      width="max-w-2xl"
       title={product ? 'Editar producto' : 'Nuevo producto'}
       description={product ? `${product.code} · ${product.name}` : 'El producto queda disponible para todas las empresas.'}
       footer={
@@ -88,7 +107,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
 
         <div className="grid gap-4 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-          <Field label="Código">
+          <Field label="Código interno" hint="El de tu empresa. Es el que sale en tus facturas.">
             {(a) => <Input {...a} className="font-mono" autoFocus placeholder="EL-1003" {...form.register('code')} />}
           </Field>
           <Field label="Precio de venta (S/, con IGV)">
@@ -126,6 +145,54 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             )}
           </Field>
         </div>
+
+        <fieldset className="flex flex-col gap-3 border-t border-line pt-4">
+          <legend className="sr-only">Códigos de proveedores</legend>
+          <div>
+            <p className="text-sm font-medium text-muted" aria-hidden>
+              Códigos de proveedores
+            </p>
+            <p className="text-xs text-faint">El código con el que cada proveedor vende este producto. Sirve para encontrarlo al registrar sus facturas.</p>
+          </div>
+
+          {supplierCodes.fields.map((field, i) => (
+            <div key={field.id} className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] items-start gap-2">
+              <Controller
+                control={form.control}
+                name={`supplierCodes.${i}.supplier`}
+                render={({ field: f }) => (
+                  <SearchSelect
+                    value={f.value}
+                    onChange={f.onChange}
+                    queryKey="partners"
+                    fetchItems={searchSuppliers}
+                    itemKey={(s) => s.id}
+                    itemLabel={(s) => s.name}
+                    renderItem={(s) => (
+                      <span className="flex items-baseline justify-between gap-3">
+                        {s.name}
+                        <span className="shrink-0 font-mono text-xs text-faint">{s.documentNumber}</span>
+                      </span>
+                    )}
+                    placeholder="Busca el proveedor"
+                    aria-label={`Proveedor de la fila ${i + 1}`}
+                  />
+                )}
+              />
+              <Input className="font-mono" placeholder="YH-2045-BK" aria-label={`Código del proveedor, fila ${i + 1}`} {...form.register(`supplierCodes.${i}.code`)} />
+              <Button variant="ghost" onClick={() => supplierCodes.remove(i)} aria-label={`Quitar el código de la fila ${i + 1}`} title="Quitar">
+                <X />
+              </Button>
+            </div>
+          ))}
+
+          <div>
+            <Button size="sm" onClick={() => supplierCodes.append({ supplier: null, code: '' })}>
+              <Plus />
+              Agregar código de proveedor
+            </Button>
+          </div>
+        </fieldset>
       </form>
     </Dialog>
   )

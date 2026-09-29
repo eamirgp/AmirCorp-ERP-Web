@@ -186,7 +186,7 @@ function NewPurchasePage() {
                     {...a}
                     value={field.value}
                     onChange={field.onChange}
-                    queryKey="suppliers"
+                    queryKey="partners"
                     fetchItems={searchSuppliers}
                     itemKey={(p) => p.id}
                     itemLabel={(p) => `${p.name} · ${p.documentNumber}`}
@@ -299,9 +299,14 @@ function NewPurchasePage() {
                               <span>
                                 <span className="mr-2 font-mono text-xs text-faint">{p.code}</span>
                                 {p.name}
+                                {p.supplierCodes.length > 0 && (
+                                  <span className="block font-mono text-xs text-faint">
+                                    {p.supplierCodes.map((s) => `${s.supplierName}: ${s.code}`).join(' · ')}
+                                  </span>
+                                )}
                               </span>
                             )}
-                            placeholder="Busca por código o nombre"
+                            placeholder="Busca por código, código del proveedor o nombre"
                             aria-label={`Producto de la línea ${i + 1}`}
                           />
                         )}

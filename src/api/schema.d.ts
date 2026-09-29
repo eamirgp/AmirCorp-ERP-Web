@@ -2418,6 +2418,7 @@ export interface components {
             igvAffectation: null | components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: null | number;
+            supplierCodes: null | components["schemas"]["ProductSupplierCodeRequest"][];
         };
         CreatePurchaseLineRequest: {
             /** Format: uuid */
@@ -2529,6 +2530,7 @@ export interface components {
             /** Format: double */
             salePrice: number;
             isActive: boolean;
+            supplierCodes: components["schemas"]["ProductSupplierCodeResponseDto"][];
             /** Format: date-time */
             createdAt: string;
             createdByName: null | string;
@@ -2686,6 +2688,7 @@ export interface components {
             /** Format: double */
             salePrice: number;
             isActive: boolean;
+            supplierCodes: components["schemas"]["ProductSupplierCodeResponseDto"][];
             /** Format: uint32 */
             rowVersion: number;
             unitOfMeasureDescription: string;
@@ -2850,6 +2853,18 @@ export interface components {
         };
         /** @enum {unknown} */
         ProductSortBy: "Name" | "CreatedAt";
+        ProductSupplierCodeRequest: {
+            /** Format: uuid */
+            supplierId: null | string;
+            code: null | string;
+        };
+        ProductSupplierCodeResponseDto: {
+            /** Format: uuid */
+            supplierId: string;
+            supplierName: string;
+            supplierDocumentNumber: string;
+            code: string;
+        };
         /** @enum {unknown} */
         PurchaseSortBy: "IssueDate" | "SupplierName" | "Total" | "CreatedAt";
         ResetUserPasswordRequest: {
@@ -2949,6 +2964,7 @@ export interface components {
             igvAffectation: null | components["schemas"]["IgvAffectation"];
             /** Format: double */
             salePrice: null | number;
+            supplierCodes: null | components["schemas"]["ProductSupplierCodeRequest"][];
             /** Format: uint32 */
             rowVersion: null | number;
         };

@@ -121,7 +121,7 @@ function ProductsPage() {
         <ViewTabs screen="Products" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
           busy={list.isFetching && !list.isPending}
-          search={<SearchBox value={search.q} onSearch={onSearch} placeholder="Buscar por código o nombre" />}
+          search={<SearchBox value={search.q} onSearch={onSearch} placeholder="Buscar por código, código del proveedor o nombre" />}
           filters={<FilterChip label="Estado" options={statusOptions} value={search.estado} onChange={(estado) => navigate({ search: (prev) => ({ ...prev, estado, page: undefined }) })} />}
           onClear={isCustomized(search) ? clearFilters : undefined}
           sort={
