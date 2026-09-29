@@ -62,9 +62,10 @@ export const searchSuppliers = (term: string) =>
 export function useSavePartner() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, input }: { id?: string; input: PartnerInput }) =>
-      id
-        ? unwrap(api.PUT('/api/partners/{id}', { params: { path: { id } }, body: input })).then(() => id)
+    // Al editar se envía la versión que se abrió; si otra persona lo cambió mientras tanto, la API responde 409.
+    mutationFn: ({ edit, input }: { edit?: { id: string; rowVersion: number }; input: PartnerInput }) =>
+      edit
+        ? unwrap(api.PUT('/api/partners/{id}', { params: { path: { id: edit.id } }, body: { ...input, rowVersion: edit.rowVersion } })).then(() => edit.id)
         : unwrap(api.POST('/api/partners', { body: input })).then((r) => r.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.all }),
   })

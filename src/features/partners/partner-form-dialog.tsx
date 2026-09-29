@@ -45,14 +45,18 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, partner])
 
+  // El país solo se pregunta con documento extranjero: con DNI o RUC es Perú (lo indica la API en el catálogo).
+  const docType = form.watch('identityDocumentType')
+  const asksCountry = docTypes.data?.find((d) => d.identityDocumentType === docType)?.requiresCountry ?? false
+
   const onSubmit = form.handleSubmit((v) =>
     save.mutate(
       {
-        id: partner?.id,
+        edit: partner ? { id: partner.id, rowVersion: partner.rowVersion } : undefined,
         input: {
           identityDocumentType: (v.identityDocumentType || null) as Schemas['IdentityDocumentType'],
           documentNumber: v.documentNumber,
-          country: (v.country || null) as Schemas['Country'],
+          country: asksCountry ? ((v.country || null) as Schemas['Country']) : null,
           name: v.name,
           isClient: v.isClient,
           isSupplier: v.isSupplier,
@@ -103,18 +107,20 @@ export function PartnerFormDialog({ open, partner, onClose }: { open: boolean; p
 
         <Field label="Nombre o razón social">{(a) => <Input {...a} {...form.register('name')} />}</Field>
 
-        <Field label="País">
-          {(a) => (
-            <Select {...a} {...form.register('country')}>
-              <option value="">Elige…</option>
-              {countries.data?.map((c) => (
-                <option key={c.country} value={c.country ?? ''}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-          )}
-        </Field>
+        {asksCountry && (
+          <Field label="País" hint="De dónde es el proveedor extranjero.">
+            {(a) => (
+              <Select {...a} {...form.register('country')}>
+                <option value="">Elige…</option>
+                {countries.data?.map((c) => (
+                  <option key={c.country} value={c.country ?? ''}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+        )}
 
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1.5 text-xs font-medium text-muted">Rol</legend>

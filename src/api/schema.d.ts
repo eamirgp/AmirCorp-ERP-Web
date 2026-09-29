@@ -2685,6 +2685,7 @@ export interface components {
             updatedByName: null | string;
             identityDocumentTypeDescription: string;
             countryName: string;
+            roleDescription: string;
         };
         GetCompanyResponseDto: {
             /** Format: uuid */
@@ -2836,8 +2837,11 @@ export interface components {
             isClient: boolean;
             isSupplier: boolean;
             isActive: boolean;
+            /** Format: uint32 */
+            rowVersion: number;
             identityDocumentTypeDescription: string;
             countryName: string;
+            roleDescription: string;
         };
         ListCompaniesResponseDto: {
             /** Format: uuid */
@@ -2857,6 +2861,7 @@ export interface components {
         ListIdentityDocumentTypesResponseDto: {
             identityDocumentType: components["schemas"]["IdentityDocumentType"];
             description: string;
+            requiresCountry: boolean;
         };
         ListIgvAffectationsResponseDto: {
             igvAffectation: components["schemas"]["IgvAffectation"];
@@ -3154,6 +3159,8 @@ export interface components {
             name: null | string;
             isClient: null | boolean;
             isSupplier: null | boolean;
+            /** Format: uint32 */
+            rowVersion: null | number;
         };
         UpdateCompanyRequest: {
             ruc: null | string;

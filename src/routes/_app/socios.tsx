@@ -116,7 +116,7 @@ function PartnersPage() {
         id: 'role',
         header: 'Rol',
         meta: { hideOnMobile: true },
-        cell: (c) => <span className="text-muted">{[c.row.original.isClient && 'Cliente', c.row.original.isSupplier && 'Proveedor'].filter(Boolean).join(' · ')}</span>,
+        cell: (c) => <span className="text-muted">{c.row.original.roleDescription}</span>,
       }),
       col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activo</Pill> : <Pill tone="neutral">Inactivo</Pill>) }),
       col.display({
