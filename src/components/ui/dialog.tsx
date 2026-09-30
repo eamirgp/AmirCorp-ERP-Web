@@ -2,7 +2,7 @@ import * as RadixDialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-/** Ventana modal accesible: foco atrapado, Esc para cerrar y lectura correcta por lectores de pantalla. */
+/** Ventana modal accesible: foco atrapado, Esc para cerrar, foco inicial en el primer campo y lectura correcta por lectores de pantalla. */
 export function Dialog({
   open,
   onOpenChange,
@@ -25,6 +25,17 @@ export function Dialog({
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 z-40 bg-overlay data-[state=open]:animate-[fade-in_120ms_ease-out]" />
         <RadixDialog.Content
+          // Al abrir, el foco va al primer campo (para escribir de inmediato) y no a la X de cerrar. Sin campos,
+          // Radix enfoca el primer botón.
+          onOpenAutoFocus={(e) => {
+            const field = (e.currentTarget as HTMLElement).querySelector<HTMLElement>(
+              'input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled)',
+            )
+            if (field) {
+              e.preventDefault()
+              field.focus()
+            }
+          }}
           className={`fixed top-[8vh] left-1/2 z-50 flex max-h-[84vh] w-[calc(100%-32px)] ${width} -translate-x-1/2 flex-col rounded-xl border border-line bg-surface shadow-float focus:outline-none data-[state=open]:animate-[pop-in_140ms_ease-out]`}
         >
           <div className="flex items-start gap-3 px-6 pt-5 pb-3">

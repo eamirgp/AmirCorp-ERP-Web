@@ -1,11 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
-import { HistoryIcon, Pencil, Plus, Power, Truck, UserPlus, Users } from 'lucide-react'
+import { Ban, HistoryIcon, LockOpen, Pencil, Plus, Truck, UserPlus, Users } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { z } from 'zod'
 import { identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
-import { partnerListQuery, useAddPartnerRole, useTogglePartner, type PartnerRole, type PartnerRow, type PartnerSortBy } from '@/api/partners'
+import {
+  partnerListQuery,
+  useAddPartnerRole,
+  useBlockPartnerRole,
+  type BlockFilter,
+  type PartnerApiRole,
+  type PartnerRole,
+  type PartnerRow,
+  type PartnerSortBy,
+} from '@/api/partners'
 import type { SavedViewScreen } from '@/api/saved-views'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
@@ -14,18 +23,19 @@ import { EmptyState, ListPanel, Loading, Pagination, SearchBox } from '@/compone
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
+import { BlockRoleDialog } from '@/features/partners/block-role-dialog'
 import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { isCustomized } from '@/features/saved-views/view-filters'
-import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
-import { directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
+import { directionSchema, pageSchema, pageSizeSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 export const partnerSearchSchema = z.object({
   q: z.string().optional().catch(undefined),
   page: pageSchema,
   filas: pageSizeSchema,
-  estado: statusSchema,
+  // Estado del rol de la lista: en Proveedores, si sus compras están bloqueadas; en Clientes, sus ventas.
+  estado: z.enum(['activos', 'bloqueados']).optional().catch(undefined),
   doc: z.enum(['Ruc', 'Dni', 'TributarioExtranjero']).optional().catch(undefined),
   orden: z.enum(['Name', 'CreatedAt']).optional().catch(undefined),
   dir: directionSchema,
@@ -35,10 +45,12 @@ export type PartnerSearch = z.infer<typeof partnerSearchSchema>
 
 /**
  * Clientes y proveedores son el mismo registro (una empresa puede ser ambos), pero se muestran en dos listas:
- * Clientes en Comercial y Proveedores en Abastecimiento. Cada lista filtra por su rol.
+ * Clientes en Comercial y Proveedores en Abastecimiento. Cada lista filtra por su rol y bloquea solo su rol
+ * (compras o ventas), como el Business Partner de SAP.
  */
 interface RoleConfig {
   role: PartnerRole
+  apiRole: PartnerApiRole
   screen: SavedViewScreen
   title: string
   description: string
@@ -50,11 +62,19 @@ interface RoleConfig {
   icon: ReactNode
   /** Qué decir si el registro también tiene el otro rol. */
   alsoOther: string
+  blockLabel: string
+  unblockLabel: string
+  blockedFilterLabel: string
+  /** El bloqueo, su motivo y el estado (texto de la API) del rol de esta lista. */
+  isBlocked: (p: PartnerRow) => boolean
+  blockReason: (p: PartnerRow) => string | null
+  status: (p: PartnerRow) => string
 }
 
 export const partnerRoles: Record<'clients' | 'suppliers', RoleConfig> = {
   clients: {
     role: 'clientes',
+    apiRole: 'Client',
     screen: 'Clients',
     title: 'Clientes',
     description: 'A quienes les vendes, con RUC o DNI. Compartidos por todas tus empresas.',
@@ -65,9 +85,16 @@ export const partnerRoles: Record<'clients' | 'suppliers', RoleConfig> = {
     emptyText: 'Registra a las empresas y personas a las que les vendes.',
     icon: <Users strokeWidth={1.5} />,
     alsoOther: 'También es proveedor',
+    blockLabel: 'Bloquear ventas',
+    unblockLabel: 'Desbloquear ventas',
+    blockedFilterLabel: 'Ventas bloqueadas',
+    isBlocked: (p) => p.isSalesBlocked,
+    blockReason: (p) => p.salesBlockReason,
+    status: (p) => p.clientStatus,
   },
   suppliers: {
     role: 'proveedores',
+    apiRole: 'Supplier',
     screen: 'Suppliers',
     title: 'Proveedores',
     description: 'A quienes les compras, en Perú (RUC) y en el extranjero. Compartidos por todas tus empresas.',
@@ -78,6 +105,12 @@ export const partnerRoles: Record<'clients' | 'suppliers', RoleConfig> = {
     emptyText: 'Registra a tus proveedores nacionales y del extranjero.',
     icon: <Truck strokeWidth={1.5} />,
     alsoOther: 'También es cliente',
+    blockLabel: 'Bloquear compras',
+    unblockLabel: 'Desbloquear compras',
+    blockedFilterLabel: 'Compras bloqueadas',
+    isBlocked: (p) => p.isPurchasingBlocked,
+    blockReason: (p) => p.purchasingBlockReason,
+    status: (p) => p.supplierStatus,
   },
 }
 
@@ -122,7 +155,10 @@ export function PartnersPage({
     [docTypes.data, isSuppliers],
   )
   const hasFilters = !!(search.q || search.estado || search.doc)
-  const toggle = useTogglePartner()
+  const statusOptions: Option<BlockFilter>[] = [
+    { value: 'activos', label: 'Activos' },
+    { value: 'bloqueados', label: config.blockedFilterLabel },
+  ]
   const addRole = useAddPartnerRole()
   // "Registrar también como…": el mismo registro pasa a la otra lista (la API dice si se puede: canAdd…Role).
   const addOtherRole = (p: PartnerRow) =>
@@ -143,18 +179,18 @@ export function PartnersPage({
   }
   useHotkey('n', openNew)
 
-  const activation = useConfirmToggle<PartnerRow>(toggle, {
-    title: isSuppliers ? '¿Desactivar este proveedor?' : '¿Desactivar este cliente?',
-    body: (p) => (
-      <>
-        <strong className="font-medium text-ink">{p.name}</strong> dejará de aparecer al registrar {isSuppliers ? 'compras' : 'ventas'}
-        {p.isClient && p.isSupplier ? ` y también como ${isSuppliers ? 'cliente' : 'proveedor'}` : ''}. Su historial se conserva y puedes activarlo de nuevo
-        cuando quieras.
-      </>
-    ),
-    done: (p, active) => `${p.name} ${active ? 'activado' : 'desactivado'}`,
-  })
-  const { request: onToggle, busyId } = activation
+  // Bloquear pregunta antes y pide un motivo opcional; desbloquear no, porque no quita nada.
+  const [blocking, setBlocking] = useState<PartnerRow | null>(null)
+  const unblock = useBlockPartnerRole()
+  const onUnblock = (p: PartnerRow) =>
+    unblock.mutate(
+      { id: p.id, role: config.apiRole, blocked: false },
+      {
+        onSuccess: () => toast.ok(`${isSuppliers ? 'Compras' : 'Ventas'} desbloqueadas: ${p.name}`),
+        onError: (e) => toast.error(errorMessages(e)[0]),
+      },
+    )
+  const busyId = unblock.isPending ? unblock.variables?.id : addRole.isPending ? addRole.variables?.id : undefined
   const clearFilters = () => setSearch(() => ({}))
 
   const columns = useMemo(
@@ -179,7 +215,22 @@ export function PartnersPage({
         ),
       }),
       col.accessor('countryName', { header: 'País', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
-      col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activo</Pill> : <Pill tone="neutral">Inactivo</Pill>) }),
+      col.display({
+        id: 'status',
+        header: 'Estado',
+        // El estado es el del rol de esta lista; si está bloqueado, el motivo va debajo.
+        cell: (c) => {
+          const p = c.row.original
+          if (!config.isBlocked(p)) return <Pill tone="ok">{config.status(p)}</Pill>
+          const reason = config.blockReason(p)
+          return (
+            <span className="flex flex-col items-start gap-1">
+              <Pill tone="bad">{config.status(p)}</Pill>
+              {reason && <span className="text-xs text-muted">{reason}</span>}
+            </span>
+          )
+        },
+      }),
       col.display({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,
@@ -195,9 +246,9 @@ export function PartnersPage({
                   ? [{ label: `Registrar también como ${isSuppliers ? 'cliente' : 'proveedor'}`, icon: <UserPlus />, onSelect: () => addOtherRole(p) }]
                   : []),
                 { label: 'Ver historial', icon: <HistoryIcon />, onSelect: () => setHistory({ entityType: 'BusinessPartner', entityId: p.id, label: `${p.documentNumber} · ${p.name}` }) },
-                p.isActive
-                  ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(p), danger: true }
-                  : { label: 'Activar', icon: <Power />, onSelect: () => onToggle(p) },
+                config.isBlocked(p)
+                  ? { label: config.unblockLabel, icon: <LockOpen />, onSelect: () => onUnblock(p) }
+                  : { label: config.blockLabel, icon: <Ban />, onSelect: () => setBlocking(p), danger: true },
               ]}
             />
           )
@@ -205,7 +256,7 @@ export function PartnersPage({
       }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onToggle, busyId, config.alsoOther, isSuppliers],
+    [busyId, config, isSuppliers],
   )
 
   const data = list.data
@@ -272,7 +323,7 @@ export function PartnersPage({
         ) : !data ? (
           <Loading text={config.loading} />
         ) : data.items.length > 0 ? (
-          <DataTable data={data.items} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />
+          <DataTable data={data.items} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={config.isBlocked} />
         ) : hasFilters ? (
           <EmptyState icon={config.icon} text="Nadie coincide con la búsqueda o los filtros." action={<Button onClick={clearFilters}>Limpiar filtros</Button>} />
         ) : (
@@ -297,7 +348,7 @@ export function PartnersPage({
       </ListPanel>
 
       <PartnerFormDialog open={!!search.nuevo || editing !== null} partner={editing} role={config.role} onClose={closeForm} />
-      {activation.dialog}
+      {blocking && <BlockRoleDialog partner={blocking} role={config.apiRole} onClose={() => setBlocking(null)} />}
       <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )

@@ -2004,7 +2004,7 @@ export interface paths {
                     Page?: number;
                     PageSize?: number;
                     SearchTerm?: string;
-                    IsActive?: boolean;
+                    IsBlocked?: boolean;
                     PartnerRoleFilter?: components["schemas"]["PartnerRoleFilter"];
                     IdentityDocumentType?: components["schemas"]["IdentityDocumentType"];
                     SortBy?: components["schemas"]["BusinessPartnerSortBy"];
@@ -2279,7 +2279,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/partners/{id}/activate": {
+    "/api/partners/{id}/roles/{role}/block": {
         parameters: {
             query?: never;
             header?: never;
@@ -2292,16 +2292,24 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** Bloquea un rol: Supplier bloquea las compras y Client las ventas. El otro rol no cambia. El motivo es opcional. */
         patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
                     id: string;
+                    role: components["schemas"]["BusinessPartnerRole"];
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BlockBusinessPartnerRoleRequest"];
+                    "text/json": components["schemas"]["BlockBusinessPartnerRoleRequest"];
+                    "application/*+json": components["schemas"]["BlockBusinessPartnerRoleRequest"];
+                };
+            };
             responses: {
                 /** @description No Content */
                 204: {
@@ -2323,7 +2331,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/partners/{id}/deactivate": {
+    "/api/partners/{id}/roles/{role}/unblock": {
         parameters: {
             query?: never;
             header?: never;
@@ -2342,6 +2350,7 @@ export interface paths {
                 header?: never;
                 path: {
                     id: string;
+                    role: components["schemas"]["BusinessPartnerRole"];
                 };
                 cookie?: never;
             };
@@ -2725,6 +2734,10 @@ export interface components {
             entityTypeDescription: string;
             actionDescription: string;
         };
+        BlockBusinessPartnerRoleRequest: {
+            /** @description Motivo opcional ("Mercadería defectuosa"); queda en la lista y en el historial. */
+            reason: null | string;
+        };
         /** @enum {unknown} */
         BusinessPartnerRole: "Client" | "Supplier";
         /** @enum {unknown} */
@@ -2825,7 +2838,6 @@ export interface components {
             name: string;
             isClient: boolean;
             isSupplier: boolean;
-            isActive: boolean;
             canAddClientRole: boolean;
             canAddSupplierRole: boolean;
             roleDescription: string;
@@ -2839,7 +2851,10 @@ export interface components {
             name: string;
             isClient: boolean;
             isSupplier: boolean;
-            isActive: boolean;
+            isPurchasingBlocked: boolean;
+            purchasingBlockReason: null | string;
+            isSalesBlocked: boolean;
+            salesBlockReason: null | string;
             /** Format: date-time */
             createdAt: string;
             createdByName: null | string;
@@ -2999,12 +3014,17 @@ export interface components {
             name: string;
             isClient: boolean;
             isSupplier: boolean;
-            isActive: boolean;
+            isPurchasingBlocked: boolean;
+            purchasingBlockReason: null | string;
+            isSalesBlocked: boolean;
+            salesBlockReason: null | string;
             /** Format: uint32 */
             rowVersion: number;
             identityDocumentTypeDescription: string;
             countryName: string;
             roleDescription: string;
+            supplierStatus: string;
+            clientStatus: string;
             canAddClientRole: boolean;
             canAddSupplierRole: boolean;
         };

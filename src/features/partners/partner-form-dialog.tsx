@@ -192,8 +192,7 @@ export function PartnerFormDialog({
         {found && (
           <div className="flex flex-col gap-3 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
             <p>
-              <span className="font-medium">{found.name}</span> ya está registrado como <span className="font-medium">{found.roleDescription.toLowerCase()}</span>
-              {!found.isActive && ' (desactivado)'}.
+              <span className="font-medium">{found.name}</span> ya está registrado como <span className="font-medium">{found.roleDescription.toLowerCase()}</span>.
             </p>
             {canAddHere ? (
               <div>
@@ -204,8 +203,6 @@ export function PartnerFormDialog({
               </div>
             ) : alreadyHere ? (
               <p className="text-muted">Ya está en esta lista. Búscalo para abrirlo o corregirlo.</p>
-            ) : !found.isActive ? (
-              <p className="text-muted">Actívalo primero desde su lista para agregarlo como {noun}.</p>
             ) : (
               <p className="text-muted">
                 Con {selectedType?.description ?? 'este documento'} no puede ser {noun}.

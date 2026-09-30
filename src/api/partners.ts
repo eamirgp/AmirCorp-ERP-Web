@@ -1,19 +1,21 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toIsActive, type ActiveFilter } from '@/lib/filters'
 import { api, unwrap, type Schemas } from './client'
-import { useToggleActive } from './mutations'
 
 export type PartnerRow = Schemas['ListBusinessPartnersResponseDto']
 export type PartnerInput = Schemas['CreateBusinessPartnerRequest']
 export type PartnerRole = 'clientes' | 'proveedores'
 export type PartnerSortBy = NonNullable<Schemas['BusinessPartnerSortBy']>
 export type IdentityDocumentType = Schemas['IdentityDocumentType']
+/** Rol en la API: Supplier (compras) o Client (ventas). */
+export type PartnerApiRole = 'Client' | 'Supplier'
+/** Filtro "Estado" de clientes y proveedores: el bloqueo del rol de la lista. */
+export type BlockFilter = 'activos' | 'bloqueados'
 
 export interface PartnerListParams {
   q?: string
   page: number
   pageSize?: number
-  status?: ActiveFilter
+  status?: BlockFilter
   role?: PartnerRole
   documentType?: IdentityDocumentType
   sortBy?: PartnerSortBy
@@ -38,7 +40,7 @@ export const partnerListQuery = (p: PartnerListParams) =>
               Page: p.page,
               PageSize: p.pageSize,
               SearchTerm: p.q || undefined,
-              IsActive: toIsActive(p.status),
+              IsBlocked: p.status ? p.status === 'bloqueados' : undefined,
               PartnerRoleFilter: p.role ? roleFilter[p.role] : undefined,
               IdentityDocumentType: p.documentType,
               // Sin orden elegido no se envía nada: la API aplica su orden por defecto y lo informa en la respuesta.
@@ -51,11 +53,11 @@ export const partnerListQuery = (p: PartnerListParams) =>
     placeholderData: keepPreviousData,
   })
 
-/** Proveedores activos que coinciden con el texto (para elegir uno en una compra). */
+/** Proveedores con compras sin bloquear que coinciden con el texto (para elegir uno en una compra). */
 export const searchSuppliers = (term: string) =>
   unwrap(
     api.GET('/api/partners', {
-      params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, PartnerRoleFilter: 'Supplier' } },
+      params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsBlocked: false, PartnerRoleFilter: 'Supplier' } },
     }),
   ).then((r) => r.items)
 
@@ -72,7 +74,7 @@ export async function findPartnerByDocument(identityDocumentType: IdentityDocume
 export function useAddPartnerRole() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, role }: { id: string; role: 'Client' | 'Supplier' }) => unwrap(api.PATCH('/api/partners/{id}/roles/{role}', { params: { path: { id, role } } })),
+    mutationFn: ({ id, role }: { id: string; role: PartnerApiRole }) => unwrap(api.PATCH('/api/partners/{id}/roles/{role}', { params: { path: { id, role } } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.all }),
   })
 }
@@ -99,11 +101,19 @@ export function useSavePartner() {
   })
 }
 
-export const useTogglePartner = () =>
-  useToggleActive<PartnerRow>(partnerKeys.lists(), (id, active) =>
-    unwrap(
-      active
-        ? api.PATCH('/api/partners/{id}/activate', { params: { path: { id } } })
-        : api.PATCH('/api/partners/{id}/deactivate', { params: { path: { id } } }),
-    ),
-  )
+/**
+ * Bloquear o desbloquear un rol: Supplier bloquea las compras y Client las ventas. El otro rol no cambia.
+ * Se recarga todo lo de clientes y proveedores porque el registro puede estar en las dos listas.
+ */
+export function useBlockPartnerRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, role, blocked, reason }: { id: string; role: PartnerApiRole; blocked: boolean; reason?: string }) =>
+      unwrap(
+        blocked
+          ? api.PATCH('/api/partners/{id}/roles/{role}/block', { params: { path: { id, role } }, body: { reason: reason || null } })
+          : api.PATCH('/api/partners/{id}/roles/{role}/unblock', { params: { path: { id, role } } }),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.all }),
+  })
+}
