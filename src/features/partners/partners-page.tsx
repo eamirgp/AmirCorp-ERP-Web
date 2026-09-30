@@ -1,17 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
-import { HistoryIcon, Pencil, Plus, Power, Truck, Users } from 'lucide-react'
+import { HistoryIcon, Pencil, Plus, Power, Truck, UserPlus, Users } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { z } from 'zod'
 import { identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
-import { partnerListQuery, useTogglePartner, type PartnerRole, type PartnerRow, type PartnerSortBy } from '@/api/partners'
+import { partnerListQuery, useAddPartnerRole, useTogglePartner, type PartnerRole, type PartnerRow, type PartnerSortBy } from '@/api/partners'
 import type { SavedViewScreen } from '@/api/saved-views'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
 import { EmptyState, ListPanel, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
 import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
+import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
@@ -122,6 +123,16 @@ export function PartnersPage({
   )
   const hasFilters = !!(search.q || search.estado || search.doc)
   const toggle = useTogglePartner()
+  const addRole = useAddPartnerRole()
+  // "Registrar también como…": el mismo registro pasa a la otra lista (la API dice si se puede: canAdd…Role).
+  const addOtherRole = (p: PartnerRow) =>
+    addRole.mutate(
+      { id: p.id, role: isSuppliers ? 'Client' : 'Supplier' },
+      {
+        onSuccess: () => toast.ok(`${p.name} ahora también es ${isSuppliers ? 'cliente' : 'proveedor'}`),
+        onError: (e) => toast.error(errorMessages(e)[0]),
+      },
+    )
   const [editing, setEditing] = useState<PartnerRow | null>(null)
   const [history, setHistory] = useState<HistoryTarget | null>(null)
 
@@ -180,6 +191,9 @@ export function PartnersPage({
               busy={busyId === p.id}
               items={[
                 { label: 'Editar', icon: <Pencil />, onSelect: () => setEditing(p) },
+                ...((isSuppliers ? p.canAddClientRole : p.canAddSupplierRole)
+                  ? [{ label: `Registrar también como ${isSuppliers ? 'cliente' : 'proveedor'}`, icon: <UserPlus />, onSelect: () => addOtherRole(p) }]
+                  : []),
                 { label: 'Ver historial', icon: <HistoryIcon />, onSelect: () => setHistory({ entityType: 'BusinessPartner', entityId: p.id, label: `${p.documentNumber} · ${p.name}` }) },
                 p.isActive
                   ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(p), danger: true }
@@ -190,7 +204,8 @@ export function PartnersPage({
         },
       }),
     ],
-    [onToggle, busyId, config.alsoOther],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onToggle, busyId, config.alsoOther, isSuppliers],
   )
 
   const data = list.data

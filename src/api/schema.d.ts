@@ -2134,6 +2134,105 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/partners/by-document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Quién tiene ya ese documento (404 si nadie). Al crear, el formulario lo usa para ofrecer "agregarlo también
+         *     a esta lista" en vez de crear un duplicado.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    identityDocumentType?: components["schemas"]["IdentityDocumentType"];
+                    documentNumber?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FoundBusinessPartnerDto"];
+                        "application/json": components["schemas"]["FoundBusinessPartnerDto"];
+                        "text/json": components["schemas"]["FoundBusinessPartnerDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/partners/{id}/roles/{role}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** "Registrar también como cliente / proveedor": agrega el rol al mismo registro. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    role: components["schemas"]["BusinessPartnerRole"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/partners/identity-document-types": {
         parameters: {
             query?: never;
@@ -2627,6 +2726,8 @@ export interface components {
             actionDescription: string;
         };
         /** @enum {unknown} */
+        BusinessPartnerRole: "Client" | "Supplier";
+        /** @enum {unknown} */
         BusinessPartnerSortBy: "Name" | "CreatedAt";
         CancelPurchaseRequest: {
             cancellationReason: null | string;
@@ -2717,6 +2818,17 @@ export interface components {
             lastModified?: null | string;
             entityTag?: null | components["schemas"]["EntityTagHeaderValue"];
             enableRangeProcessing?: boolean;
+        };
+        FoundBusinessPartnerDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            isClient: boolean;
+            isSupplier: boolean;
+            isActive: boolean;
+            canAddClientRole: boolean;
+            canAddSupplierRole: boolean;
+            roleDescription: string;
         };
         GetBusinessPartnerResponseDto: {
             /** Format: uuid */
@@ -2893,6 +3005,8 @@ export interface components {
             identityDocumentTypeDescription: string;
             countryName: string;
             roleDescription: string;
+            canAddClientRole: boolean;
+            canAddSupplierRole: boolean;
         };
         ListCompaniesResponseDto: {
             /** Format: uuid */
@@ -3214,13 +3328,12 @@ export interface components {
             conversionDescription: string;
             productCountDescription: string;
         };
+        /** @description Corrige los datos. Los roles no se cambian aquí: se agregan con PATCH api/partners/{id}/roles/{role}. */
         UpdateBusinessPartnerRequest: {
             identityDocumentType: null | components["schemas"]["IdentityDocumentType"];
             documentNumber: null | string;
             countryCode: null | string;
             name: null | string;
-            isClient: null | boolean;
-            isSupplier: null | boolean;
             /** Format: uint32 */
             rowVersion: null | number;
         };

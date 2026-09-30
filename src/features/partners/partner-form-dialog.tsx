@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Search, TriangleAlert } from 'lucide-react'
-import { useEffect } from 'react'
+import { Search, TriangleAlert, UserPlus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { useLookupRuc, useSavePartner, type PartnerRole, type PartnerRow } from '@/api/partners'
+import { findPartnerByDocument, partnerKeys, useAddPartnerRole, useLookupRuc, useSavePartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -20,15 +20,14 @@ interface Values {
   documentNumber: string
   country: CountryOption | null
   name: string
-  isClient: boolean
-  isSupplier: boolean
 }
 
-const empty: Values = { identityDocumentType: '', documentNumber: '', country: null, name: '', isClient: false, isSupplier: false }
+const empty: Values = { identityDocumentType: '', documentNumber: '', country: null, name: '' }
 
 /**
- * Formulario de cliente o proveedor. `role` es la lista desde la que se abre: define el título y qué rol viene
- * marcado al crear. Las dos casillas siguen disponibles, porque una empresa puede ser cliente y proveedor.
+ * Formulario de cliente o proveedor. No tiene casillas de rol, como en Odoo o Business Central: el rol lo da la lista
+ * desde la que se crea ("Nuevo cliente" o "Nuevo proveedor"). Si alguien ya existe en la otra lista, se ofrece
+ * agregarlo también a esta en vez de crear un duplicado; si ya existe, se agrega el otro rol desde el menú ⋯.
  */
 export function PartnerFormDialog({
   open,
@@ -41,17 +40,20 @@ export function PartnerFormDialog({
   role: PartnerRole
   onClose: () => void
 }) {
-  const noun = role === 'proveedores' ? 'proveedor' : 'cliente'
+  const isSuppliers = role === 'proveedores'
+  const noun = isSuppliers ? 'proveedor' : 'cliente'
   const docTypes = useQuery(identityDocumentTypesQuery)
   const countries = useQuery(countriesQuery)
   // La API envía todos los países (son pocos y fijos): buscar entre ellos es solo presentación, sin tildes.
   const findCountries = (term: string) => Promise.resolve((countries.data ?? []).filter((c) => !term || matchesText(term, c.name, c.code)))
   const save = useSavePartner()
+  const addRole = useAddPartnerRole()
   const form = useForm<Values>({ defaultValues: empty })
 
   useEffect(() => {
     if (!open) return
     save.reset()
+    addRole.reset()
     form.reset(
       partner
         ? {
@@ -59,31 +61,22 @@ export function PartnerFormDialog({
             documentNumber: partner.documentNumber,
             country: { code: partner.countryCode, name: partner.countryName },
             name: partner.name,
-            isClient: partner.isClient,
-            isSupplier: partner.isSupplier,
           }
-        : { ...empty, isClient: role === 'clientes', isSupplier: role === 'proveedores' },
+        : empty,
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, partner, role])
+  }, [open, partner])
 
-  // El país solo se pregunta con documento extranjero: con DNI o RUC es Perú (lo indica la API en el catálogo).
+  // Roles que debe admitir el documento: los que ya tiene el registro o, al crear, el de esta lista. Qué documento
+  // admite cada rol lo indica la API (canBeClient, canBeSupplier): así no se ofrecen combinaciones imposibles.
+  const needsClient = partner ? partner.isClient : !isSuppliers
+  const needsSupplier = partner ? partner.isSupplier : isSuppliers
   const docType = form.watch('identityDocumentType')
+  const docTypeOptions = (docTypes.data ?? []).filter(
+    (d) => d.identityDocumentType === docType || ((!needsClient || d.canBeClient) && (!needsSupplier || d.canBeSupplier)),
+  )
   const selectedType = docTypes.data?.find((d) => d.identityDocumentType === docType)
   const asksCountry = selectedType?.requiresCountry ?? false
-
-  // Qué documento puede tener cada rol lo indica la API (canBeSupplier, canBeClient): un proveedor no puede tener
-  // DNI y, mientras solo se venda en Perú, un cliente no puede tener documento extranjero. Con un rol marcado no se
-  // ofrecen los documentos que no le corresponden, y con un documento elegido se desactiva el rol que no admite.
-  // Así no se llega al error recién al guardar.
-  const isSupplier = form.watch('isSupplier')
-  const isClient = form.watch('isClient')
-  const docTypeOptions = (docTypes.data ?? []).filter(
-    (d) => d.identityDocumentType === docType || ((!isSupplier || d.canBeSupplier) && (!isClient || d.canBeClient)),
-  )
-  const supplierBlocked = selectedType !== undefined && !selectedType.canBeSupplier
-  const clientBlocked = selectedType !== undefined && !selectedType.canBeClient
-  const docHint = isSupplier && isClient ? 'Cliente y proveedor a la vez necesita RUC.' : isSupplier ? 'Un proveedor necesita RUC o documento extranjero.' : isClient ? 'Un cliente necesita RUC o DNI.' : undefined
 
   // Buscar en SUNAT: solo si la API lo permite para este tipo (RUC con la consulta configurada).
   const lookup = useLookupRuc()
@@ -95,6 +88,33 @@ export function PartnerFormDialog({
       onSuccess: (r) => form.setValue('name', r.name),
     })
 
+  // Al crear: ¿alguien ya tiene este documento? Se consulta un momento después de dejar de escribir.
+  const [typed, setTyped] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setTyped(documentNumber?.replace(/\s/g, '') ?? ''), 400)
+    return () => clearTimeout(t)
+  }, [documentNumber])
+  const existing = useQuery({
+    queryKey: [...partnerKeys.all, 'by-document', docType, typed],
+    queryFn: () => findPartnerByDocument(docType as IdentityDocumentType, typed),
+    enabled: open && !partner && !!docType && typed.length >= 3,
+  })
+  const found = !partner ? existing.data : null
+  const canAddHere = found && (isSuppliers ? found.canAddSupplierRole : found.canAddClientRole)
+  const alreadyHere = found && (isSuppliers ? found.isSupplier : found.isClient)
+
+  const addHere = () =>
+    found &&
+    addRole.mutate(
+      { id: found.id, role: isSuppliers ? 'Supplier' : 'Client' },
+      {
+        onSuccess: () => {
+          toast.ok(`${found.name} ahora también es ${noun}`)
+          onClose()
+        },
+      },
+    )
+
   const onSubmit = form.handleSubmit((v) =>
     save.mutate(
       {
@@ -104,9 +124,9 @@ export function PartnerFormDialog({
           documentNumber: v.documentNumber,
           countryCode: asksCountry ? (v.country?.code ?? null) : null,
           name: v.name,
-          // Una casilla desactivada llega vacía: se envía como "no".
-          isClient: !clientBlocked && !!v.isClient,
-          isSupplier: !supplierBlocked && !!v.isSupplier,
+          // Al crear, el rol es el de la lista; al editar no se envía (los roles se agregan desde el menú ⋯).
+          isClient: !isSuppliers,
+          isSupplier: isSuppliers,
         },
       },
       {
@@ -129,17 +149,17 @@ export function PartnerFormDialog({
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" type="submit" form="partner-form" loading={save.isPending}>
+          <Button variant="primary" type="submit" form="partner-form" loading={save.isPending} disabled={!!found}>
             {partner ? 'Guardar cambios' : `Crear ${noun}`}
           </Button>
         </>
       }
     >
       <form id="partner-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-        <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
+        <ErrorList messages={save.isError ? errorMessages(save.error) : addRole.isError ? errorMessages(addRole.error) : []} />
 
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <Field label="Tipo de documento" hint={docHint}>
+          <Field label="Tipo de documento" hint={isSuppliers ? 'Un proveedor tiene RUC o documento extranjero.' : 'Un cliente tiene RUC o DNI.'}>
             {(a) => (
               <Select {...a} autoFocus {...form.register('identityDocumentType')}>
                 <option value="">Elige…</option>
@@ -167,6 +187,32 @@ export function PartnerFormDialog({
             }
           </Field>
         </div>
+
+        {/* Ya existe: en vez de crear un duplicado, se ofrece agregarlo a esta lista (o se explica por qué no). */}
+        {found && (
+          <div className="flex flex-col gap-3 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
+            <p>
+              <span className="font-medium">{found.name}</span> ya está registrado como <span className="font-medium">{found.roleDescription.toLowerCase()}</span>
+              {!found.isActive && ' (desactivado)'}.
+            </p>
+            {canAddHere ? (
+              <div>
+                <Button variant="primary" size="sm" onClick={addHere} loading={addRole.isPending}>
+                  <UserPlus />
+                  Agregarlo también como {noun}
+                </Button>
+              </div>
+            ) : alreadyHere ? (
+              <p className="text-muted">Ya está en esta lista. Búscalo para abrirlo o corregirlo.</p>
+            ) : !found.isActive ? (
+              <p className="text-muted">Actívalo primero desde su lista para agregarlo como {noun}.</p>
+            ) : (
+              <p className="text-muted">
+                Con {selectedType?.description ?? 'este documento'} no puede ser {noun}.
+              </p>
+            )}
+          </div>
+        )}
 
         {lookup.isError && <ErrorList messages={errorMessages(lookup.error)} />}
         {lookup.data && (
@@ -211,20 +257,6 @@ export function PartnerFormDialog({
             )}
           </Field>
         )}
-
-        <fieldset className="flex flex-col gap-2">
-          <legend className="mb-1.5 text-xs font-medium text-muted">Rol (puede ser los dos)</legend>
-          <label className={`flex items-center gap-2.5 text-base ${clientBlocked ? 'text-faint' : ''}`}>
-            <input type="checkbox" className="size-4 [accent-color:var(--ink)]" disabled={clientBlocked} {...form.register('isClient')} />
-            Cliente
-          </label>
-          {clientBlocked && <p className="pl-6.5 text-xs text-faint">Con {selectedType.description.toLowerCase()} no puede ser cliente: por ahora solo se vende en Perú.</p>}
-          <label className={`flex items-center gap-2.5 text-base ${supplierBlocked ? 'text-faint' : ''}`}>
-            <input type="checkbox" className="size-4 [accent-color:var(--ink)]" disabled={supplierBlocked} {...form.register('isSupplier')} />
-            Proveedor
-          </label>
-          {supplierBlocked && <p className="pl-6.5 text-xs text-faint">Con {selectedType.description} no puede ser proveedor: no emite facturas.</p>}
-        </fieldset>
       </form>
     </Dialog>
   )

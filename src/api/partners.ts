@@ -59,6 +59,24 @@ export const searchSuppliers = (term: string) =>
     }),
   ).then((r) => r.items)
 
+export type FoundPartner = Schemas['FoundBusinessPartnerDto']
+
+/** Quién tiene ya ese documento, o null si nadie (la API responde 404). */
+export async function findPartnerByDocument(identityDocumentType: IdentityDocumentType, documentNumber: string): Promise<FoundPartner | null> {
+  const r = await api.GET('/api/partners/by-document', { params: { query: { identityDocumentType: identityDocumentType!, documentNumber } } })
+  if (r.response.status === 404) return null
+  return unwrap(Promise.resolve(r))
+}
+
+/** "Registrar también como cliente / proveedor": el mismo registro pasa a estar en las dos listas. */
+export function useAddPartnerRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, role }: { id: string; role: 'Client' | 'Supplier' }) => unwrap(api.PATCH('/api/partners/{id}/roles/{role}', { params: { path: { id, role } } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.all }),
+  })
+}
+
 export type RucLookup = Schemas['LookupRucResponseDto']
 
 /** Busca el RUC en SUNAT (a través de la API) para llenar la razón social. */
@@ -71,10 +89,12 @@ export function useSavePartner() {
   const qc = useQueryClient()
   return useMutation({
     // Al editar se envía la versión que se abrió; si otra persona lo cambió mientras tanto, la API responde 409.
-    mutationFn: ({ edit, input }: { edit?: { id: string; rowVersion: number }; input: PartnerInput }) =>
-      edit
-        ? unwrap(api.PUT('/api/partners/{id}', { params: { path: { id: edit.id } }, body: { ...input, rowVersion: edit.rowVersion } })).then(() => edit.id)
-        : unwrap(api.POST('/api/partners', { body: input })).then((r) => r.id),
+    // Al editar no se envían los roles: se agregan con su propia acción (useAddPartnerRole).
+    mutationFn: ({ edit, input }: { edit?: { id: string; rowVersion: number }; input: PartnerInput }) => {
+      if (!edit) return unwrap(api.POST('/api/partners', { body: input })).then((r) => r.id)
+      const { isClient: _client, isSupplier: _supplier, ...data } = input
+      return unwrap(api.PUT('/api/partners/{id}', { params: { path: { id: edit.id } }, body: { ...data, rowVersion: edit.rowVersion } })).then(() => edit.id)
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.all }),
   })
 }
