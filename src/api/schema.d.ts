@@ -2849,8 +2849,6 @@ export interface components {
             name: null | string;
             /** @description Código con que lo vende el proveedor de esta compra; opcional. */
             supplierCode: null | string;
-            /** @description Unidad en que se lleva su inventario; vacío si es la misma de la línea. */
-            unitOfMeasureCode: null | string;
         };
         CreatePurchaseNewSupplierRequest: {
             ruc: null | string;

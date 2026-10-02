@@ -46,7 +46,7 @@ export const Route = createFileRoute('/_app/compras/nueva')({
 interface LineValues {
   product: ProductRow | null
   /** Producto que todavía no existe: la API lo registra junto con la compra. Va en vez de `product`. */
-  newProduct: { code: string; name: string; supplierCode: string; unit: string } | null
+  newProduct: { code: string; name: string; supplierCode: string } | null
   invoiceIgvAffectation: string
   invoiceUnitOfMeasure: string
   invoiceQuantity: string
@@ -199,7 +199,7 @@ function NewPurchasePage() {
         lines: v.lines.map((l) => ({
           productId: l.newProduct ? null : (l.product?.id ?? null),
           newProduct: l.newProduct
-            ? { code: l.newProduct.code, name: l.newProduct.name, supplierCode: l.newProduct.supplierCode || null, unitOfMeasureCode: l.newProduct.unit || null }
+            ? { code: l.newProduct.code, name: l.newProduct.name, supplierCode: l.newProduct.supplierCode || null }
             : null,
           invoiceIgvAffectation: orNull<Schemas['IgvAffectation']>(l.invoiceIgvAffectation),
           invoiceUnitOfMeasureCode: l.invoiceUnitOfMeasure || null,
@@ -381,17 +381,6 @@ function NewPurchasePage() {
                               Buscar otro
                             </button>
                           </div>
-                          {/* Si se compra por caja o docena, el inventario se lleva en otra unidad: hay que decir cuál. */}
-                          {parseNumberInput(watched.lines?.[i]?.conversionFactor) != null && parseNumberInput(watched.lines?.[i]?.conversionFactor) !== 1 && (
-                            <Select aria-label="Unidad en que se lleva el inventario del producto nuevo" className="h-8 text-sm" {...form.register(`lines.${i}.newProduct.unit`)}>
-                              <option value="">Inventario en…</option>
-                              {units.data?.map((u) => (
-                                <option key={u.code} value={u.code}>
-                                  Inventario en {u.name}
-                                </option>
-                              ))}
-                            </Select>
-                          )}
                           <p className="text-xs text-faint">
                             Se registrará al guardar la compra, con el código {watched.lines?.[i]?.newProduct?.supplierCode} de la factura para este proveedor.
                           </p>
@@ -406,7 +395,7 @@ function NewPurchasePage() {
                               label: (term) => `Crear producto nuevo con código ${term.toUpperCase()}`,
                               onSelect: (term) => {
                                 f.onChange(null)
-                                form.setValue(`lines.${i}.newProduct`, { code: term.toUpperCase(), name: '', supplierCode: term.toUpperCase(), unit: '' })
+                                form.setValue(`lines.${i}.newProduct`, { code: term.toUpperCase(), name: '', supplierCode: term.toUpperCase() })
                               },
                             }}
                             value={f.value}
