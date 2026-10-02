@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Search, TriangleAlert, UserPlus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Pencil, Search, TriangleAlert, UserPlus } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { findPartnerByDocument, partnerKeys, useAddPartnerRole, useLookupRuc, useSavePartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
+import { fetchPartnerRow, findPartnerByDocument, partnerKeys, useAddPartnerRole, useLookupRuc, useSavePartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -34,11 +34,14 @@ export function PartnerFormDialog({
   partner,
   role,
   onClose,
+  onOpenExisting,
 }: {
   open: boolean
   partner: PartnerRow | null
   role: PartnerRole
   onClose: () => void
+  /** Al crear, el documento ya existe en esta lista y el usuario pide abrir ese registro. */
+  onOpenExisting: (partner: PartnerRow) => void
 }) {
   const isSuppliers = role === 'proveedores'
   const noun = isSuppliers ? 'proveedor' : 'cliente'
@@ -102,6 +105,35 @@ export function PartnerFormDialog({
   const found = !partner ? existing.data : null
   const canAddHere = found && (isSuppliers ? found.canAddSupplierRole : found.canAddClientRole)
   const alreadyHere = found && (isSuppliers ? found.isSupplier : found.isClient)
+
+  // Documento nuevo y completo (la API dice cuántos dígitos tiene): se busca en SUNAT sin presionar nada, una vez
+  // por número. Solo llena el nombre si está vacío, para no pisar lo que ya se escribió.
+  const lastAutoLookup = useRef('')
+  useEffect(() => {
+    if (!open) lastAutoLookup.current = ''
+    if (!open || partner || !selectedType?.supportsLookup || !existing.isSuccess || existing.data) return
+    const current = documentNumber?.replace(/\s/g, '') ?? ''
+    if (current !== typed || typed.length !== selectedType.exactLength || lastAutoLookup.current === typed) return
+    lastAutoLookup.current = typed
+    lookup.mutate(typed, { onSuccess: (r) => !form.getValues('name').trim() && form.setValue('name', r.name) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, typed, existing.isSuccess, existing.data, selectedType])
+
+  // Ya está en esta lista: se abre su ficha para editarlo, en vez de dejar al usuario buscándolo.
+  const [opening, setOpening] = useState(false)
+  const openExisting = async () => {
+    if (!found) return
+    setOpening(true)
+    try {
+      const row = await fetchPartnerRow(found.id, typed, role)
+      if (row) onOpenExisting(row)
+      else toast.error('No se pudo abrir. Búscalo en la lista.')
+    } catch (e) {
+      toast.error(errorMessages(e)[0])
+    } finally {
+      setOpening(false)
+    }
+  }
 
   const addHere = () =>
     found &&
@@ -176,7 +208,8 @@ export function PartnerFormDialog({
               selectedType?.supportsLookup ? (
                 <div className="flex gap-2">
                   <Input {...a} className="min-w-0 flex-1 font-mono" {...form.register('documentNumber')} />
-                  <Button onClick={searchSunat} loading={lookup.isPending} title="Trae la razón social desde SUNAT">
+                  {/* Si ya está registrado no hace falta consultarlo: el aviso de abajo dice quién es. */}
+                  <Button onClick={searchSunat} loading={lookup.isPending} disabled={!!found} title="Trae la razón social desde SUNAT">
                     <Search />
                     SUNAT
                   </Button>
@@ -202,7 +235,12 @@ export function PartnerFormDialog({
                 </Button>
               </div>
             ) : alreadyHere ? (
-              <p className="text-muted">Ya está en esta lista. Búscalo para abrirlo o corregirlo.</p>
+              <div>
+                <Button variant="primary" size="sm" onClick={openExisting} loading={opening}>
+                  <Pencil />
+                  Abrir {found.name}
+                </Button>
+              </div>
             ) : (
               <p className="text-muted">
                 Con {selectedType?.description ?? 'este documento'} no puede ser {noun}.

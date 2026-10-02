@@ -177,6 +177,11 @@ export function PartnersPage({
     setEditing(null)
     if (search.nuevo) setSearch((prev) => ({ ...prev, nuevo: undefined }), { replace: true })
   }
+  // Desde "Nuevo…", si el documento ya existe en esta lista, el formulario pasa a editar ese registro.
+  const openExisting = (p: PartnerRow) => {
+    setEditing(p)
+    if (search.nuevo) setSearch((prev) => ({ ...prev, nuevo: undefined }), { replace: true })
+  }
   useHotkey('n', openNew)
 
   // Bloquear pregunta antes y pide un motivo opcional; desbloquear no, porque no quita nada.
@@ -347,7 +352,7 @@ export function PartnersPage({
         />
       </ListPanel>
 
-      <PartnerFormDialog open={!!search.nuevo || editing !== null} partner={editing} role={config.role} onClose={closeForm} />
+      <PartnerFormDialog open={!!search.nuevo || editing !== null} partner={editing} role={config.role} onClose={closeForm} onOpenExisting={openExisting} />
       {blocking && <BlockRoleDialog partner={blocking} role={config.apiRole} onClose={() => setBlocking(null)} />}
       <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>

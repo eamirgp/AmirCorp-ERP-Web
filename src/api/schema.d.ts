@@ -3048,6 +3048,8 @@ export interface components {
             description: string;
             supportsLookup: boolean;
             requiresCountry: boolean;
+            /** Format: int32 */
+            exactLength: null | number;
             canBeSupplier: boolean;
             canBeClient: boolean;
         };

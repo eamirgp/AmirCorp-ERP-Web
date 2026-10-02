@@ -70,6 +70,15 @@ export async function findPartnerByDocument(identityDocumentType: IdentityDocume
   return unwrap(Promise.resolve(r))
 }
 
+/**
+ * La fila completa (con su versión) de alguien que ya existe en esta lista, para abrir su ficha desde el aviso de
+ * duplicado. Se busca por su documento en la misma lista.
+ */
+export const fetchPartnerRow = (id: string, documentNumber: string, role: PartnerRole) =>
+  unwrap(api.GET('/api/partners', { params: { query: { Page: 1, PageSize: 10, SearchTerm: documentNumber, PartnerRoleFilter: roleFilter[role] } } })).then(
+    (r) => r.items.find((p) => p.id === id) ?? null,
+  )
+
 /** "Registrar también como cliente / proveedor": el mismo registro pasa a estar en las dos listas. */
 export function useAddPartnerRole() {
   const qc = useQueryClient()
