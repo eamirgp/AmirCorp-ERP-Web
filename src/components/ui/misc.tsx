@@ -35,6 +35,19 @@ export function PageHeader({ title, description, actions }: { title: string; des
   )
 }
 
+/**
+ * Sección de un formulario largo como tarjeta con título ("Proveedor", "Comprobante", "Productos"): separa los
+ * bloques igual que las listas, que van en una tarjeta sobre el fondo de la página.
+ */
+export function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
+  return (
+    <section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-surface p-5 ${className}`}>
+      <h2 className="font-display text-base font-semibold">{title}</h2>
+      {children}
+    </section>
+  )
+}
+
 export function ErrorList({ messages }: { messages: string[] }) {
   if (messages.length === 0) return null
   return (

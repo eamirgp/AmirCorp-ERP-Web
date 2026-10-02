@@ -11,7 +11,7 @@ import { searchProducts, type ProductRow } from '@/api/products'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
 import { Field, Input, NumberInput, Select } from '@/components/ui/field'
-import { ErrorList, PageHeader } from '@/components/ui/misc'
+import { Card, ErrorList, PageHeader } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
 import { SupplierField, type NewSupplier } from '@/features/purchases/supplier-field'
@@ -156,7 +156,7 @@ function NewPurchasePage() {
   )
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-8">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
       <div className="flex flex-col gap-4">
         <Link to="/compras" className="flex w-fit items-center gap-1.5 text-sm text-muted hover:text-ink">
           <ArrowLeft className="size-4" />
@@ -166,43 +166,27 @@ function NewPurchasePage() {
         <ErrorList messages={create.isError ? errorMessages(create.error) : []} />
       </div>
 
-      <section className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Empresa">
-          {(a) => (
-            <Select {...a} {...form.register('companyId')}>
-              <option value="">Elige…</option>
-              {companies.data
-                ?.filter((c) => c.isActive)
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-            </Select>
-          )}
-        </Field>
-        <div className="lg:col-span-3">
-          <Field label="Proveedor">
-            {(a) => (
-              <SupplierField
-                {...a}
-                supplier={supplier}
-                newSupplier={newSupplier}
-                // Uno u otro: el registrado o el nuevo, que la API registra junto con la compra.
-                onSupplier={(s) => {
-                  form.setValue('supplier', s)
-                  form.setValue('newSupplier', null)
-                }}
-                onNewSupplier={(s) => {
-                  form.setValue('newSupplier', s)
-                  form.setValue('supplier', null)
-                }}
-              />
-            )}
-          </Field>
-        </div>
+      {/* Cada bloque en su tarjeta, en el orden en que se lee una factura: de quién es, qué documento es y qué trae. */}
+      <Card title="Proveedor">
+        <SupplierField
+          aria-label="Proveedor"
+          supplier={supplier}
+          newSupplier={newSupplier}
+          // Uno u otro: el registrado o el nuevo, que la API registra junto con la compra.
+          onSupplier={(s) => {
+            form.setValue('supplier', s)
+            form.setValue('newSupplier', null)
+          }}
+          onNewSupplier={(s) => {
+            form.setValue('newSupplier', s)
+            form.setValue('supplier', null)
+          }}
+        />
+      </Card>
 
-        <Field label="Comprobante">
+      <Card title="Comprobante">
+        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Field label="Tipo de comprobante">
           {(a) => (
             <Select {...a} {...form.register('taxDocumentType')}>
               <option value="">Elige…</option>
@@ -218,6 +202,20 @@ function NewPurchasePage() {
         <Field label="Número">{(a) => <Input {...a} className="font-mono" inputMode="numeric" {...form.register('number')} />}</Field>
         <Field label="Fecha de emisión">{(a) => <Input {...a} type="date" {...form.register('issueDate')} />}</Field>
 
+        <Field label="Empresa que compra">
+          {(a) => (
+            <Select {...a} {...form.register('companyId')}>
+              <option value="">Elige…</option>
+              {companies.data
+                ?.filter((c) => c.isActive)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+            </Select>
+          )}
+        </Field>
         <Field label="Moneda">
           {(a) => (
             <Select {...a} {...form.register('currency')}>
@@ -230,24 +228,22 @@ function NewPurchasePage() {
           )}
         </Field>
         <Field label="Tipo de cambio">{(a) => <NumberInput {...a} placeholder="0.000" {...form.register('exchangeRate')} />}</Field>
-        <div className="sm:col-span-2">
-          <Field label="Los montos de la factura están en">
-            {(a) => (
-              <Select {...a} {...form.register('invoicePriceType')}>
-                <option value="">Elige…</option>
-                {priceTypes.data?.map((p) => (
-                  <option key={p.invoicePriceType} value={p.invoicePriceType ?? ''}>
-                    {p.description}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Field>
+        <Field label="Montos de la factura en">
+          {(a) => (
+            <Select {...a} {...form.register('invoicePriceType')}>
+              <option value="">Elige…</option>
+              {priceTypes.data?.map((p) => (
+                <option key={p.invoicePriceType} value={p.invoicePriceType ?? ''}>
+                  {p.description}
+                </option>
+              ))}
+            </Select>
+          )}
+        </Field>
         </div>
-      </section>
+      </Card>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="label-caps">Detalle</h2>
+      <Card title="Productos">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] border-collapse text-base">
             <thead>
@@ -373,11 +369,13 @@ function NewPurchasePage() {
           <Plus />
           Agregar línea
         </Button>
-      </section>
+        {/* Los totales cierran la tabla, abajo a la derecha, como en una factura. */}
+        <div className="border-t border-line pt-4">
+          <Totals base={money(preview.data?.totalBaseAmount ?? 0)} igv={money(preview.data?.totalIgvAmount ?? 0)} total={money(preview.data?.total ?? 0)} />
+        </div>
+      </Card>
 
-      <Totals base={money(preview.data?.totalBaseAmount ?? 0)} igv={money(preview.data?.totalIgvAmount ?? 0)} total={money(preview.data?.total ?? 0)} />
-
-      <div className="flex flex-wrap justify-end gap-2 border-t border-line pt-5">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button onClick={() => navigate({ to: '/compras' })}>Cancelar</Button>
         <Button variant="primary" type="submit" loading={create.isPending}>
           Registrar compra
