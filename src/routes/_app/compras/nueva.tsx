@@ -106,11 +106,15 @@ function NewPurchasePage() {
     if (!form.getValues('companyId') && active.length === 1) form.setValue('companyId', active[0].id)
   }, [companies.data, form])
 
-  /** Factor de conversión fijo de la unidad, según el catálogo de la API (null si lo define la compra). */
+  /** Unidades fijas que trae la unidad, según el catálogo de la API (Unidad 1, Docena 12); null si las dice la factura (Caja). */
   const fixedFactor = (unit: string) => units.data?.find((u) => u.code === unit)?.fixedConversionFactor ?? null
+  /** Las unidades por caja se piden solo si la unidad de la línea no las trae fijas. */
+  const asksUnitsPer = (unit: string | undefined) => !!unit && fixedFactor(unit) == null
+  // Con una unidad fija, su cantidad se pone sola y no se muestra; con una variable (Caja) el campo queda vacío para
+  // que se escriba lo que trae esta factura.
   const applyUnit = (index: number, unit: string) => {
     const f = fixedFactor(unit)
-    if (f != null) form.setValue(`lines.${index}.conversionFactor`, String(f))
+    form.setValue(`lines.${index}.conversionFactor`, f != null ? String(f) : '')
   }
 
   // Vista previa: la API calcula montos y totales mientras se llena el formulario.
@@ -132,6 +136,7 @@ function NewPurchasePage() {
   )
   const preview = useQuery(purchasePreviewQuery(useDebounced(previewInput, 300)))
   const money = (v: number) => formatMoney(v, watched.currency || 'PEN')
+  const showUnitsPer = (watched.lines ?? []).some((l) => asksUnitsPer(l?.invoiceUnitOfMeasure))
   /** Número de la otra línea que ya tiene ese producto, o 0 si ninguna. */
   const lineOf = (productId: string, except: number) => (watched.lines ?? []).findIndex((l, i) => i !== except && l?.product?.id === productId) + 1
   const needsExchangeRate = currencies.data?.find((c) => c.currency === watched.currency)?.requiresExchangeRate ?? false
@@ -333,9 +338,12 @@ function NewPurchasePage() {
                 <th className="border-b border-line px-2 py-2 font-normal">Unidad</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">Cantidad</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">{amountLabel}</th>
-                <th className="border-b border-line px-2 py-2 text-right font-normal" title="Unidades de inventario por cada unidad de la factura">
-                  Factor
-                </th>
+                {/* La columna aparece solo si alguna línea se compra por caja (o por otra unidad sin cantidad fija). */}
+                {showUnitsPer && (
+                  <th className="border-b border-line px-2 py-2 text-right font-normal" title="Cuántas unidades trae cada caja de esta factura">
+                    Unidades por caja
+                  </th>
+                )}
                 <th className="border-b border-line px-2 py-2 text-right font-normal" title="Monto de la línea sin IGV">
                   Subtotal
                 </th>
@@ -348,7 +356,7 @@ function NewPurchasePage() {
               {lines.fields.map((field, i) => {
                 const result = preview.data?.lines[i]
                 const unit = watched.lines?.[i]?.invoiceUnitOfMeasure ?? ''
-                const locked = fixedFactor(unit) != null
+                const unitName = units.data?.find((u) => u.code === unit)?.name.toLowerCase() ?? 'caja'
                 return (
                   <tr key={field.id} className="border-b border-line align-top">
                     <td className="py-2 pr-3">
@@ -474,15 +482,18 @@ function NewPurchasePage() {
                     <td className="px-2 py-2">
                       <NumberInput aria-label={amountLabel} className="w-28 min-w-28 text-right" minDecimals={2} {...form.register(`lines.${i}.invoiceAmount`)} />
                     </td>
-                    <td className="px-2 py-2">
-                      <NumberInput
-                        aria-label="Factor de conversión"
-                        className="w-16 min-w-16 text-right read-only:bg-surface-2 read-only:text-muted"
-                        readOnly={locked}
-                        title={locked ? 'Fijo para esta unidad de medida' : 'Unidades de inventario por cada unidad de la factura'}
-                        {...form.register(`lines.${i}.conversionFactor`)}
-                      />
-                    </td>
+                    {showUnitsPer && (
+                      <td className="px-2 py-2">
+                        {asksUnitsPer(unit) && (
+                          <NumberInput
+                            aria-label={`Unidades por ${unitName}`}
+                            className="w-24 min-w-24 text-right"
+                            title={`¿Cuántas unidades trae cada ${unitName} de esta factura?`}
+                            {...form.register(`lines.${i}.conversionFactor`)}
+                          />
+                        )}
+                      </td>
+                    )}
                     {/* Subtotal, IGV y total de la línea, como en la factura. Sin símbolo: la moneda está en el comprobante y en los totales. */}
                     <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap text-muted">
                       {result?.baseAmount != null ? formatAmount(result.baseAmount) : <span className="text-faint">—</span>}
