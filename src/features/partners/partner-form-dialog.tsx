@@ -123,7 +123,7 @@ export function PartnerFormDialog({
     }
     if (!stillCurrent(number)) return
     lookup.mutate(
-      { identityDocumentType: type, documentNumber: number },
+      { identityDocumentType: type, documentNumber: number, partnerId: partner?.id },
       {
         // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
         onSuccess: (r, asked) => stillCurrent(asked.documentNumber) && fillName(r.name),

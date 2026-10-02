@@ -2099,6 +2099,7 @@ export interface paths {
                 query?: {
                     identityDocumentType?: components["schemas"]["IdentityDocumentType"];
                     documentNumber?: string;
+                    partnerId?: string;
                 };
                 header?: never;
                 path?: never;

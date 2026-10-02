@@ -93,8 +93,9 @@ export type DocumentLookup = Schemas['LookupDocumentResponseDto']
 /** Busca el RUC en SUNAT o el DNI en RENIEC (a través de la API) para llenar el nombre o la razón social. */
 export const useLookupDocument = () =>
   useMutation({
-    mutationFn: ({ identityDocumentType, documentNumber }: { identityDocumentType: IdentityDocumentType; documentNumber: string }) =>
-      unwrap(api.GET('/api/partners/document-lookup', { params: { query: { identityDocumentType: identityDocumentType!, documentNumber } } })),
+    // partnerId: el registro que se está editando, para que la API no avise "ya está registrado" por él mismo.
+    mutationFn: ({ identityDocumentType, documentNumber, partnerId }: { identityDocumentType: IdentityDocumentType; documentNumber: string; partnerId?: string }) =>
+      unwrap(api.GET('/api/partners/document-lookup', { params: { query: { identityDocumentType: identityDocumentType!, documentNumber, partnerId } } })),
   })
 
 export function useSavePartner() {
