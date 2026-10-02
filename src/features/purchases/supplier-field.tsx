@@ -5,7 +5,7 @@ import { identityDocumentTypesQuery } from '@/api/catalogs'
 import { ApiError, errorMessages } from '@/api/client'
 import { fetchPartnerRow, findPartnerByDocument, searchSuppliers, useLookupDocument, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
-import { Field, Input } from '@/components/ui/field'
+import { Input } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 
@@ -76,7 +76,7 @@ export function SupplierField({
         return
       }
       if (existing) {
-        setExistingNote(`${existing.name} ya está registrado como cliente. Al guardar la compra quedará también como proveedor.`)
+        setExistingNote('Ya está registrado como cliente. Al guardar la compra quedará también como proveedor.')
         onNewSupplier({ ruc, name: existing.name })
         return
       }
@@ -95,46 +95,51 @@ export function SupplierField({
     }
   }
 
-  if (newSupplier)
+  // Proveedor nuevo: ocupa lo mismo que el campo (no descuadra el formulario) y el detalle va en una línea debajo.
+  // Si SUNAT no trajo la razón social, en su lugar se escribe a mano.
+  if (newSupplier) {
+    const manual = !existingNote && !lookup.data
     return (
-      <div className="flex flex-col gap-3 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p>
-            <span className="font-medium">{existingNote ? newSupplier.name : 'Proveedor nuevo'}</span>
-            <span className="text-muted"> · RUC </span>
-            <span className="font-mono">{newSupplier.ruc}</span>
-          </p>
-          <Button size="sm" onClick={clearNew}>
-            Cambiar proveedor
-          </Button>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex gap-2">
+          {manual ? (
+            <Input
+              {...aria}
+              autoFocus
+              className="min-w-0 flex-1"
+              placeholder={`Razón social del RUC ${newSupplier.ruc}`}
+              value={newSupplier.name}
+              onChange={(e) => onNewSupplier({ ...newSupplier, name: e.target.value })}
+            />
+          ) : (
+            <div className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-md border border-line bg-surface-2 px-3">
+              <span className="truncate font-medium" title={newSupplier.name}>
+                {newSupplier.name}
+              </span>
+              <span className="shrink-0 font-mono text-xs text-faint">RUC {newSupplier.ruc}</span>
+              <span className="ml-auto shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-text">
+                {existingNote ? 'Ya es cliente' : 'Nuevo'}
+              </span>
+            </div>
+          )}
+          <Button onClick={clearNew}>Cambiar</Button>
         </div>
         <ErrorList messages={errors} />
-        {lookup.data && (
-          <>
-            <p>
-              <span className="text-muted">Según {lookup.data.source}: </span>
-              <span className="font-medium">{lookup.data.status}</span>
-              <span className="text-muted"> · </span>
-              <span className="font-medium">{lookup.data.condition}</span>
-            </p>
-            {lookup.data.address && <p className="text-muted">{lookup.data.address}</p>}
-            {lookup.data.warnings.map((w) => (
-              <p key={w} className="flex gap-2 rounded bg-warn-soft px-3 py-2 text-warn-text">
-                <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                {w}
-              </p>
-            ))}
-          </>
-        )}
-        {existingNote ? (
-          <p className="text-muted">{existingNote}</p>
-        ) : (
-          <Field label="Razón social" hint="Se registrará como proveedor al guardar la compra.">
-            {(a) => <Input {...a} value={newSupplier.name} onChange={(e) => onNewSupplier({ ...newSupplier, name: e.target.value })} />}
-          </Field>
-        )}
+        {lookup.data?.warnings.map((w) => (
+          <p key={w} className="flex gap-2 rounded bg-warn-soft px-3 py-2 text-sm text-warn-text">
+            <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+            {w}
+          </p>
+        ))}
+        <p className="text-xs text-faint">
+          {existingNote ??
+            (lookup.data
+              ? `Según ${lookup.data.source}: ${lookup.data.status} · ${lookup.data.condition}. Se registrará como proveedor al guardar la compra.`
+              : 'Escribe la razón social. Se registrará como proveedor al guardar la compra.')}
+        </p>
       </div>
     )
+  }
 
   return (
     <div className="flex flex-col gap-2">
