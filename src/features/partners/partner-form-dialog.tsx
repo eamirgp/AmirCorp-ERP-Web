@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil, Search, TriangleAlert, UserPlus } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -100,23 +100,43 @@ export function PartnerFormDialog({
   const compact = (n: string | undefined) => n?.replace(/\s/g, '') ?? ''
   // Una respuesta que llega tarde, cuando el número ya es otro, no debe llenar el nombre.
   const stillCurrent = (asked: string) => compact(form.getValues('documentNumber')) === compact(asked)
-  const searchSource = () =>
+  // Al crear o al cambiar el documento: ¿alguien más ya lo tiene? Se consulta un momento después de dejar de escribir.
+  const [typed, setTyped] = useState('')
+  const duplicateKey = (type: string, number: string) => [...partnerKeys.all, 'by-document', type, number]
+
+  // Antes de gastar una consulta se revisa el duplicado, sin esperar a que el usuario deje de escribir: con un Enter
+  // rápido, el aviso todavía no habría llegado. Si el documento ya lo tiene otro, no se consulta y sale el aviso.
+  const queryClient = useQueryClient()
+  const [checking, setChecking] = useState(false)
+  const searchSource = async () => {
+    const type = docType as IdentityDocumentType
+    const number = compact(documentNumber)
+    setTyped(number)
+    setChecking(true)
+    try {
+      const duplicate = await queryClient.fetchQuery({ queryKey: duplicateKey(type!, number), queryFn: () => findPartnerByDocument(type, number), staleTime: 30_000 })
+      if (duplicate && duplicate.id !== partner?.id) return
+    } catch {
+      // Si la revisión falla, se sigue: la consulta también avisa si ya está registrado y la API lo impide al guardar.
+    } finally {
+      setChecking(false)
+    }
+    if (!stillCurrent(number)) return
     lookup.mutate(
-      { identityDocumentType: docType as IdentityDocumentType, documentNumber },
+      { identityDocumentType: type, documentNumber: number },
       {
         // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
         onSuccess: (r, asked) => stillCurrent(asked.documentNumber) && fillName(r.name),
       },
     )
+  }
 
-  // Al crear o al cambiar el documento: ¿alguien más ya lo tiene? Se consulta un momento después de dejar de escribir.
-  const [typed, setTyped] = useState('')
   useEffect(() => {
     const t = setTimeout(() => setTyped(compact(documentNumber)), 400)
     return () => clearTimeout(t)
   }, [documentNumber])
   const existing = useQuery({
-    queryKey: [...partnerKeys.all, 'by-document', docType, typed],
+    queryKey: duplicateKey(docType, typed),
     queryFn: () => findPartnerByDocument(docType as IdentityDocumentType, typed),
     enabled: open && !!docType && typed.length >= 3,
   })
@@ -134,7 +154,7 @@ export function PartnerFormDialog({
   const lookupOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'Enter') return
     e.preventDefault()
-    if (canLookup && !lookup.isPending && compact(documentNumber)) searchSource()
+    if (canLookup && !checking && !lookup.isPending && compact(documentNumber)) searchSource()
   }
 
   // Ya está en esta lista: se abre su ficha para editarlo, en vez de dejar al usuario buscándolo.
@@ -227,7 +247,7 @@ export function PartnerFormDialog({
                 <div className="flex gap-2">
                   <Input {...a} className="min-w-0 flex-1 font-mono" {...form.register('documentNumber')} onKeyDown={lookupOnEnter} />
                   {/* Si ya está registrado no hace falta consultarlo: el aviso de abajo dice quién es. */}
-                  <Button onClick={searchSource} loading={lookup.isPending} disabled={!canLookup} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
+                  <Button onClick={searchSource} loading={checking || lookup.isPending} disabled={!canLookup} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
                     <Search />
                     {selectedType.lookupSource}
                   </Button>
