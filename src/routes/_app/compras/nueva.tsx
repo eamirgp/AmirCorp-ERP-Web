@@ -249,13 +249,14 @@ function NewPurchasePage() {
             <thead>
               <tr className="text-left text-xs text-faint">
                 <th className="w-[30%] border-b border-line py-2 pr-3 font-normal">Producto</th>
-                <th className="border-b border-line px-2 py-2 font-normal">IGV</th>
+                <th className="border-b border-line px-2 py-2 font-normal">Afectación</th>
                 <th className="border-b border-line px-2 py-2 font-normal">Unidad</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">Cantidad</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">{amountLabel}</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal" title="Unidades de inventario por cada unidad de la factura">
                   Factor
                 </th>
+                <th className="border-b border-line px-2 py-2 text-right font-normal">IGV</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">Total</th>
                 <th className="w-8 border-b border-line" />
               </tr>
@@ -310,11 +311,17 @@ function NewPurchasePage() {
                       {result?.error && <p className="mt-1.5 text-sm text-bad">{result.error}</p>}
                     </td>
                     <td className="px-2 py-2">
-                      <Select aria-label="Afectación al IGV" className="min-w-28" {...form.register(`lines.${i}.invoiceIgvAffectation`)}>
+                      {/* Nombre corto en la tabla ("Gravado"); el completo de SUNAT aparece al pasar el mouse. */}
+                      <Select
+                        aria-label="Afectación al IGV"
+                        className="min-w-28"
+                        title={igv.data?.find((o) => o.igvAffectation === watched.lines?.[i]?.invoiceIgvAffectation)?.description}
+                        {...form.register(`lines.${i}.invoiceIgvAffectation`)}
+                      >
                         <option value="">—</option>
                         {igv.data?.map((o) => (
                           <option key={o.igvAffectation} value={o.igvAffectation ?? ''}>
-                            {o.description}
+                            {o.shortDescription}
                           </option>
                         ))}
                       </Select>
@@ -343,6 +350,9 @@ function NewPurchasePage() {
                         title={locked ? 'Fijo para esta unidad de medida' : 'Unidades de inventario por cada unidad de la factura'}
                         {...form.register(`lines.${i}.conversionFactor`)}
                       />
+                    </td>
+                    <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap text-muted">
+                      {result?.igvAmount != null ? money(result.igvAmount) : <span className="text-faint">—</span>}
                     </td>
                     <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap">
                       {result?.total != null ? money(result.total) : <span className="text-faint">—</span>}

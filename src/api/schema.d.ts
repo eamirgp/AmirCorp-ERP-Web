@@ -3065,6 +3065,7 @@ export interface components {
         ListIgvAffectationsResponseDto: {
             igvAffectation: components["schemas"]["IgvAffectation"];
             description: string;
+            shortDescription: string;
         };
         ListInvoicePriceTypesResponseDto: {
             invoicePriceType: components["schemas"]["InvoicePriceType"];
