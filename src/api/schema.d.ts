@@ -2788,6 +2788,10 @@ export interface components {
             /** Format: double */
             conversionFactor: null | number;
         };
+        CreatePurchaseNewSupplierRequest: {
+            ruc: null | string;
+            name: null | string;
+        };
         CreatePurchaseRequest: {
             /** Format: uuid */
             companyId: null | string;
@@ -2802,6 +2806,7 @@ export interface components {
             invoicePriceType: null | components["schemas"]["InvoicePriceType"];
             /** Format: uuid */
             supplierId: null | string;
+            newSupplier: null | components["schemas"]["CreatePurchaseNewSupplierRequest"];
             lines: null | components["schemas"]["CreatePurchaseLineRequest"][];
         };
         CreateSavedViewRequest: {

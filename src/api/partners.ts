@@ -53,11 +53,14 @@ export const partnerListQuery = (p: PartnerListParams) =>
     placeholderData: keepPreviousData,
   })
 
-/** Proveedores con compras sin bloquear que coinciden con el texto (para elegir uno en una compra). */
+/**
+ * Proveedores que coinciden con el texto (para elegir uno en una compra). Incluye a los que tienen las compras
+ * bloqueadas: la compra los muestra sin dejar elegirlos, para que nadie crea que no existen.
+ */
 export const searchSuppliers = (term: string) =>
   unwrap(
     api.GET('/api/partners', {
-      params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsBlocked: false, PartnerRoleFilter: 'Supplier' } },
+      params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, PartnerRoleFilter: 'Supplier' } },
     }),
   ).then((r) => r.items)
 

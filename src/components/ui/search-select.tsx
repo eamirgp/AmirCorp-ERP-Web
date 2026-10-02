@@ -57,6 +57,10 @@ export function SearchSelect<T>({
   itemKey,
   itemLabel,
   renderItem,
+  isItemDisabled,
+  emptyText,
+  onTermChange,
+  onSubmitTerm,
   placeholder,
   autoFocus,
   ...aria
@@ -72,6 +76,14 @@ export function SearchSelect<T>({
   itemKey: (item: T) => string
   itemLabel: (item: T) => string
   renderItem?: (item: T) => ReactNode
+  /** Resultados que se muestran pero no se pueden elegir (por ejemplo, un proveedor con compras bloqueadas). */
+  isItemDisabled?: (item: T) => boolean
+  /** Qué decir cuando nada coincide con lo escrito (por defecto, "Sin resultados."). */
+  emptyText?: (term: string) => ReactNode
+  /** Avisa lo que se va escribiendo, para acciones fuera del campo (por ejemplo, un botón "SUNAT"). */
+  onTermChange?: (term: string) => void
+  /** Enter cuando no hay ningún resultado para elegir: qué hacer con lo escrito. */
+  onSubmitTerm?: (term: string) => void
   placeholder?: string
   autoFocus?: boolean
   'aria-invalid'?: boolean
@@ -115,10 +127,16 @@ export function SearchSelect<T>({
     }
   }, [open])
 
+  const writeTerm = (text: string) => {
+    setTerm(text)
+    onTermChange?.(text)
+  }
+
   const choose = (item: T) => {
+    if (isItemDisabled?.(item)) return
     onChange(item)
     setOpen(false)
-    setTerm('')
+    writeTerm('')
   }
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -128,6 +146,7 @@ export function SearchSelect<T>({
     } else if (e.key === 'ArrowUp') setActive((i) => Math.max(i - 1, 0))
     else if (e.key === 'Enter' && open) {
       if (items[active]) choose(items[active])
+      else if (!results.isFetching && term.trim()) onSubmitTerm?.(term.trim())
     } else if (e.key === 'Escape' && open) setOpen(false)
     else return
     e.preventDefault()
@@ -147,7 +166,7 @@ export function SearchSelect<T>({
         placeholder={placeholder ?? 'Buscar…'}
         value={open ? term : value ? itemLabel(value) : ''}
         onChange={(e) => {
-          setTerm(e.target.value)
+          writeTerm(e.target.value)
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}
@@ -163,20 +182,21 @@ export function SearchSelect<T>({
           className="fixed z-50 overflow-y-auto rounded-md border border-line bg-surface p-1 shadow-float"
         >
           {items.length === 0 ? (
-            <li className="px-2.5 py-2 text-sm text-faint">{results.isFetching ? 'Buscando…' : 'Sin resultados.'}</li>
+            <li className="px-2.5 py-2 text-sm text-faint">{results.isFetching ? 'Buscando…' : (emptyText?.(debounced) ?? 'Sin resultados.')}</li>
           ) : (
             items.map((item, i) => (
               <li
                 key={itemKey(item)}
                 role="option"
                 aria-selected={i === active}
+                aria-disabled={isItemDisabled?.(item) || undefined}
                 // mousedown en vez de click: se elige antes de que el campo pierda el foco.
                 onMouseDown={(e) => {
                   e.preventDefault()
                   choose(item)
                 }}
                 onMouseEnter={() => setActive(i)}
-                className="cursor-pointer rounded px-2.5 py-2 text-sm aria-selected:bg-surface-2"
+                className="cursor-pointer rounded px-2.5 py-2 text-sm aria-selected:bg-surface-2 aria-disabled:cursor-not-allowed aria-disabled:text-faint"
               >
                 {renderItem ? renderItem(item) : itemLabel(item)}
               </li>

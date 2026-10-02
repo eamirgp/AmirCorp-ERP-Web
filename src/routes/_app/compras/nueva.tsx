@@ -6,7 +6,7 @@ import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { currenciesQuery, igvAffectationsQuery, invoicePriceTypesQuery, taxDocumentTypesQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
-import { searchSuppliers, type PartnerRow } from '@/api/partners'
+import type { PartnerRow } from '@/api/partners'
 import { searchProducts, type ProductRow } from '@/api/products'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import { Field, Input, NumberInput, Select } from '@/components/ui/field'
 import { ErrorList, PageHeader } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
+import { SupplierField, type NewSupplier } from '@/features/purchases/supplier-field'
 import { Totals } from '@/features/purchases/totals'
 import { formatDecimal, formatMoney, todayIso } from '@/lib/format'
 import { parseNumberInput } from '@/lib/number-input'
@@ -45,6 +46,7 @@ interface LineValues {
 interface Values {
   companyId: string
   supplier: PartnerRow | null
+  newSupplier: NewSupplier | null
   taxDocumentType: string
   serie: string
   number: string
@@ -74,6 +76,7 @@ function NewPurchasePage() {
     defaultValues: {
       companyId: '',
       supplier: null,
+      newSupplier: null,
       taxDocumentType: '',
       serie: '',
       number: '',
@@ -101,6 +104,8 @@ function NewPurchasePage() {
 
   // Vista previa: la API calcula montos y totales mientras se llena el formulario.
   const watched = useWatch({ control: form.control })
+  const supplier = useWatch({ control: form.control, name: 'supplier' })
+  const newSupplier = useWatch({ control: form.control, name: 'newSupplier' })
   const previewInput = useMemo<Schemas['PreviewPurchaseRequest']>(
     () => ({
       invoicePriceType: orNull<Schemas['InvoicePriceType']>(watched.invoicePriceType),
@@ -122,7 +127,8 @@ function NewPurchasePage() {
     create.mutate(
       {
         companyId: v.companyId || null,
-        supplierId: v.supplier?.id ?? null,
+        supplierId: v.newSupplier ? null : (v.supplier?.id ?? null),
+        newSupplier: v.newSupplier,
         taxDocumentType: orNull<Schemas['TaxDocumentType']>(v.taxDocumentType),
         serie: v.serie,
         number: v.number,
@@ -178,29 +184,19 @@ function NewPurchasePage() {
         <div className="lg:col-span-3">
           <Field label="Proveedor">
             {(a) => (
-              <Controller
-                control={form.control}
-                name="supplier"
-                render={({ field }) => (
-                  <SearchSelect
-                    {...a}
-                    value={field.value}
-                    onChange={field.onChange}
-                    queryKey="partners"
-                    fetchItems={searchSuppliers}
-                    itemKey={(p) => p.id}
-                    itemLabel={(p) => `${p.name} · ${p.documentNumber}`}
-                    renderItem={(p) => (
-                      <span className="flex items-baseline justify-between gap-3">
-                        {p.name}
-                        <span className="shrink-0 font-mono text-xs text-faint">
-                          {p.identityDocumentTypeDescription} {p.documentNumber}
-                        </span>
-                      </span>
-                    )}
-                    placeholder="Busca por RUC o razón social"
-                  />
-                )}
+              <SupplierField
+                {...a}
+                supplier={supplier}
+                newSupplier={newSupplier}
+                // Uno u otro: el registrado o el nuevo, que la API registra junto con la compra.
+                onSupplier={(s) => {
+                  form.setValue('supplier', s)
+                  form.setValue('newSupplier', null)
+                }}
+                onNewSupplier={(s) => {
+                  form.setValue('newSupplier', s)
+                  form.setValue('supplier', null)
+                }}
               />
             )}
           </Field>
