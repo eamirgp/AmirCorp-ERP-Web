@@ -1,5 +1,12 @@
-import { queryOptions } from '@tanstack/react-query'
-import { api, unwrap } from './client'
+import { queryOptions, useMutation } from '@tanstack/react-query'
+import { api, unwrap, type Schemas } from './client'
+
+/** Tipo de cambio venta de SUNAT para una moneda y una fecha (a través de la API), para llenar una compra en dólares. */
+export const useExchangeRate = () =>
+  useMutation({
+    mutationFn: ({ currency, date }: { currency: NonNullable<Schemas['Currency']>; date: string }) =>
+      unwrap(api.GET('/api/catalogs/exchange-rate', { params: { query: { currency, date } } })),
+  })
 
 // Los catálogos casi nunca cambian: se piden una vez por sesión.
 const catalog = <T>(key: string, fn: () => Promise<T>) => queryOptions({ queryKey: ['catalogs', key], queryFn: fn, staleTime: Infinity })

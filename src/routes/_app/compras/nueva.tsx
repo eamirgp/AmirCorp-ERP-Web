@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Plus, X } from 'lucide-react'
+import { ArrowLeft, Plus, Search, X } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { currenciesQuery, igvAffectationsQuery, invoicePriceTypesQuery, taxDocumentTypesQuery, unitsOfMeasureQuery } from '@/api/catalogs'
+import { currenciesQuery, igvAffectationsQuery, invoicePriceTypesQuery, taxDocumentTypesQuery, unitsOfMeasureQuery, useExchangeRate } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
 import type { PartnerRow } from '@/api/partners'
@@ -126,6 +126,17 @@ function NewPurchasePage() {
   useEffect(() => {
     if (!needsExchangeRate) form.setValue('exchangeRate', '')
   }, [needsExchangeRate, form])
+
+  // Tipo de cambio de SUNAT para la fecha de emisión: lo trae la API cuando el usuario lo pide. Si cambia la moneda
+  // o la fecha, lo consultado ya no corresponde y su explicación se quita (el valor escrito se deja para revisarlo).
+  const rate = useExchangeRate()
+  const canLookupRate = currencies.data?.find((c) => c.currency === watched.currency)?.supportsExchangeRateLookup ?? false
+  useEffect(() => rate.reset(), [watched.currency, watched.issueDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  const fetchRate = () =>
+    rate.mutate(
+      { currency: watched.currency as NonNullable<Schemas['Currency']>, date: watched.issueDate ?? '' },
+      { onSuccess: (r) => form.setValue('exchangeRate', String(r.rate)) },
+    )
   const amountLabel = priceTypes.data?.find((p) => p.invoicePriceType === watched.invoicePriceType)?.description ?? 'Monto unitario'
 
   const onSubmit = form.handleSubmit((v) =>
@@ -233,8 +244,29 @@ function NewPurchasePage() {
           )}
         </Field>
         {/* Solo aplica a las monedas que lo piden (lo dice el catálogo de la API): en soles queda bloqueado y vacío. */}
-        <Field label="Tipo de cambio">
-          {(a) => <NumberInput {...a} disabled={!needsExchangeRate} placeholder={needsExchangeRate ? '0.000' : 'No aplica'} {...form.register('exchangeRate')} />}
+        <Field
+          label="Tipo de cambio"
+          error={rate.isError ? errorMessages(rate.error)[0] : undefined}
+          hint={rate.data?.description ?? (canLookupRate ? 'Presiona SUNAT para traer el de la fecha de emisión.' : undefined)}
+        >
+          {(a) => (
+            <div className="flex gap-2">
+              <NumberInput
+                {...a}
+                className="min-w-0 flex-1"
+                disabled={!needsExchangeRate}
+                placeholder={needsExchangeRate ? '0.000' : 'No aplica'}
+                {...form.register('exchangeRate')}
+              />
+              {/* La consulta es a pedido, como la de RUC: cada una cuenta en el cupo del servicio. */}
+              {canLookupRate && (
+                <Button onClick={fetchRate} loading={rate.isPending} title="Trae el tipo de cambio venta de SUNAT para la fecha de emisión">
+                  <Search />
+                  SUNAT
+                </Button>
+              )}
+            </div>
+          )}
         </Field>
         <Field label="Montos de la factura en">
           {(a) => (

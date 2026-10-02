@@ -1807,6 +1807,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/catalogs/exchange-rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tipo de cambio venta que publica SUNAT para esa moneda y fecha, para llenar una compra en dólares.
+         *     503 si la consulta no está configurada o el servicio no responde; el tipo de cambio se escribe a mano.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    currency?: components["schemas"]["Currency"];
+                    date?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["GetExchangeRateResponseDto"];
+                        "application/json": components["schemas"]["GetExchangeRateResponseDto"];
+                        "text/json": components["schemas"]["GetExchangeRateResponseDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/catalogs/igv-affectations": {
         parameters: {
             query?: never;
@@ -2886,6 +2939,14 @@ export interface components {
             updatedAt: null | string;
             updatedByName: null | string;
         };
+        GetExchangeRateResponseDto: {
+            /** Format: double */
+            rate: number;
+            /** Format: date */
+            date: string;
+            source: string;
+            description: string;
+        };
         GetMyProfileResponseDto: {
             /** Format: uuid */
             id: string;
@@ -3050,6 +3111,7 @@ export interface components {
         ListCurrenciesResponseDto: {
             currency: components["schemas"]["Currency"];
             description: string;
+            supportsExchangeRateLookup: boolean;
             requiresExchangeRate: boolean;
         };
         ListIdentityDocumentTypesResponseDto: {
