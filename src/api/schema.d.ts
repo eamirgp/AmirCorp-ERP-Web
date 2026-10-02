@@ -2833,6 +2833,7 @@ export interface components {
         CreatePurchaseLineRequest: {
             /** Format: uuid */
             productId: null | string;
+            newProduct: null | components["schemas"]["CreatePurchaseNewProductRequest"];
             invoiceIgvAffectation: null | components["schemas"]["IgvAffectation"];
             invoiceUnitOfMeasureCode: null | string;
             /** Format: double */
@@ -2841,6 +2842,15 @@ export interface components {
             invoiceAmount: null | number;
             /** Format: double */
             conversionFactor: null | number;
+        };
+        CreatePurchaseNewProductRequest: {
+            /** @description Código interno (la pantalla propone el de la factura). */
+            code: null | string;
+            name: null | string;
+            /** @description Código con que lo vende el proveedor de esta compra; opcional. */
+            supplierCode: null | string;
+            /** @description Unidad en que se lleva su inventario; vacío si es la misma de la línea. */
+            unitOfMeasureCode: null | string;
         };
         CreatePurchaseNewSupplierRequest: {
             ruc: null | string;

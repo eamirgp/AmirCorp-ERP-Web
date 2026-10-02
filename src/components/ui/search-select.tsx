@@ -61,6 +61,7 @@ export function SearchSelect<T>({
   emptyText,
   onTermChange,
   onSubmitTerm,
+  createOption,
   placeholder,
   autoFocus,
   ...aria
@@ -84,6 +85,12 @@ export function SearchSelect<T>({
   onTermChange?: (term: string) => void
   /** Enter cuando no hay ningún resultado para elegir: qué hacer con lo escrito. */
   onSubmitTerm?: (term: string) => void
+  /**
+   * Última opción de la lista para crear un registro nuevo con lo escrito ("Crear producto nuevo con código X").
+   * Aparece siempre que hay texto, también con resultados: lo escrito puede parecerse a otros sin ser ninguno.
+   * Con Enter se elige si no hay ningún resultado.
+   */
+  createOption?: { label: (term: string) => ReactNode; onSelect: (term: string) => void }
   placeholder?: string
   autoFocus?: boolean
   'aria-invalid'?: boolean
@@ -139,6 +146,14 @@ export function SearchSelect<T>({
     writeTerm('')
   }
 
+  const create = () => {
+    const text = term.trim()
+    if (!text || !createOption) return
+    setOpen(false)
+    writeTerm('')
+    createOption.onSelect(text)
+  }
+
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown') {
       setOpen(true)
@@ -146,7 +161,10 @@ export function SearchSelect<T>({
     } else if (e.key === 'ArrowUp') setActive((i) => Math.max(i - 1, 0))
     else if (e.key === 'Enter' && open) {
       if (items[active]) choose(items[active])
-      else if (!results.isFetching && term.trim()) onSubmitTerm?.(term.trim())
+      else if (!results.isFetching && term.trim()) {
+        if (createOption) create()
+        else onSubmitTerm?.(term.trim())
+      }
     } else if (e.key === 'Escape' && open) setOpen(false)
     else return
     e.preventDefault()
@@ -201,6 +219,19 @@ export function SearchSelect<T>({
                 {renderItem ? renderItem(item) : itemLabel(item)}
               </li>
             ))
+          )}
+          {createOption && term.trim() && !results.isFetching && (
+            <li
+              role="option"
+              aria-selected={false}
+              onMouseDown={(e) => {
+                e.preventDefault()
+                create()
+              }}
+              className="mt-1 cursor-pointer rounded border-t border-line px-2.5 py-2 text-sm font-medium hover:bg-surface-2"
+            >
+              {createOption.label(term.trim())}
+            </li>
           )}
         </ul>
       )}

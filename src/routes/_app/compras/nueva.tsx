@@ -45,6 +45,8 @@ export const Route = createFileRoute('/_app/compras/nueva')({
 // El formulario guarda exactamente lo que se escribe. La API valida y calcula todo.
 interface LineValues {
   product: ProductRow | null
+  /** Producto que todavía no existe: la API lo registra junto con la compra. Va en vez de `product`. */
+  newProduct: { code: string; name: string; supplierCode: string; unit: string } | null
   invoiceIgvAffectation: string
   invoiceUnitOfMeasure: string
   invoiceQuantity: string
@@ -66,7 +68,7 @@ interface Values {
   lines: LineValues[]
 }
 
-const emptyLine: LineValues = { product: null, invoiceIgvAffectation: '', invoiceUnitOfMeasure: '', invoiceQuantity: '', invoiceAmount: '', conversionFactor: '' }
+const emptyLine: LineValues = { product: null, newProduct: null,invoiceIgvAffectation: '', invoiceUnitOfMeasure: '', invoiceQuantity: '', invoiceAmount: '', conversionFactor: '' }
 
 /** Texto → número para el contrato de la API; si no es un número, va null y la API responde con el mensaje. */
 const orNull = <T,>(value: string | undefined) => (value ? (value as T) : null)
@@ -190,7 +192,10 @@ function NewPurchasePage() {
         exchangeRate: parseNumberInput(v.exchangeRate),
         invoicePriceType: orNull<Schemas['InvoicePriceType']>(v.invoicePriceType),
         lines: v.lines.map((l) => ({
-          productId: l.product?.id ?? null,
+          productId: l.newProduct ? null : (l.product?.id ?? null),
+          newProduct: l.newProduct
+            ? { code: l.newProduct.code, name: l.newProduct.name, supplierCode: l.newProduct.supplierCode || null, unitOfMeasureCode: l.newProduct.unit || null }
+            : null,
           invoiceIgvAffectation: orNull<Schemas['IgvAffectation']>(l.invoiceIgvAffectation),
           invoiceUnitOfMeasureCode: l.invoiceUnitOfMeasure || null,
           invoiceQuantity: parseNumberInput(l.invoiceQuantity),
@@ -347,11 +352,55 @@ function NewPurchasePage() {
                 return (
                   <tr key={field.id} className="border-b border-line align-top">
                     <td className="py-2 pr-3">
+                      {/* Producto nuevo: solo se escribe el nombre (el código ya vino de lo buscado). La unidad y la
+                          afectación salen de la línea, y la API lo registra junto con la compra. */}
+                      {watched.lines?.[i]?.newProduct ? (
+                        <div className="flex flex-col gap-1.5">
+                          <Input autoFocus aria-label={`Nombre del producto nuevo de la línea ${i + 1}`} placeholder="Nombre del producto nuevo" {...form.register(`lines.${i}.newProduct.name`)} />
+                          <div className="flex items-center gap-2">
+                            <Input
+                              aria-label="Código interno del producto nuevo"
+                              title="Código interno. Por defecto, el mismo de la factura; cámbialo si usas otro."
+                              className="h-8 min-w-0 flex-1 font-mono text-sm"
+                              {...form.register(`lines.${i}.newProduct.code`)}
+                            />
+                            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-text">Nuevo</span>
+                            <button
+                              type="button"
+                              onClick={() => form.setValue(`lines.${i}.newProduct`, null)}
+                              className="shrink-0 text-xs text-muted underline hover:text-ink"
+                            >
+                              Buscar otro
+                            </button>
+                          </div>
+                          {/* Si se compra por caja o docena, el inventario se lleva en otra unidad: hay que decir cuál. */}
+                          {parseNumberInput(watched.lines?.[i]?.conversionFactor) != null && parseNumberInput(watched.lines?.[i]?.conversionFactor) !== 1 && (
+                            <Select aria-label="Unidad en que se lleva el inventario del producto nuevo" className="h-8 text-sm" {...form.register(`lines.${i}.newProduct.unit`)}>
+                              <option value="">Inventario en…</option>
+                              {units.data?.map((u) => (
+                                <option key={u.code} value={u.code}>
+                                  Inventario en {u.name}
+                                </option>
+                              ))}
+                            </Select>
+                          )}
+                          <p className="text-xs text-faint">
+                            Se registrará al guardar la compra, con el código {watched.lines?.[i]?.newProduct?.supplierCode} de la factura para este proveedor.
+                          </p>
+                        </div>
+                      ) : (
                       <Controller
                         control={form.control}
                         name={`lines.${i}.product`}
                         render={({ field: f }) => (
                           <SearchSelect
+                            createOption={{
+                              label: (term) => `Crear producto nuevo con código ${term.toUpperCase()}`,
+                              onSelect: (term) => {
+                                f.onChange(null)
+                                form.setValue(`lines.${i}.newProduct`, { code: term.toUpperCase(), name: '', supplierCode: term.toUpperCase(), unit: '' })
+                              },
+                            }}
                             value={f.value}
                             onChange={(p) => {
                               f.onChange(p)
@@ -390,6 +439,7 @@ function NewPurchasePage() {
                           />
                         )}
                       />
+                      )}
                       {result?.error && <p className="mt-1.5 text-sm text-bad">{result.error}</p>}
                     </td>
                     <td className="px-2 py-2">
