@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { fetchPartnerRow, findPartnerByDocument, partnerKeys, useAddPartnerRole, useLookupRuc, useSavePartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
+import { fetchPartnerRow, findPartnerByDocument, partnerKeys, useAddPartnerRole, useLookupDocument, useSavePartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -81,15 +81,18 @@ export function PartnerFormDialog({
   const selectedType = docTypes.data?.find((d) => d.identityDocumentType === docType)
   const asksCountry = selectedType?.requiresCountry ?? false
 
-  // Buscar en SUNAT: solo si la API lo permite para este tipo (RUC con la consulta configurada).
-  const lookup = useLookupRuc()
+  // Buscar el RUC en SUNAT o el DNI en RENIEC: solo si la API lo permite para este tipo (con la consulta configurada).
+  const lookup = useLookupDocument()
   const documentNumber = form.watch('documentNumber')
   useEffect(() => lookup.reset(), [open, docType, documentNumber]) // eslint-disable-line react-hooks/exhaustive-deps
-  const searchSunat = () =>
-    lookup.mutate(documentNumber, {
-      // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
-      onSuccess: (r) => form.setValue('name', r.name),
-    })
+  const searchSource = () =>
+    lookup.mutate(
+      { identityDocumentType: docType as IdentityDocumentType, documentNumber },
+      {
+        // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
+        onSuccess: (r) => form.setValue('name', r.name),
+      },
+    )
 
   // Al crear o al cambiar el documento: ¿alguien más ya lo tiene? Se consulta un momento después de dejar de escribir.
   const [typed, setTyped] = useState('')
@@ -107,7 +110,7 @@ export function PartnerFormDialog({
   const canAddHere = found && (isSuppliers ? found.canAddSupplierRole : found.canAddClientRole)
   const alreadyHere = found && (isSuppliers ? found.isSupplier : found.isClient)
 
-  // Documento nuevo y completo (la API dice cuántos dígitos tiene): se busca en SUNAT sin presionar nada, una vez
+  // Documento nuevo y completo (la API dice cuántos dígitos tiene): se busca en SUNAT o RENIEC sin presionar nada, una vez
   // por número. Solo llena el nombre si está vacío, para no pisar lo que ya se escribió.
   const lastAutoLookup = useRef('')
   useEffect(() => {
@@ -116,7 +119,10 @@ export function PartnerFormDialog({
     const current = documentNumber?.replace(/\s/g, '') ?? ''
     if (current !== typed || typed.length !== selectedType.exactLength || lastAutoLookup.current === typed) return
     lastAutoLookup.current = typed
-    lookup.mutate(typed, { onSuccess: (r) => !form.getValues('name').trim() && form.setValue('name', r.name) })
+    lookup.mutate(
+      { identityDocumentType: selectedType.identityDocumentType, documentNumber: typed },
+      { onSuccess: (r) => !form.getValues('name').trim() && form.setValue('name', r.name) },
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, typed, existing.isSuccess, existing.data, selectedType])
 
@@ -175,7 +181,7 @@ export function PartnerFormDialog({
     <Dialog
       open={open}
       onOpenChange={(o) => !o && onClose()}
-      // Un poco más ancho que el estándar: el número de documento lleva al lado el botón "SUNAT".
+      // Un poco más ancho que el estándar: el número de documento lleva al lado el botón "SUNAT" o "RENIEC".
       width="max-w-xl"
       title={partner ? `Editar ${noun}` : `Nuevo ${noun}`}
       description={partner ? `${partner.identityDocumentTypeDescription} ${partner.documentNumber}` : 'Queda disponible para todas las empresas.'}
@@ -210,9 +216,9 @@ export function PartnerFormDialog({
                 <div className="flex gap-2">
                   <Input {...a} className="min-w-0 flex-1 font-mono" {...form.register('documentNumber')} />
                   {/* Si ya está registrado no hace falta consultarlo: el aviso de abajo dice quién es. */}
-                  <Button onClick={searchSunat} loading={lookup.isPending} disabled={!!found} title="Trae la razón social desde SUNAT">
+                  <Button onClick={searchSource} loading={lookup.isPending} disabled={!!found} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
                     <Search />
-                    SUNAT
+                    {selectedType.lookupSource}
                   </Button>
                 </div>
               ) : (
@@ -255,11 +261,18 @@ export function PartnerFormDialog({
         {lookup.isError && <ErrorList messages={errorMessages(lookup.error)} />}
         {lookup.data && (
           <div className="flex flex-col gap-2 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
+            {/* SUNAT informa estado y condición; RENIEC solo el nombre. */}
             <p>
-              <span className="text-muted">Según SUNAT: </span>
-              <span className="font-medium">{lookup.data.status}</span>
-              <span className="text-muted"> · </span>
-              <span className="font-medium">{lookup.data.condition}</span>
+              <span className="text-muted">Según {lookup.data.source}: </span>
+              {lookup.data.status ? (
+                <>
+                  <span className="font-medium">{lookup.data.status}</span>
+                  <span className="text-muted"> · </span>
+                  <span className="font-medium">{lookup.data.condition}</span>
+                </>
+              ) : (
+                <span className="font-medium">{lookup.data.name}</span>
+              )}
             </p>
             {lookup.data.address && <p className="text-muted">{lookup.data.address}</p>}
             {lookup.data.warnings.map((w) => (

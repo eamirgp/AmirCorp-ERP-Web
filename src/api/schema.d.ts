@@ -2082,7 +2082,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/partners/ruc-lookup/{ruc}": {
+    "/api/partners/document-lookup": {
         parameters: {
             query?: never;
             header?: never;
@@ -2090,16 +2090,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Busca un RUC en SUNAT (razón social, estado, condición y dirección) para llenar el formulario.
-         *     503 si la consulta no está configurada o el servicio no responde; el formulario sigue funcionando a mano.
+         * Busca un RUC en SUNAT (razón social, estado, condición y dirección) o un DNI en RENIEC (apellidos y nombres)
+         *     para llenar el formulario. 503 si la consulta no está configurada o el servicio no responde; el formulario
+         *     sigue funcionando a mano.
          */
         get: {
             parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    ruc: string;
+                query?: {
+                    identityDocumentType?: components["schemas"]["IdentityDocumentType"];
+                    documentNumber?: string;
                 };
+                header?: never;
+                path?: never;
                 cookie?: never;
             };
             requestBody?: never;
@@ -2110,9 +2112,9 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "text/plain": components["schemas"]["LookupRucResponseDto"];
-                        "application/json": components["schemas"]["LookupRucResponseDto"];
-                        "text/json": components["schemas"]["LookupRucResponseDto"];
+                        "text/plain": components["schemas"]["LookupDocumentResponseDto"];
+                        "application/json": components["schemas"]["LookupDocumentResponseDto"];
+                        "text/json": components["schemas"]["LookupDocumentResponseDto"];
                     };
                 };
                 /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
@@ -3047,6 +3049,7 @@ export interface components {
             identityDocumentType: components["schemas"]["IdentityDocumentType"];
             description: string;
             supportsLookup: boolean;
+            lookupSource: null | string;
             requiresCountry: boolean;
             /** Format: int32 */
             exactLength: null | number;
@@ -3138,11 +3141,12 @@ export interface components {
         LoginResponseDto: {
             token: string;
         };
-        LookupRucResponseDto: {
-            ruc: string;
+        LookupDocumentResponseDto: {
+            documentNumber: string;
             name: string;
-            status: string;
-            condition: string;
+            source: string;
+            status: null | string;
+            condition: null | string;
             address: null | string;
             warnings: string[];
         };

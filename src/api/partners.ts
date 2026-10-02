@@ -88,12 +88,13 @@ export function useAddPartnerRole() {
   })
 }
 
-export type RucLookup = Schemas['LookupRucResponseDto']
+export type DocumentLookup = Schemas['LookupDocumentResponseDto']
 
-/** Busca el RUC en SUNAT (a través de la API) para llenar la razón social. */
-export const useLookupRuc = () =>
+/** Busca el RUC en SUNAT o el DNI en RENIEC (a través de la API) para llenar el nombre o la razón social. */
+export const useLookupDocument = () =>
   useMutation({
-    mutationFn: (ruc: string) => unwrap(api.GET('/api/partners/ruc-lookup/{ruc}', { params: { path: { ruc } } })),
+    mutationFn: ({ identityDocumentType, documentNumber }: { identityDocumentType: IdentityDocumentType; documentNumber: string }) =>
+      unwrap(api.GET('/api/partners/document-lookup', { params: { query: { identityDocumentType: identityDocumentType!, documentNumber } } })),
   })
 
 export function useSavePartner() {
