@@ -91,7 +91,7 @@ export function PartnerFormDialog({
       onSuccess: (r) => form.setValue('name', r.name),
     })
 
-  // Al crear: ¿alguien ya tiene este documento? Se consulta un momento después de dejar de escribir.
+  // Al crear o al cambiar el documento: ¿alguien más ya lo tiene? Se consulta un momento después de dejar de escribir.
   const [typed, setTyped] = useState('')
   useEffect(() => {
     const t = setTimeout(() => setTyped(documentNumber?.replace(/\s/g, '') ?? ''), 400)
@@ -100,9 +100,10 @@ export function PartnerFormDialog({
   const existing = useQuery({
     queryKey: [...partnerKeys.all, 'by-document', docType, typed],
     queryFn: () => findPartnerByDocument(docType as IdentityDocumentType, typed),
-    enabled: open && !partner && !!docType && typed.length >= 3,
+    enabled: open && !!docType && typed.length >= 3,
   })
-  const found = !partner ? existing.data : null
+  // Al editar, encontrarse a sí mismo no es un duplicado; sí lo es que el documento nuevo ya lo tenga otro.
+  const found = existing.data && existing.data.id !== partner?.id ? existing.data : null
   const canAddHere = found && (isSuppliers ? found.canAddSupplierRole : found.canAddClientRole)
   const alreadyHere = found && (isSuppliers ? found.isSupplier : found.isClient)
 
@@ -227,7 +228,9 @@ export function PartnerFormDialog({
             <p>
               <span className="font-medium">{found.name}</span> ya está registrado como <span className="font-medium">{found.roleDescription.toLowerCase()}</span>.
             </p>
-            {canAddHere ? (
+            {partner ? (
+              <p className="text-muted">Dos registros no pueden tener el mismo documento. Revisa el número.</p>
+            ) : canAddHere ? (
               <div>
                 <Button variant="primary" size="sm" onClick={addHere} loading={addRole.isPending}>
                   <UserPlus />
