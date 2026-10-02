@@ -121,6 +121,8 @@ function NewPurchasePage() {
   )
   const preview = useQuery(purchasePreviewQuery(useDebounced(previewInput, 300)))
   const money = (v: number) => formatMoney(v, watched.currency || 'PEN')
+  /** Número de la otra línea que ya tiene ese producto, o 0 si ninguna. */
+  const lineOf = (productId: string, except: number) => (watched.lines ?? []).findIndex((l, i) => i !== except && l?.product?.id === productId) + 1
   const needsExchangeRate = currencies.data?.find((c) => c.currency === watched.currency)?.requiresExchangeRate ?? false
   // Al volver a una moneda sin tipo de cambio, lo que se había escrito se borra para no enviarlo.
   useEffect(() => {
@@ -251,13 +253,10 @@ function NewPurchasePage() {
         >
           {(a) => (
             <div className="flex gap-2">
-              <NumberInput
-                {...a}
-                className="min-w-0 flex-1"
-                disabled={!needsExchangeRate}
-                placeholder={needsExchangeRate ? '0.000' : 'No aplica'}
-                {...form.register('exchangeRate')}
-              />
+              {/* El campo ocupa todo el ancho que deja el botón (o toda la celda, si no hay botón). */}
+              <div className="min-w-0 flex-1">
+                <NumberInput {...a} disabled={!needsExchangeRate} placeholder={needsExchangeRate ? '0.000' : 'No aplica'} {...form.register('exchangeRate')} />
+              </div>
               {/* La consulta es a pedido, como la de RUC: cada una cuenta en el cupo del servicio. */}
               {canLookupRate && (
                 <Button onClick={fetchRate} loading={rate.isPending} title="Trae el tipo de cambio venta de SUNAT para la fecha de emisión">
@@ -334,11 +333,15 @@ function NewPurchasePage() {
                             fetchItems={(term) => searchProducts(term, watched.supplier?.id)}
                             itemKey={(p) => p.id}
                             itemLabel={(p) => `${p.code} · ${p.name}`}
+                            // Un producto va en una sola línea (la API también lo exige): el que ya está en otra se ve, pero no se elige.
+                            isItemDisabled={(p) => lineOf(p.id, i) > 0}
                             renderItem={(p) => (
                               <span>
                                 <span className="mr-2 font-mono text-xs text-faint">{p.code}</span>
                                 {p.name}
-                                {p.supplierCode ? (
+                                {lineOf(p.id, i) > 0 ? (
+                                  <span className="block text-xs text-bad">Ya está en la línea {lineOf(p.id, i)}. Cambia ahí la cantidad.</span>
+                                ) : p.supplierCode ? (
                                   <span className="block text-xs text-faint">
                                     Código del proveedor: <span className="font-mono">{p.supplierCode}</span>
                                   </span>
