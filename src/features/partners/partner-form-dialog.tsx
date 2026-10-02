@@ -241,7 +241,7 @@ export function PartnerFormDialog({
               </Select>
             )}
           </Field>
-          <Field label="Número de documento" hint={canLookup ? `Presiona ${selectedType?.lookupSource} o Enter para traer el nombre.` : undefined}>
+          <Field label="Número de documento" hint={canLookup ? `Presiona ${selectedType?.lookupSource} o Enter para ${partner ? 'actualizar' : 'traer'} el nombre.` : undefined}>
             {(a) =>
               selectedType?.supportsLookup ? (
                 <div className="flex gap-2">
