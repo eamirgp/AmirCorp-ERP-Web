@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Pencil, Search, TriangleAlert, UserPlus } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
@@ -88,8 +88,6 @@ export function PartnerFormDialog({
   // El nombre que llenó la consulta. Si el documento cambia y el nombre sigue siendo ese, ya no corresponde: se
   // borra para que la consulta del número nuevo lo llene. Un nombre escrito a mano se respeta.
   const lookedUpName = useRef('')
-  // Última consulta automática (tipo y número), para hacerla una sola vez mientras el documento no cambie.
-  const lastAutoLookup = useRef('')
   const fillName = (name: string) => {
     form.setValue('name', name)
     lookedUpName.current = name
@@ -98,8 +96,6 @@ export function PartnerFormDialog({
     lookup.reset()
     if (lookedUpName.current && form.getValues('name') === lookedUpName.current) form.setValue('name', '')
     lookedUpName.current = ''
-    // El documento cambió: si vuelve a quedar completo, se consulta de nuevo.
-    lastAutoLookup.current = ''
   }, [open, docType, documentNumber]) // eslint-disable-line react-hooks/exhaustive-deps
   const compact = (n: string | undefined) => n?.replace(/\s/g, '') ?? ''
   // Una respuesta que llega tarde, cuando el número ya es otro, no debe llenar el nombre.
@@ -131,20 +127,15 @@ export function PartnerFormDialog({
   const canAddHere = found && (isSuppliers ? found.canAddSupplierRole : found.canAddClientRole)
   const alreadyHere = found && (isSuppliers ? found.isSupplier : found.isClient)
 
-  // Documento nuevo y completo (la API dice cuántos dígitos tiene): se busca en SUNAT o RENIEC sin presionar nada, una vez
-  // por número. Solo llena el nombre si está vacío, para no pisar lo que ya se escribió.
-  useEffect(() => {
-    if (!open || partner || !selectedType?.supportsLookup || !existing.isSuccess || existing.data) return
-    // "Una vez" es por tipo y número: el mismo número con otro tipo de documento es otra consulta.
-    const key = `${selectedType.identityDocumentType}:${typed}`
-    if (!upToDate || typed.length !== selectedType.exactLength || lastAutoLookup.current === key) return
-    lastAutoLookup.current = key
-    lookup.mutate(
-      { identityDocumentType: selectedType.identityDocumentType, documentNumber: typed },
-      { onSuccess: (r, asked) => stillCurrent(asked.documentNumber) && !form.getValues('name').trim() && fillName(r.name) },
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, typed, existing.isSuccess, existing.data, selectedType])
+  // La consulta en SUNAT o RENIEC nunca es automática: cada una cuenta en el cupo del servicio y un DNI no se puede
+  // validar antes (cualquier número de 8 dígitos se consultaría). La pide el usuario con el botón o con Enter en el
+  // número. El aviso de duplicado sí es inmediato, porque busca en la base propia.
+  const canLookup = !!selectedType?.supportsLookup && !found
+  const lookupOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return
+    e.preventDefault()
+    if (canLookup && !lookup.isPending && compact(documentNumber)) searchSource()
+  }
 
   // Ya está en esta lista: se abre su ficha para editarlo, en vez de dejar al usuario buscándolo.
   const [opening, setOpening] = useState(false)
@@ -230,13 +221,13 @@ export function PartnerFormDialog({
               </Select>
             )}
           </Field>
-          <Field label="Número de documento">
+          <Field label="Número de documento" hint={canLookup ? `Presiona ${selectedType?.lookupSource} o Enter para traer el nombre.` : undefined}>
             {(a) =>
               selectedType?.supportsLookup ? (
                 <div className="flex gap-2">
-                  <Input {...a} className="min-w-0 flex-1 font-mono" {...form.register('documentNumber')} />
+                  <Input {...a} className="min-w-0 flex-1 font-mono" {...form.register('documentNumber')} onKeyDown={lookupOnEnter} />
                   {/* Si ya está registrado no hace falta consultarlo: el aviso de abajo dice quién es. */}
-                  <Button onClick={searchSource} loading={lookup.isPending} disabled={!!found} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
+                  <Button onClick={searchSource} loading={lookup.isPending} disabled={!canLookup} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
                     <Search />
                     {selectedType.lookupSource}
                   </Button>
