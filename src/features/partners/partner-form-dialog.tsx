@@ -57,6 +57,7 @@ export function PartnerFormDialog({
     if (!open) return
     save.reset()
     addRole.reset()
+    lookedUpName.current = ''
     form.reset(
       partner
         ? {
@@ -84,13 +85,24 @@ export function PartnerFormDialog({
   // Buscar el RUC en SUNAT o el DNI en RENIEC: solo si la API lo permite para este tipo (con la consulta configurada).
   const lookup = useLookupDocument()
   const documentNumber = form.watch('documentNumber')
-  useEffect(() => lookup.reset(), [open, docType, documentNumber]) // eslint-disable-line react-hooks/exhaustive-deps
+  // El nombre que llenó la consulta. Si el documento cambia y el nombre sigue siendo ese, ya no corresponde: se
+  // borra para que la consulta del número nuevo lo llene. Un nombre escrito a mano se respeta.
+  const lookedUpName = useRef('')
+  const fillName = (name: string) => {
+    form.setValue('name', name)
+    lookedUpName.current = name
+  }
+  useEffect(() => {
+    lookup.reset()
+    if (lookedUpName.current && form.getValues('name') === lookedUpName.current) form.setValue('name', '')
+    lookedUpName.current = ''
+  }, [open, docType, documentNumber]) // eslint-disable-line react-hooks/exhaustive-deps
   const searchSource = () =>
     lookup.mutate(
       { identityDocumentType: docType as IdentityDocumentType, documentNumber },
       {
         // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
-        onSuccess: (r) => form.setValue('name', r.name),
+        onSuccess: (r) => fillName(r.name),
       },
     )
 
@@ -121,7 +133,7 @@ export function PartnerFormDialog({
     lastAutoLookup.current = typed
     lookup.mutate(
       { identityDocumentType: selectedType.identityDocumentType, documentNumber: typed },
-      { onSuccess: (r) => !form.getValues('name').trim() && form.setValue('name', r.name) },
+      { onSuccess: (r) => !form.getValues('name').trim() && fillName(r.name) },
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, typed, existing.isSuccess, existing.data, selectedType])
