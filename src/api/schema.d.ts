@@ -1823,6 +1823,7 @@ export interface paths {
                 query?: {
                     currency?: components["schemas"]["Currency"];
                     date?: string;
+                    storedOnly?: boolean;
                 };
                 header?: never;
                 path?: never;

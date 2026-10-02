@@ -1,9 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Plus, Search, X } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { currenciesQuery, igvAffectationsQuery, invoicePriceTypesQuery, taxDocumentTypesQuery, unitsOfMeasureQuery, useExchangeRate } from '@/api/catalogs'
+import {
+  currenciesQuery,
+  igvAffectationsQuery,
+  invoicePriceTypesQuery,
+  storedExchangeRateQuery,
+  taxDocumentTypesQuery,
+  unitsOfMeasureQuery,
+  useExchangeRate,
+  type ExchangeRate,
+} from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
 import type { PartnerRow } from '@/api/partners'
@@ -129,16 +138,42 @@ function NewPurchasePage() {
     if (!needsExchangeRate) form.setValue('exchangeRate', '')
   }, [needsExchangeRate, form])
 
-  // Tipo de cambio de SUNAT para la fecha de emisión: lo trae la API cuando el usuario lo pide. Si cambia la moneda
-  // o la fecha, lo consultado ya no corresponde y su explicación se quita (el valor escrito se deja para revisarlo).
+  // Tipo de cambio de SUNAT para la fecha de emisión.
+  // - Si la API ya lo tiene guardado, se llena solo al elegir la moneda o la fecha (leer lo guardado no gasta consultas).
+  // - Si no, queda vacío y el usuario lo pide con el botón: esa consulta sí cuenta en el cupo del servicio.
+  // - Al cambiar la moneda o la fecha, el que vino de SUNAT ya no corresponde y se quita; el escrito a mano se
+  //   respeta, con un aviso para revisarlo.
   const rate = useExchangeRate()
   const canLookupRate = currencies.data?.find((c) => c.currency === watched.currency)?.supportsExchangeRateLookup ?? false
-  useEffect(() => rate.reset(), [watched.currency, watched.issueDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  const storedRate = useQuery({ ...storedExchangeRateQuery(watched.currency, watched.issueDate), enabled: canLookupRate && !!watched.issueDate })
+  // Lo último que llenó SUNAT (valor y explicación), para saber si lo que hay en el campo sigue siendo eso.
+  const [sunatRate, setSunatRate] = useState<{ value: number; description: string } | null>(null)
+  const [reviewRate, setReviewRate] = useState(false)
+  const rateIsFromSunat = sunatRate != null && parseNumberInput(watched.exchangeRate) === sunatRate.value
+  const applyRate = (r: ExchangeRate) => {
+    form.setValue('exchangeRate', String(r.rate))
+    setSunatRate({ value: r.rate, description: r.description })
+    setReviewRate(false)
+  }
+  useEffect(() => {
+    rate.reset()
+    const current = form.getValues('exchangeRate')
+    if (sunatRate && parseNumberInput(current) === sunatRate.value) form.setValue('exchangeRate', '')
+    else if (current) setReviewRate(true)
+    setSunatRate(null)
+  }, [watched.currency, watched.issueDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (storedRate.data && !form.getValues('exchangeRate')) applyRate(storedRate.data)
+  }, [storedRate.data]) // eslint-disable-line react-hooks/exhaustive-deps
   const fetchRate = () =>
-    rate.mutate(
-      { currency: watched.currency as NonNullable<Schemas['Currency']>, date: watched.issueDate ?? '' },
-      { onSuccess: (r) => form.setValue('exchangeRate', String(r.rate)) },
-    )
+    rate.mutate({ currency: watched.currency as NonNullable<Schemas['Currency']>, date: watched.issueDate ?? '' }, { onSuccess: applyRate })
+  const rateHint = rateIsFromSunat
+    ? sunatRate.description
+    : reviewRate && watched.exchangeRate
+      ? 'Cambiaste la moneda o la fecha de emisión. Revisa que el tipo de cambio corresponda.'
+      : canLookupRate
+        ? 'Presiona SUNAT para traer el de la fecha de emisión.'
+        : undefined
   const amountLabel = priceTypes.data?.find((p) => p.invoicePriceType === watched.invoicePriceType)?.description ?? 'Monto unitario'
 
   const onSubmit = form.handleSubmit((v) =>
@@ -249,13 +284,13 @@ function NewPurchasePage() {
         <Field
           label="Tipo de cambio"
           error={rate.isError ? errorMessages(rate.error)[0] : undefined}
-          hint={rate.data?.description ?? (canLookupRate ? 'Presiona SUNAT para traer el de la fecha de emisión.' : undefined)}
+          hint={rateHint}
         >
           {(a) => (
             <div className="flex gap-2">
               {/* El campo ocupa todo el ancho que deja el botón (o toda la celda, si no hay botón). */}
               <div className="min-w-0 flex-1">
-                <NumberInput {...a} disabled={!needsExchangeRate} placeholder={needsExchangeRate ? '0.000' : 'No aplica'} {...form.register('exchangeRate')} />
+                <NumberInput {...a} disabled={!needsExchangeRate} placeholder={needsExchangeRate ? '0.000' : 'No aplica'} {...form.register('exchangeRate', { onChange: () => setReviewRate(false) })} />
               </div>
               {/* La consulta es a pedido, como la de RUC: cada una cuenta en el cupo del servicio. */}
               {canLookupRate && (
