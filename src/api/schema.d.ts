@@ -3050,6 +3050,7 @@ export interface components {
         ListCurrenciesResponseDto: {
             currency: components["schemas"]["Currency"];
             description: string;
+            requiresExchangeRate: boolean;
         };
         ListIdentityDocumentTypesResponseDto: {
             identityDocumentType: components["schemas"]["IdentityDocumentType"];

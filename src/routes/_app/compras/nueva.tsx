@@ -121,6 +121,11 @@ function NewPurchasePage() {
   )
   const preview = useQuery(purchasePreviewQuery(useDebounced(previewInput, 300)))
   const money = (v: number) => formatMoney(v, watched.currency || 'PEN')
+  const needsExchangeRate = currencies.data?.find((c) => c.currency === watched.currency)?.requiresExchangeRate ?? false
+  // Al volver a una moneda sin tipo de cambio, lo que se había escrito se borra para no enviarlo.
+  useEffect(() => {
+    if (!needsExchangeRate) form.setValue('exchangeRate', '')
+  }, [needsExchangeRate, form])
   const amountLabel = priceTypes.data?.find((p) => p.invoicePriceType === watched.invoicePriceType)?.description ?? 'Monto unitario'
 
   const onSubmit = form.handleSubmit((v) =>
@@ -227,7 +232,10 @@ function NewPurchasePage() {
             </Select>
           )}
         </Field>
-        <Field label="Tipo de cambio">{(a) => <NumberInput {...a} placeholder="0.000" {...form.register('exchangeRate')} />}</Field>
+        {/* Solo aplica a las monedas que lo piden (lo dice el catálogo de la API): en soles queda bloqueado y vacío. */}
+        <Field label="Tipo de cambio">
+          {(a) => <NumberInput {...a} disabled={!needsExchangeRate} placeholder={needsExchangeRate ? '0.000' : 'No aplica'} {...form.register('exchangeRate')} />}
+        </Field>
         <Field label="Montos de la factura en">
           {(a) => (
             <Select {...a} {...form.register('invoicePriceType')}>
