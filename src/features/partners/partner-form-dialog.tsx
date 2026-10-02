@@ -88,6 +88,8 @@ export function PartnerFormDialog({
   // El nombre que llenó la consulta. Si el documento cambia y el nombre sigue siendo ese, ya no corresponde: se
   // borra para que la consulta del número nuevo lo llene. Un nombre escrito a mano se respeta.
   const lookedUpName = useRef('')
+  // Última consulta automática (tipo y número), para hacerla una sola vez mientras el documento no cambie.
+  const lastAutoLookup = useRef('')
   const fillName = (name: string) => {
     form.setValue('name', name)
     lookedUpName.current = name
@@ -96,20 +98,25 @@ export function PartnerFormDialog({
     lookup.reset()
     if (lookedUpName.current && form.getValues('name') === lookedUpName.current) form.setValue('name', '')
     lookedUpName.current = ''
+    // El documento cambió: si vuelve a quedar completo, se consulta de nuevo.
+    lastAutoLookup.current = ''
   }, [open, docType, documentNumber]) // eslint-disable-line react-hooks/exhaustive-deps
+  const compact = (n: string | undefined) => n?.replace(/\s/g, '') ?? ''
+  // Una respuesta que llega tarde, cuando el número ya es otro, no debe llenar el nombre.
+  const stillCurrent = (asked: string) => compact(form.getValues('documentNumber')) === compact(asked)
   const searchSource = () =>
     lookup.mutate(
       { identityDocumentType: docType as IdentityDocumentType, documentNumber },
       {
         // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
-        onSuccess: (r) => fillName(r.name),
+        onSuccess: (r, asked) => stillCurrent(asked.documentNumber) && fillName(r.name),
       },
     )
 
   // Al crear o al cambiar el documento: ¿alguien más ya lo tiene? Se consulta un momento después de dejar de escribir.
   const [typed, setTyped] = useState('')
   useEffect(() => {
-    const t = setTimeout(() => setTyped(documentNumber?.replace(/\s/g, '') ?? ''), 400)
+    const t = setTimeout(() => setTyped(compact(documentNumber)), 400)
     return () => clearTimeout(t)
   }, [documentNumber])
   const existing = useQuery({
@@ -118,22 +125,23 @@ export function PartnerFormDialog({
     enabled: open && !!docType && typed.length >= 3,
   })
   // Al editar, encontrarse a sí mismo no es un duplicado; sí lo es que el documento nuevo ya lo tenga otro.
-  const found = existing.data && existing.data.id !== partner?.id ? existing.data : null
+  // Mientras se sigue escribiendo, el resultado es del número anterior y no se muestra.
+  const upToDate = compact(documentNumber) === typed
+  const found = upToDate && existing.data && existing.data.id !== partner?.id ? existing.data : null
   const canAddHere = found && (isSuppliers ? found.canAddSupplierRole : found.canAddClientRole)
   const alreadyHere = found && (isSuppliers ? found.isSupplier : found.isClient)
 
   // Documento nuevo y completo (la API dice cuántos dígitos tiene): se busca en SUNAT o RENIEC sin presionar nada, una vez
   // por número. Solo llena el nombre si está vacío, para no pisar lo que ya se escribió.
-  const lastAutoLookup = useRef('')
   useEffect(() => {
-    if (!open) lastAutoLookup.current = ''
     if (!open || partner || !selectedType?.supportsLookup || !existing.isSuccess || existing.data) return
-    const current = documentNumber?.replace(/\s/g, '') ?? ''
-    if (current !== typed || typed.length !== selectedType.exactLength || lastAutoLookup.current === typed) return
-    lastAutoLookup.current = typed
+    // "Una vez" es por tipo y número: el mismo número con otro tipo de documento es otra consulta.
+    const key = `${selectedType.identityDocumentType}:${typed}`
+    if (!upToDate || typed.length !== selectedType.exactLength || lastAutoLookup.current === key) return
+    lastAutoLookup.current = key
     lookup.mutate(
       { identityDocumentType: selectedType.identityDocumentType, documentNumber: typed },
-      { onSuccess: (r) => !form.getValues('name').trim() && fillName(r.name) },
+      { onSuccess: (r, asked) => stillCurrent(asked.documentNumber) && !form.getValues('name').trim() && fillName(r.name) },
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, typed, existing.isSuccess, existing.data, selectedType])
