@@ -30,6 +30,11 @@ export function formatMoney(value: number, currency: string | null | undefined) 
 /** S/ 1 234.50 */
 export const formatPen = (value: number) => formatMoney(value, 'PEN')
 
+const amount = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+/** Monto sin símbolo de moneda, para columnas donde la moneda ya se sabe: 1 234.50 */
+export const formatAmount = (value: number) => withThinSpaces(amount, value)
+
 /** 1 234 */
 export const formatInt = (value: number) => withThinSpaces(integer, value)
 

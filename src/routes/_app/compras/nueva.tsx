@@ -16,7 +16,7 @@ import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
 import { SupplierField, type NewSupplier } from '@/features/purchases/supplier-field'
 import { Totals } from '@/features/purchases/totals'
-import { formatDecimal, formatMoney, todayIso } from '@/lib/format'
+import { formatAmount, formatDecimal, formatMoney, todayIso } from '@/lib/format'
 import { parseNumberInput } from '@/lib/number-input'
 import { useDebounced } from '@/lib/use-debounced'
 
@@ -245,16 +245,20 @@ function NewPurchasePage() {
 
       <Card title="Productos">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-base">
+          {/* Ancho mínimo: los campos de cada línea no se encogen; en pantallas angostas la tabla se desplaza. */}
+          <table className="w-full min-w-[1060px] border-collapse text-base">
             <thead>
               <tr className="text-left text-xs text-faint">
-                <th className="w-[30%] border-b border-line py-2 pr-3 font-normal">Producto</th>
+                <th className="w-[24%] border-b border-line py-2 pr-3 font-normal">Producto</th>
                 <th className="border-b border-line px-2 py-2 font-normal">Afectación</th>
                 <th className="border-b border-line px-2 py-2 font-normal">Unidad</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">Cantidad</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">{amountLabel}</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal" title="Unidades de inventario por cada unidad de la factura">
                   Factor
+                </th>
+                <th className="border-b border-line px-2 py-2 text-right font-normal" title="Monto de la línea sin IGV">
+                  Subtotal
                 </th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">IGV</th>
                 <th className="border-b border-line px-2 py-2 text-right font-normal">Total</th>
@@ -337,25 +341,29 @@ function NewPurchasePage() {
                       </Select>
                     </td>
                     <td className="px-2 py-2">
-                      <NumberInput aria-label="Cantidad" className="w-24 text-right" {...form.register(`lines.${i}.invoiceQuantity`)} />
+                      <NumberInput aria-label="Cantidad" className="w-24 min-w-24 text-right" {...form.register(`lines.${i}.invoiceQuantity`)} />
                     </td>
                     <td className="px-2 py-2">
-                      <NumberInput aria-label={amountLabel} className="w-28 text-right" minDecimals={2} {...form.register(`lines.${i}.invoiceAmount`)} />
+                      <NumberInput aria-label={amountLabel} className="w-28 min-w-28 text-right" minDecimals={2} {...form.register(`lines.${i}.invoiceAmount`)} />
                     </td>
                     <td className="px-2 py-2">
                       <NumberInput
                         aria-label="Factor de conversión"
-                        className="w-20 text-right read-only:bg-surface-2 read-only:text-muted"
+                        className="w-16 min-w-16 text-right read-only:bg-surface-2 read-only:text-muted"
                         readOnly={locked}
                         title={locked ? 'Fijo para esta unidad de medida' : 'Unidades de inventario por cada unidad de la factura'}
                         {...form.register(`lines.${i}.conversionFactor`)}
                       />
                     </td>
+                    {/* Subtotal, IGV y total de la línea, como en la factura. Sin símbolo: la moneda está en el comprobante y en los totales. */}
                     <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap text-muted">
-                      {result?.igvAmount != null ? money(result.igvAmount) : <span className="text-faint">—</span>}
+                      {result?.baseAmount != null ? formatAmount(result.baseAmount) : <span className="text-faint">—</span>}
+                    </td>
+                    <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap text-muted">
+                      {result?.igvAmount != null ? formatAmount(result.igvAmount) : <span className="text-faint">—</span>}
                     </td>
                     <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap">
-                      {result?.total != null ? money(result.total) : <span className="text-faint">—</span>}
+                      {result?.total != null ? formatAmount(result.total) : <span className="text-faint">—</span>}
                       {result?.inventoryQuantity != null && result.inventoryUnitCost != null && (
                         <span className="block text-xs text-faint">
                           {formatDecimal(result.inventoryQuantity)} und. a {formatDecimal(result.inventoryUnitCost)}
