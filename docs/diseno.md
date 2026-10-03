@@ -1,5 +1,24 @@
 # Sistema de diseño
 
+## Regla: estilo Apple en todas las pantallas (desde octubre 2026)
+
+Todas las pantallas se rediseñan, una por una, con el mismo estilo Apple que se aprobó en el inicio de sesión (pantalla dividida: panel negro con la marca a la izquierda, formulario a la derecha). Lo de abajo de esta sección es el sistema anterior: se reemplaza a medida que cada pantalla se rediseña, sin mezclar los dos estilos en una misma pantalla.
+
+**Cómo se trabaja:** cada pantalla se diseña primero en el lienzo de diseño (Claude Design), el usuario la revisa y aprueba, y recién entonces se programa. Al programarla, los valores pasan a tokens de `src/styles.css` (una sola fuente de los colores y medidas) y esta sección se completa con lo nuevo.
+
+| Elemento | Regla |
+|---|---|
+| Fondo | Blanco. Negro puro (`#000000`) para los paneles de marca. |
+| Texto | Principal `#1D1D1F`; secundario `#6E6E73` sobre blanco (5:1); `#A1A1A6` sobre negro (8:1). Todo par de colores se mide con la fórmula de WCAG (mínimo 4.5:1; 3:1 en bordes de campos). |
+| Títulos | League Spartan 700, grandes y apretados (`letter-spacing` de -0.02em a -0.03em). La jerarquía se marca con tamaño, no con colores. |
+| Texto general | Source Sans 3, 17 px. |
+| Marca | Negro como base; jade (`#5AAF76`) solo como acento puntual: una palabra destacada, el foco, las aspas de la rueda. Jade como texto sobre blanco: `#2A7445`. |
+| Campos | 56 px de alto, esquinas de 12 px, borde de 1 px `#86868B` (3.6:1). Etiqueta pequeña (12 px) dentro del campo, arriba. Al enfocarlo: borde `#1D1D1F` y halo jade suave. |
+| Botones | Principal en forma de píldora, `#1D1D1F` con texto blanco, 50 px de alto; al pasar el mouse `#2C2C2E` y al hacer clic se hunde apenas (escala 0.985). Acciones secundarias como texto en jade oscuro. |
+| Espacio | Generoso. Contenido angosto y centrado (formularios de 360 a 420 px). Pocos elementos por pantalla. |
+| Movimiento | Suave, nunca tosco ni con rebotes. Al aparecer, cada bloque sube 14 px y se vuelve visible en 900 ms con la curva `cubic-bezier(0.16, 1, 0.3, 1)`, escalonados de 60 a 80 ms. Cambios de estado en 200 ms. Todo se apaga con "reducir movimiento" (`prefers-reduced-motion`). |
+| Tipografía de Apple | SF Pro no se puede usar en una web: se usan las fuentes del manual con proporciones de Apple. |
+
 Basado en el **Manual de Identidad Visual de H&P Pizarro Accesorios E.I.R.L.** (Lorena Salcedo): negro como base, verde jade como secundario y gris como acento. Títulos en League Spartan y textos en Source Sans.
 
 Un ERP se usa muchas horas al día, así que la identidad se aplica con criterio **minimalista**: fondo blanco, neutros puros, bordes finos, sin sombras en la página y mucho aire. El negro es la acción principal y el jade aparece solo como acento puntual.
