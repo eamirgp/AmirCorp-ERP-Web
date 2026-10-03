@@ -45,18 +45,14 @@ export function ProductCell({
   if (newProduct)
     return <NewProductCell lineNumber={lineNumber} value={newProduct} onChange={onNewProduct} onCancel={() => onNewProduct(null)} />
 
-  if (linking)
-    return (
-      <div className="flex flex-col gap-1.5">
+  // Buscador para enlazar un código: en todo el catálogo (la primera búsqueda era solo lo de este proveedor). Se usa al
+  // elegir el producto la primera vez y también para cambiarlo, escribiendo de nuevo en el mismo campo.
+  const linkSearch = (code: string, value: ProductRow | null, onPick: (p: ProductRow) => void) => (
         <SearchSelect<ProductRow>
-          autoFocus
-          aria-label={`Producto al que se enlaza el código ${linking}`}
-          value={null}
-          onChange={(p) => {
-            if (!p) return
-            setLinking(null)
-            onChoose(p, linking)
-          }}
+          autoFocus={!value}
+          aria-label={`Producto al que se enlaza el código ${code}`}
+          value={value}
+          onChange={(p) => p && onPick(p)}
           queryKey="products"
           // Para enlazar se busca en todo el catálogo (la primera búsqueda era solo lo de este proveedor).
           scope={`all:${supplierId ?? 'nuevo'}`}
@@ -65,7 +61,7 @@ export function ProductCell({
           itemLabel={(p) => `${p.code} · ${p.name}`}
           // No se puede elegir el que ya está en otra línea, ni el que ya tiene otro código de este proveedor (eso se
           // corrige en Productos).
-          isItemDisabled={(p) => otherLineOf(p.id) > 0 || (!!p.supplierCode && p.supplierCode !== linking)}
+          isItemDisabled={(p) => otherLineOf(p.id) > 0 || (!!p.supplierCode && p.supplierCode !== code)}
           renderItem={(p) => (
             <span>
               <span className="mr-2 font-mono text-xs text-faint">{p.code}</span>
@@ -74,7 +70,7 @@ export function ProductCell({
                 <span className="block text-xs text-bad">Ya está en la línea {otherLineOf(p.id)}.</span>
               ) : (
                 p.supplierCode &&
-                p.supplierCode !== linking && (
+                p.supplierCode !== code && (
                   <span className="block text-xs text-faint">
                     Ya tiene el código <span className="font-mono">{p.supplierCode}</span> de este proveedor. Si cambió, corrígelo en Productos.
                   </span>
@@ -85,10 +81,34 @@ export function ProductCell({
           emptyText={() => 'Ningún producto coincide. Prueba con otra palabra del nombre.'}
           placeholder="Busca tu producto por nombre o código interno"
         />
+  )
+
+  if (linking)
+    return (
+      <div className="flex flex-col gap-1.5">
+        {linkSearch(linking, null, (p) => {
+          setLinking(null)
+          onChoose(p, linking)
+        })}
         <p className="text-xs text-faint">
           Se enlazará el código <span className="font-mono text-muted">{linking}</span> de {supplierName}.{' '}
           <button type="button" onClick={() => setLinking(null)} className="text-muted underline hover:text-ink">
             Cancelar
+          </button>
+        </p>
+      </div>
+    )
+
+  // Producto elegido con un código por enlazar: para cambiarlo se escribe en el mismo campo, que busca en todo el
+  // catálogo y conserva el código. "Quitar enlace" vuelve al inicio.
+  if (product && linkCode)
+    return (
+      <div className="flex flex-col gap-1.5">
+        {linkSearch(linkCode, product, (p) => onChoose(p, linkCode))}
+        <p className="text-xs text-faint">
+          El código <span className="font-mono text-muted">{linkCode}</span> de {supplierName} se enlazará a este producto al registrar la compra.{' '}
+          <button type="button" onClick={onClear} className="text-muted underline hover:text-ink">
+            Quitar enlace
           </button>
         </p>
       </div>
@@ -155,26 +175,6 @@ export function ProductCell({
         }
         placeholder={supplierName ? 'Código de la factura, código interno o nombre' : 'Elige primero el proveedor'}
       />
-      {product && linkCode && (
-        <p className="text-xs text-faint">
-          El código <span className="font-mono text-muted">{linkCode}</span> de {supplierName} se enlazará a este producto al registrar la compra.{' '}
-          {/* Cambiar producto: se vuelve a elegir a cuál enlazar el mismo código, sin escribirlo otra vez. */}
-          <button
-            type="button"
-            onClick={() => {
-              onClear()
-              setLinking(linkCode)
-            }}
-            className="text-muted underline hover:text-ink"
-          >
-            Cambiar producto
-          </button>
-          {' · '}
-          <button type="button" onClick={onClear} className="text-muted underline hover:text-ink">
-            Quitar enlace
-          </button>
-        </p>
-      )}
     </div>
   )
 }
