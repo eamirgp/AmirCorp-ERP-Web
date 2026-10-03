@@ -110,12 +110,11 @@ function NewPurchasePage() {
   const fixedFactor = (unit: string) => units.data?.find((u) => u.code === unit)?.fixedConversionFactor ?? null
   /** Las unidades por caja se piden solo si la unidad de la línea no las trae fijas. */
   const asksUnitsPer = (unit: string | undefined) => !!unit && fixedFactor(unit) == null
-  // Con una unidad fija, su cantidad se pone sola y no se muestra; con una variable (Caja) el campo queda vacío para
-  // que se escriba lo que trae esta factura.
-  const applyUnit = (index: number, unit: string) => {
-    const f = fixedFactor(unit)
-    form.setValue(`lines.${index}.conversionFactor`, f != null ? String(f) : '')
-  }
+  // Al cambiar de unidad, lo escrito ya no corresponde. Con una fija (Unidad, Docena) no se envía nada: la cantidad
+  // la pone la API desde su catálogo. Con una variable (Caja) queda vacío para escribir lo que trae esta factura.
+  const applyUnit = (index: number, _unit: string) => form.setValue(`lines.${index}.conversionFactor`, '')
+  const unitsPerFor = (l: { invoiceUnitOfMeasure?: string; conversionFactor?: string } | undefined) =>
+    asksUnitsPer(l?.invoiceUnitOfMeasure) ? parseNumberInput(l?.conversionFactor) : null
 
   // Vista previa: la API calcula montos y totales mientras se llena el formulario.
   const watched = useWatch({ control: form.control })
@@ -129,7 +128,7 @@ function NewPurchasePage() {
         invoiceUnitOfMeasureCode: l?.invoiceUnitOfMeasure || null,
         invoiceQuantity: parseNumberInput(l?.invoiceQuantity),
         invoiceAmount: parseNumberInput(l?.invoiceAmount),
-        conversionFactor: parseNumberInput(l?.conversionFactor),
+        conversionFactor: unitsPerFor(l),
       })),
     }),
     [watched],
@@ -205,7 +204,7 @@ function NewPurchasePage() {
           invoiceUnitOfMeasureCode: l.invoiceUnitOfMeasure || null,
           invoiceQuantity: parseNumberInput(l.invoiceQuantity),
           invoiceAmount: parseNumberInput(l.invoiceAmount),
-          conversionFactor: parseNumberInput(l.conversionFactor),
+          conversionFactor: unitsPerFor(l),
         })),
       },
       {
