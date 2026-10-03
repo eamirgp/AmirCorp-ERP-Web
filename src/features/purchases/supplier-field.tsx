@@ -52,6 +52,8 @@ export function SupplierField({
   }
 
   const clearNew = () => {
+    // El buscador vuelve vacío: el botón SUNAT no debe quedar con el RUC anterior.
+    setTerm('')
     lookup.reset()
     setErrors([])
     setExistingNote(null)

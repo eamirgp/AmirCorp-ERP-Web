@@ -68,7 +68,14 @@ export function useCreatePurchase() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: PurchaseInput) => unwrap(api.POST('/api/purchases', { body: input })),
-    onSuccess: () => qc.invalidateQueries({ queryKey: purchaseKeys.lists() }),
+    // La compra puede registrar un proveedor o productos nuevos: sus listas y búsquedas también se refrescan, para
+    // que la siguiente compra los encuentre en vez de ofrecer crearlos otra vez.
+    onSuccess: () =>
+      Promise.all([
+        qc.invalidateQueries({ queryKey: purchaseKeys.lists() }),
+        qc.invalidateQueries({ queryKey: ['products'] }),
+        qc.invalidateQueries({ queryKey: ['partners'] }),
+      ]),
   })
 }
 

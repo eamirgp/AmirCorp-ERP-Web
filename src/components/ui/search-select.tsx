@@ -115,6 +115,11 @@ export function SearchSelect<T>({
     placeholderData: keepPreviousData,
   })
   const items = results.data ?? []
+  // Mientras llega la búsqueda de lo último escrito, la lista muestra la anterior: Enter no debe elegir de ahí.
+  const upToDate = debounced === term.trim() && !results.isFetching && !results.isPlaceholderData
+  // La opción de crear va al final y se alcanza con las flechas, como un resultado más.
+  const canCreate = !!createOption && !!term.trim() && upToDate
+  const lastIndex = items.length - 1 + (canCreate ? 1 : 0)
 
   useEffect(() => setActive(0), [debounced])
 
@@ -157,14 +162,14 @@ export function SearchSelect<T>({
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown') {
       setOpen(true)
-      setActive((i) => Math.min(i + 1, items.length - 1))
+      setActive((i) => Math.min(i + 1, Math.max(lastIndex, 0)))
     } else if (e.key === 'ArrowUp') setActive((i) => Math.max(i - 1, 0))
     else if (e.key === 'Enter' && open) {
-      if (items[active]) choose(items[active])
-      else if (!results.isFetching && term.trim()) {
-        if (createOption) create()
-        else onSubmitTerm?.(term.trim())
-      }
+      if (!upToDate) {
+        // Todavía no llegan los resultados de lo escrito: no se elige nada (Enter tampoco envía el formulario).
+      } else if (items[active]) choose(items[active])
+      else if (canCreate) create()
+      else if (term.trim()) onSubmitTerm?.(term.trim())
     } else if (e.key === 'Escape' && open) setOpen(false)
     else return
     e.preventDefault()
@@ -188,7 +193,12 @@ export function SearchSelect<T>({
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        // Al salir sin elegir, lo escrito se descarta: el campo vuelve a mostrar lo elegido y ningún botón
+        // (como SUNAT) puede actuar sobre un texto que ya no se ve.
+        onBlur={() => {
+          setOpen(false)
+          writeTerm('')
+        }}
         onKeyDown={onKeyDown}
         {...aria}
       />
@@ -220,17 +230,18 @@ export function SearchSelect<T>({
               </li>
             ))
           )}
-          {createOption && term.trim() && !results.isFetching && (
+          {canCreate && (
             <li
               role="option"
-              aria-selected={false}
+              aria-selected={active === items.length}
               onMouseDown={(e) => {
                 e.preventDefault()
                 create()
               }}
-              className="mt-1 cursor-pointer rounded border-t border-line px-2.5 py-2 text-sm font-medium hover:bg-surface-2"
+              onMouseEnter={() => setActive(items.length)}
+              className="mt-1 cursor-pointer rounded border-t border-line px-2.5 py-2 text-sm font-medium aria-selected:bg-surface-2"
             >
-              {createOption.label(term.trim())}
+              {createOption!.label(term.trim())}
             </li>
           )}
         </ul>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute, useBlocker, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Plus, Search, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import {
   currenciesQuery,
@@ -20,6 +20,7 @@ import { searchProducts, type ProductRow } from '@/api/products'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
 import { Field, Input, NumberInput, Select } from '@/components/ui/field'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Card, ErrorList, PageHeader } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
@@ -82,6 +83,15 @@ function NewPurchasePage() {
   const units = useQuery(unitsOfMeasureQuery)
   const igv = useQuery(igvAffectationsQuery)
   const create = useCreatePurchase()
+
+  // Salir con la compra a medio cargar (enlace, Cancelar, Atrás o cerrar la pestaña) pide confirmación.
+  const touched = useRef(false)
+  const saved = useRef(false)
+  const blocker = useBlocker({
+    shouldBlockFn: () => touched.current && !saved.current,
+    enableBeforeUnload: () => touched.current && !saved.current,
+    withResolver: true,
+  })
 
   const form = useForm<Values>({
     defaultValues: {
@@ -209,6 +219,7 @@ function NewPurchasePage() {
       },
       {
         onSuccess: ({ id }) => {
+          saved.current = true
           toast.ok('Compra registrada')
           navigate({ to: '/compras/$id', params: { id } })
         },
@@ -218,7 +229,29 @@ function NewPurchasePage() {
   )
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+    <form
+      onSubmit={onSubmit}
+      noValidate
+      className="flex flex-col gap-5"
+      // Lo escrito por el usuario (no lo que el sistema llena solo) cuenta para avisar antes de salir sin guardar.
+      onInput={() => (touched.current = true)}
+      // Enter en un campo no registra la compra: una factura a medio cargar no debe guardarse ni mover el stock.
+      // Se registra solo con el botón "Registrar compra".
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && e.target instanceof HTMLInputElement) e.preventDefault()
+      }}
+    >
+      {blocker.status === 'blocked' && (
+        <ConfirmDialog
+          open
+          title="¿Salir sin registrar la compra?"
+          confirmLabel="Salir sin guardar"
+          onConfirm={() => blocker.proceed()}
+          onCancel={() => blocker.reset()}
+        >
+          Lo que escribiste en esta compra se perderá.
+        </ConfirmDialog>
+      )}
       <div className="flex flex-col gap-4">
         <Link to="/compras" className="flex w-fit items-center gap-1.5 text-sm text-muted hover:text-ink">
           <ArrowLeft className="size-4" />
@@ -403,8 +436,10 @@ function NewPurchasePage() {
                               // Se proponen la afectación y la unidad del producto; el usuario puede cambiarlas.
                               if (p) {
                                 form.setValue(`lines.${i}.invoiceIgvAffectation`, p.igvAffectation ?? '')
-                                form.setValue(`lines.${i}.invoiceUnitOfMeasure`, p.unitOfMeasureCode)
-                                applyUnit(i, p.unitOfMeasureCode)
+                                // Solo si la unidad está entre las activas: si no, el campo se vería vacío pero se enviaría.
+                                const unit = units.data?.some((u) => u.code === p.unitOfMeasureCode) ? p.unitOfMeasureCode : ''
+                                form.setValue(`lines.${i}.invoiceUnitOfMeasure`, unit)
+                                applyUnit(i, unit)
                               }
                             }}
                             queryKey="products"
