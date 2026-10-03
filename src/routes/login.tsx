@@ -33,6 +33,8 @@ function LoginPage() {
   const router = useRouter()
   const { redirect: target } = Route.useSearch()
   const form = useForm<FormValues>({ defaultValues: { email: '', password: '' } })
+  // Si la API cerró la sesión (cuenta desactivada…), se dice por qué hasta que se intente entrar de nuevo.
+  const endReason = session.endReason
 
   const mutation = useMutation({
     mutationFn: (v: FormValues) => login(v.email, v.password),
@@ -52,7 +54,7 @@ function LoginPage() {
           <p className="mt-1 text-base text-muted">Ingresa con tu correo y contraseña.</p>
         </div>
 
-        <ErrorList messages={mutation.isError ? errorMessages(mutation.error) : []} />
+        <ErrorList messages={mutation.isError ? errorMessages(mutation.error) : mutation.isIdle && endReason ? [endReason] : []} />
 
         <Field label="Correo">
           {(a) => <Input {...a} type="email" autoComplete="username" autoFocus {...form.register('email')} />}

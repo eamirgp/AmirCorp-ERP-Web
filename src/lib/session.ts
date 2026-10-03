@@ -10,6 +10,8 @@ type Listener = () => void
 
 const listeners = new Set<Listener>()
 let token: string | null = read()
+// Por qué la API cerró la sesión ("Tu cuenta está desactivada…"), para mostrarlo una vez en el inicio de sesión.
+let endReason: string | null = null
 
 function read(): string | null {
   try {
@@ -51,6 +53,7 @@ export const session = {
 
   start(newToken: string) {
     token = newToken
+    endReason = null
     try {
       localStorage.setItem(KEY, newToken)
     } catch {
@@ -59,15 +62,22 @@ export const session = {
     listeners.forEach((l) => l())
   },
 
-  end() {
+  /** @param reason El motivo que envió la API, si la sesión no terminó por voluntad del usuario. */
+  end(reason?: string) {
     if (token === null) return
     token = null
+    endReason = reason ?? null
     try {
       localStorage.removeItem(KEY)
     } catch {
       /* nada que limpiar */
     }
     listeners.forEach((l) => l())
+  },
+
+  /** El motivo del último cierre hecho por la API; se olvida al volver a iniciar sesión. */
+  get endReason(): string | null {
+    return endReason
   },
 
   subscribe(listener: Listener): () => void {
