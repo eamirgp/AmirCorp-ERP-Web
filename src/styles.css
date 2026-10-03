@@ -47,6 +47,18 @@
   --bad-soft: #fdf1f0;
   --overlay: rgb(0 0 0 / 0.35);
   --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.14);
+
+  /* Estilo Apple (docs/diseno.md, "Regla: estilo Apple"): las pantallas rediseñadas usan estos tokens. Contrastes
+     medidos con la fórmula de WCAG. */
+  --page: #ffffff;
+  --fg: #1d1d1f;
+  --fg-muted: #6e6e73; /* 5:1 sobre blanco */
+  --field: #ffffff;
+  --field-line: #86868b; /* borde de campo: 3.6:1 */
+  --pill: #1d1d1f; /* botón principal en píldora */
+  --pill-ink: #ffffff;
+  --pill-hover: #2c2c2e;
+  --link: #2a7445; /* acción secundaria en jade oscuro: 5.7:1 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -72,6 +84,15 @@
     --warn-text: #f0b457;
     --overlay: rgb(0 0 0 / 0.6);
     --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
+    --page: #161617;
+    --fg: #f5f5f7;
+    --fg-muted: #a1a1a6;
+    --field: #1c1c1e;
+    --field-line: #7c7c80;
+    --pill: #f5f5f7;
+    --pill-ink: #1d1d1f;
+    --pill-hover: #d2d2d7;
+    --link: #6cc08a;
   }
 }
 
@@ -97,6 +118,15 @@
   --warn-text: #f0b457;
   --overlay: rgb(0 0 0 / 0.6);
   --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
+  --page: #161617;
+  --fg: #f5f5f7;
+  --fg-muted: #a1a1a6;
+  --field: #1c1c1e;
+  --field-line: #7c7c80;
+  --pill: #f5f5f7;
+  --pill-ink: #1d1d1f;
+  --pill-hover: #d2d2d7;
+  --link: #6cc08a;
 }
 
 /*
@@ -121,6 +151,13 @@
   --text-xl--line-height: 1.25;
   --text-2xl: 28px;
   --text-2xl--line-height: 1.2;
+  /* Estilo Apple: texto general y etiqueta dentro de un campo. */
+  --text-apple: 17px;
+  --text-apple--line-height: 1.45;
+  --text-label: 12px;
+  --text-label--line-height: 1.2;
+  /* La curva de frenado suave de Apple, para entradas y cambios de estado. */
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
@@ -146,6 +183,15 @@
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
   --color-overlay: var(--overlay);
+  --color-page: var(--page);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-field: var(--field);
+  --color-field-line: var(--field-line);
+  --color-pill: var(--pill);
+  --color-pill-ink: var(--pill-ink);
+  --color-pill-hover: var(--pill-hover);
+  --color-link: var(--link);
   --shadow-float: var(--shadow-lg);
   --font-display: "League Spartan Variable", "Arial Black", system-ui, sans-serif;
   --font-sans: "Source Sans 3 Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -174,6 +220,57 @@
   h2,
   h3 {
     text-wrap: balance;
+  }
+}
+
+/*
+  Una zona que se ve siempre en el tema claro, aunque el sistema esté en modo oscuro: el formulario del inicio de sesión
+  es blanco en el diseño aprobado. Redefine los tokens que usan esas pantallas; lo de adentro los hereda.
+*/
+.always-light {
+  color-scheme: light;
+  --page: #ffffff;
+  --fg: #1d1d1f;
+  --fg-muted: #6e6e73;
+  --field: #ffffff;
+  --field-line: #86868b;
+  --pill: #1d1d1f;
+  --pill-ink: #ffffff;
+  --pill-hover: #2c2c2e;
+  --link: #2a7445;
+  --bad: #c0392f;
+  --bad-soft: #fdf1f0;
+}
+
+/*
+  Monitores grandes (24 a 27 pulgadas), como hace Apple: los tamaños suben por escalones según el ancho de la pantalla,
+  no de forma continua. Los elementos de presentación (títulos grandes, logo, ilustraciones) crecen bastante
+  (`grow-on-large`); lo que se lee y se usa (formularios, texto) crece poco (`grow-on-large-subtle`) y queda en una
+  columna de ancho máximo, con el espacio de sobra como margen. Se aplica a bloques de contenido, no a los contenedores
+  de la pantalla.
+*/
+@media (min-width: 1536px) {
+  .grow-on-large {
+    zoom: 1.15;
+  }
+  .grow-on-large-subtle {
+    zoom: 1.05;
+  }
+}
+@media (min-width: 1920px) {
+  .grow-on-large {
+    zoom: 1.3;
+  }
+  .grow-on-large-subtle {
+    zoom: 1.1;
+  }
+}
+@media (min-width: 2400px) {
+  .grow-on-large {
+    zoom: 1.45;
+  }
+  .grow-on-large-subtle {
+    zoom: 1.15;
   }
 }
 
@@ -234,11 +331,87 @@
   }
 }
 
+/*
+  Movimiento del estilo Apple: suave, nunca tosco. Al aparecer, cada bloque sube 14 px y se vuelve visible con la curva
+  de frenado de Apple; se escalonan con `style={{ animationDelay }}` (60 a 80 ms entre uno y otro).
+*/
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.88) translateY(10px);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.16;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.04);
+  }
+}
+
+@utility animate-enter {
+  animation: enter 900ms var(--ease-apple) both;
+}
+
+@utility animate-appear {
+  animation: appear 1600ms ease-out both;
+}
+
+/* El ícono de la marca: llega creciendo un poco y queda quieto. */
+@utility animate-arrive {
+  animation: arrive 1100ms var(--ease-apple) both;
+}
+
+/* El brillo detrás del ícono: se aclara y se apaga despacio, en un ciclo de 7 segundos. */
+@utility animate-breathe {
+  animation: breathe 7s ease-in-out 600ms infinite both;
+}
+
+/*
+  Efectos de Apple al interactuar (docs/diseno.md): un botón se hunde al presionarlo y vuelve al soltarlo; al pasar el
+  mouse cambia apenas de tono. Rápido (150 ms), para que se sienta inmediato.
+*/
+@utility press {
+  transition:
+    background-color 150ms var(--ease-apple),
+    opacity 150ms var(--ease-apple),
+    transform 150ms var(--ease-apple);
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/* Lo que el navegador autocompleta no pinta el campo de amarillo: queda con el fondo del campo. */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--field) inset;
+  -webkit-text-fill-color: var(--fg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* Una animación sin fin (el brillo que respira) se detiene en vez de repetirse a toda velocidad. */
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

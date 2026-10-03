@@ -76,4 +76,9 @@ El detalle y el motivo de cada cambio están en las decisiones 32, 33 y 34 de la
 ### 11. Usuarios: el equipo completo, no solo personas mayores
 **Fecha:** octubre 2026
 
-Hasta ahora el diseño se pensó para personas mayores (letra y campos grandes, nada de etiquetas dentro de los campos). Los usuarios reales son el dueño y su equipo, en buena parte gente joven (sus hijos y trabajadores). Desde ahora el diseño apunta a un estilo moderno, al estilo Apple, sin agrandar todo por defecto. Se mantiene lo que sirve a cualquiera: textos claros, pocos campos, contraste medido y movimiento suave que se apaga con "reducir movimiento". La primera pantalla con este criterio es el inicio de sesión (pantalla dividida con la marca a la izquierda), diseñada antes de programarla.
+Hasta ahora el diseño se pensó para personas mayores (letra y campos grandes, nada de etiquetas dentro de los campos). Los usuarios reales son el dueño y su equipo, en buena parte gente joven (sus hijos y trabajadores). Desde ahora el diseño apunta a un estilo moderno, al estilo Apple, sin agrandar todo por defecto. Se mantiene lo que sirve a cualquiera: textos claros, pocos campos, contraste medido y movimiento suave que se apaga con "reducir movimiento". La primera pantalla con este criterio es el inicio de sesión, diseñada antes de programarla.
+
+### 12. Inicio de sesión al estilo de Cuenta de Apple
+**Fecha:** octubre 2026
+
+Primero se aprobó y programó una pantalla dividida (panel negro de la marca y formulario). Al revisar las páginas reales de Apple (Cuenta de Apple e iCloud) se vio que Apple no divide la pantalla: centra todo en una columna con un emblema arriba. Se cambió a eso: el ícono de la "P" como ícono de app (quieto, con un brillo jade que respira detrás), el título "Inicia sesión" con "Portal de gestión de Pizarro Accesorios." debajo (como la ventana de inicio de sesión de Apple: el título es la acción), y los efectos de Apple al interactuar (la etiqueta del campo sube al escribir, el botón se hunde al presionarlo). Todo se volvió regla en `diseno.md`, con los componentes `FloatingField`, `PillButton`, `Notice` y `AppIcon` para las próximas pantallas.

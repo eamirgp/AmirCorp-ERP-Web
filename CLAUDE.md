@@ -4,7 +4,7 @@ Frontend del ERP de H&P Pizarro Accesorios. Va siempre junto con la API, `AmirCo
 
 ## Regla de diseño: estilo Apple
 
-Todas las pantallas usan el mismo estilo Apple del inicio de sesión aprobado; las reglas concretas están en `docs/diseno.md` (sección "Regla: estilo Apple"). El rediseño va pantalla por pantalla: primero la maqueta en el lienzo de diseño (Claude Design), el usuario la aprueba y recién después se programa. Los valores van a tokens de `src/styles.css`. No mezclar el estilo nuevo con el anterior en una misma pantalla.
+Todas las pantallas usan el mismo estilo Apple del inicio de sesión aprobado; las reglas concretas están en `docs/diseno.md` (sección "Regla: estilo Apple"). El rediseño va pantalla por pantalla: primero la maqueta en el lienzo de diseño (Claude Design), el usuario la aprueba y recién después se programa. Los valores van a tokens de `src/styles.css`. No mezclar el estilo nuevo con el anterior en una misma pantalla. Respetar siempre los efectos de Apple al interactuar (etiqueta del campo que sube, botón que se hunde, error junto al campo, sacudida). **Si no se sabe cómo lo hace Apple, investigarlo antes** (su guía HIG en developer.apple.com y sus páginas reales, como account.apple.com o icloud.com) y decir de dónde sale, en vez de suponerlo.
 
 ## Documentación: se actualiza en cada cambio
 
