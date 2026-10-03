@@ -25,6 +25,14 @@ export function useSaveCompany() {
   })
 }
 
+/** Busca el RUC en SUNAT (a través de la API) para llenar la razón social. */
+export const useLookupCompanyRuc = () =>
+  useMutation({
+    // companyId: la empresa que se está editando, para que la API no avise "ya registrada" por ella misma.
+    mutationFn: ({ ruc, companyId }: { ruc: string; companyId?: string }) =>
+      unwrap(api.GET('/api/companies/ruc-lookup', { params: { query: { ruc, companyId } } })),
+  })
+
 export const useToggleCompany = () =>
   useToggleActive<CompanyRow>(companyKeys.lists(), (id, active) =>
     unwrap(

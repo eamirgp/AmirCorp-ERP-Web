@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Search, TriangleAlert, UserPlus } from 'lucide-react'
+import { Pencil, Search, UserPlus } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
@@ -8,6 +8,7 @@ import { fetchPartnerRow, findPartnerByDocument, partnerKeys, useAddPartnerRole,
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
+import { LookupResult } from '@/components/ui/lookup-result'
 import { ErrorList } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
@@ -290,30 +291,7 @@ export function PartnerFormDialog({
         )}
 
         {lookup.isError && <ErrorList messages={errorMessages(lookup.error)} />}
-        {lookup.data && (
-          <div className="flex flex-col gap-2 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
-            {/* SUNAT informa estado y condición; RENIEC solo el nombre. */}
-            <p>
-              <span className="text-muted">Según {lookup.data.source}: </span>
-              {lookup.data.status ? (
-                <>
-                  <span className="font-medium">{lookup.data.status}</span>
-                  <span className="text-muted"> · </span>
-                  <span className="font-medium">{lookup.data.condition}</span>
-                </>
-              ) : (
-                <span className="font-medium">{lookup.data.name}</span>
-              )}
-            </p>
-            {lookup.data.address && <p className="text-muted">{lookup.data.address}</p>}
-            {lookup.data.warnings.map((w) => (
-              <p key={w} className="flex gap-2 rounded bg-warn-soft px-3 py-2 text-warn-text">
-                <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-                {w}
-              </p>
-            ))}
-          </div>
-        )}
+        {lookup.data && <LookupResult data={lookup.data} />}
 
         <Field label="Nombre o razón social">{(a) => <Input {...a} {...form.register('name')} />}</Field>
 
