@@ -5,7 +5,7 @@ import { Building2, HistoryIcon, Pencil, Plus, Power } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { errorMessages } from '@/api/client'
-import { companiesQuery, useToggleCompany, type CompanyRow } from '@/api/companies'
+import { companiesListQuery, useToggleCompany, type CompanyRow } from '@/api/companies'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar } from '@/components/ui/filters'
@@ -16,9 +16,8 @@ import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
 import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
-import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
+import { countLabel, listFilterOf, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
-import { matchesText } from '@/lib/text'
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -30,7 +29,8 @@ type Search = z.infer<typeof searchSchema>
 export const Route = createFileRoute('/_app/empresas')({
   validateSearch: (search) => searchSchema.parse(search),
   beforeLoad: applyDefaultView('Companies'),
-  loader: ({ context }) => context.queryClient.ensureQueryData(companiesQuery),
+  loaderDeps: ({ search }) => listFilterOf(search),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(companiesListQuery(deps)),
   component: CompaniesPage,
 })
 
@@ -39,7 +39,7 @@ const col = createColumnHelper<CompanyRow>()
 function CompaniesPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const list = useQuery(companiesQuery)
+  const list = useQuery(companiesListQuery(listFilterOf(search)))
   const toggle = useToggleCompany()
   const [editing, setEditing] = useState<CompanyRow | null>(null)
   const [history, setHistory] = useState<HistoryTarget | null>(null)
@@ -63,14 +63,8 @@ function CompaniesPage() {
   })
   const { request: onToggle, busyId } = activation
 
-  // La API devuelve todas las empresas (son pocas): buscar y filtrar aquí es solo presentación.
-  const rows = useMemo(
-    () =>
-      (list.data ?? []).filter(
-        (c) => (!search.estado || c.isActive === (search.estado === 'activos')) && (!search.q || matchesText(search.q, c.name, c.ruc)),
-      ),
-    [list.data, search.q, search.estado],
-  )
+  const rows = list.data ?? []
+  const filtered = !!search.q || !!search.estado
 
   const columns = useMemo(
     () => [
@@ -139,7 +133,7 @@ function CompaniesPage() {
           <Loading text="Cargando empresas…" />
         ) : rows.length > 0 ? (
           <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />
-        ) : list.data.length > 0 ? (
+        ) : filtered ? (
           <EmptyState icon={<Building2 strokeWidth={1.5} />} text="Ninguna empresa coincide con la búsqueda o el filtro." />
         ) : (
           <EmptyState

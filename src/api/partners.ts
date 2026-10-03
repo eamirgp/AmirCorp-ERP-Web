@@ -68,7 +68,7 @@ export type FoundPartner = Schemas['FoundBusinessPartnerDto']
 
 /** Quién tiene ya ese documento, o null si nadie (la API responde 404). */
 export async function findPartnerByDocument(identityDocumentType: IdentityDocumentType, documentNumber: string): Promise<FoundPartner | null> {
-  const r = await api.GET('/api/partners/by-document', { params: { query: { identityDocumentType: identityDocumentType!, documentNumber } } })
+  const r = await api.GET('/api/partners/by-document', { params: { query: { IdentityDocumentType: identityDocumentType!, DocumentNumber: documentNumber } } })
   if (r.response.status === 404) return null
   return unwrap(Promise.resolve(r))
 }
@@ -98,7 +98,7 @@ export const useLookupDocument = () =>
   useMutation({
     // partnerId: el registro que se está editando, para que la API no avise "ya está registrado" por él mismo.
     mutationFn: ({ identityDocumentType, documentNumber, partnerId }: { identityDocumentType: IdentityDocumentType; documentNumber: string; partnerId?: string }) =>
-      unwrap(api.GET('/api/partners/document-lookup', { params: { query: { identityDocumentType: identityDocumentType!, documentNumber, partnerId } } })),
+      unwrap(api.GET('/api/partners/document-lookup', { params: { query: { IdentityDocumentType: identityDocumentType!, DocumentNumber: documentNumber, partnerId } } })),
   })
 
 export function useSavePartner() {

@@ -1,4 +1,5 @@
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toListFilterQuery, type ListFilter } from '@/lib/filters'
 import { api, unwrap, type Schemas } from './client'
 import { useToggleActive } from './mutations'
 
@@ -7,12 +8,22 @@ export type CompanyInput = Schemas['CreateCompanyRequest']
 
 export const companyKeys = {
   all: ['companies'] as const,
-  lists: () => [...companyKeys.all, 'list'] as const,}
+  lists: () => [...companyKeys.all, 'list'] as const,
+}
 
+/** Todas las empresas, para elegir una (compras). */
 export const companiesQuery = queryOptions({
   queryKey: companyKeys.lists(),
   queryFn: () => unwrap(api.GET('/api/companies')),
 })
+
+/** La pantalla de empresas: la API busca y filtra. Mientras llega la respuesta se sigue viendo la lista anterior. */
+export const companiesListQuery = (filter: ListFilter) =>
+  queryOptions({
+    queryKey: [...companyKeys.lists(), filter],
+    queryFn: () => unwrap(api.GET('/api/companies', { params: { query: toListFilterQuery(filter) } })),
+    placeholderData: keepPreviousData,
+  })
 
 export function useSaveCompany() {
   const qc = useQueryClient()

@@ -4,9 +4,9 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { HistoryIcon, KeyRound, Pencil, Plus, Power, ShieldCheck, UserRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
-import { assignableRolesQuery } from '@/api/catalogs'
+import { userRolesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
-import { usersQuery, useToggleUser, type UserRow } from '@/api/users'
+import { usersListQuery, useToggleUser, type UserRow } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar } from '@/components/ui/filters'
@@ -17,9 +17,8 @@ import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { UserDialog } from '@/features/users/user-dialogs'
-import { countLabel, statusOptions, statusSchema } from '@/lib/filters'
+import { countLabel, listFilterOf, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
-import { matchesText } from '@/lib/text'
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -29,12 +28,16 @@ const searchSchema = z.object({
 })
 type Search = z.infer<typeof searchSchema>
 
+// Abrir el formulario "nuevo" no vuelve a pedir la lista.
+const listParams = (s: Search) => ({ ...listFilterOf(s), rol: s.rol })
+
 export const Route = createFileRoute('/_app/usuarios')({
   validateSearch: (search) => searchSchema.parse(search),
   beforeLoad: applyDefaultView('Users'),
-  loader: ({ context }) => {
-    void context.queryClient.prefetchQuery(assignableRolesQuery)
-    return context.queryClient.ensureQueryData(usersQuery)
+  loaderDeps: ({ search }) => listParams(search),
+  loader: ({ context, deps }) => {
+    void context.queryClient.prefetchQuery(userRolesQuery)
+    return context.queryClient.ensureQueryData(usersListQuery(deps))
   },
   component: UsersPage,
 })
@@ -45,7 +48,8 @@ const col = createColumnHelper<UserRow>()
 function UsersPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const list = useQuery(usersQuery)
+  const list = useQuery(usersListQuery(listParams(search)))
+  const roles = useQuery(userRolesQuery)
   const toggle = useToggleUser()
   const [action, setAction] = useState<{ mode: Action; user: UserRow } | null>(null)
   const [history, setHistory] = useState<HistoryTarget | null>(null)
@@ -69,24 +73,8 @@ function UsersPage() {
   })
   const onToggle = activation.request
 
-  // La API devuelve todos los usuarios (son pocos): buscar y filtrar aquí es solo presentación.
-  const rows = useMemo(
-    () =>
-      (list.data ?? []).filter(
-        (u) =>
-          (!search.estado || u.isActive === (search.estado === 'activos')) &&
-          (!search.rol || u.role === search.rol) &&
-          (!search.q || matchesText(search.q, u.name, u.email)),
-      ),
-    [list.data, search.q, search.estado, search.rol],
-  )
-
-  // Roles presentes en la lista, con la descripción que envía la API.
-  const roleOptions = useMemo(() => {
-    const seen = new Map<string, string>()
-    for (const u of list.data ?? []) if (u.role) seen.set(u.role, u.roleDescription ?? u.role)
-    return [...seen].map(([value, label]) => ({ value, label }))
-  }, [list.data])
+  const rows = list.data ?? []
+  const roleOptions = (roles.data ?? []).map((r) => ({ value: r.userRole ?? '', label: r.description }))
 
   const columns = useMemo(
     () => [

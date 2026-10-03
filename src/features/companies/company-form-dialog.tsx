@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { useEffect, useRef, type KeyboardEvent } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { errorMessages } from '@/api/client'
 import { useLookupCompanyRuc, useSaveCompany, type CompanyRow } from '@/api/companies'
@@ -9,6 +9,7 @@ import { Field, Input } from '@/components/ui/field'
 import { LookupResult } from '@/components/ui/lookup-result'
 import { ErrorList } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
+import { compactDocument, lookupOnEnter, useLookedUpName } from '@/features/shared/use-looked-up-name'
 
 interface Values {
   ruc: string
@@ -29,33 +30,16 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
   // Buscar el RUC en SUNAT: lo pide el usuario con el botón o con Enter, nunca solo (cada consulta cuenta en el cupo).
   const lookup = useLookupCompanyRuc()
   const ruc = form.watch('ruc')
-  // La razón social que llenó la consulta. Si el RUC cambia y sigue siendo esa, ya no corresponde: se borra. Una
-  // escrita a mano se respeta.
-  const lookedUpName = useRef('')
-  useEffect(() => {
-    lookup.reset()
-    if (lookedUpName.current && form.getValues('name') === lookedUpName.current) form.setValue('name', '')
-    lookedUpName.current = ''
-  }, [open, ruc]) // eslint-disable-line react-hooks/exhaustive-deps
-  const compact = (n: string | undefined) => n?.replace(/\s/g, '') ?? ''
+  const name = useLookedUpName({
+    getName: () => form.getValues('name'),
+    setName: (v) => form.setValue('name', v),
+    getDocument: () => form.getValues('ruc'),
+    onDocumentChange: () => lookup.reset(),
+    deps: [open, ruc],
+  })
 
   const searchSunat = () =>
-    lookup.mutate(
-      { ruc: compact(ruc), companyId: company?.id },
-      {
-        // Una respuesta que llega tarde, cuando el RUC ya es otro, no llena la razón social.
-        onSuccess: (r, asked) => {
-          if (compact(form.getValues('ruc')) !== asked.ruc) return
-          form.setValue('name', r.name)
-          lookedUpName.current = r.name
-        },
-      },
-    )
-  const lookupOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== 'Enter') return
-    e.preventDefault()
-    if (!lookup.isPending && compact(ruc)) searchSunat()
-  }
+    lookup.mutate({ ruc: compactDocument(ruc), companyId: company?.id }, { onSuccess: (r, asked) => name.fill(r.name, asked.ruc) })
 
   const onSubmit = form.handleSubmit((v) =>
     save.mutate(
@@ -91,8 +75,15 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
         <Field label="RUC" hint={`Presiona SUNAT o Enter para ${company ? 'actualizar' : 'traer'} la razón social.`}>
           {(a) => (
             <div className="flex gap-2">
-              <Input {...a} className="min-w-0 flex-1 font-mono" inputMode="numeric" autoFocus {...form.register('ruc')} onKeyDown={lookupOnEnter} />
-              <Button onClick={searchSunat} loading={lookup.isPending} disabled={!compact(ruc)} title="Trae la razón social desde SUNAT">
+              <Input
+                {...a}
+                className="min-w-0 flex-1 font-mono"
+                inputMode="numeric"
+                autoFocus
+                {...form.register('ruc')}
+                onKeyDown={lookupOnEnter(() => !lookup.isPending && !!compactDocument(ruc), searchSunat)}
+              />
+              <Button onClick={searchSunat} loading={lookup.isPending} disabled={!compactDocument(ruc)} title="Trae la razón social desde SUNAT">
                 <Search />
                 SUNAT
               </Button>

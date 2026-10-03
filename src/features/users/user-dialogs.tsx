@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, type ComponentProps } from 'react'
 import { useForm } from 'react-hook-form'
-import { assignableRolesQuery } from '@/api/catalogs'
+import { userRolesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
 import { useChangeUserRole, useCreateUser, useResetUserPassword, useUpdateUserProfile, type UserRow } from '@/api/users'
 import { Button } from '@/components/ui/button'
@@ -37,11 +37,12 @@ function Footer({ formId, label, pending, onClose }: { formId: string; label: st
 }
 
 function RoleSelect(props: ComponentProps<'select'>) {
-  const roles = useQuery(assignableRolesQuery)
+  const roles = useQuery(userRolesQuery)
   return (
     <Select {...props}>
       <option value="">Elige…</option>
-      {roles.data?.map((r) => (
+      {/* Solo los que puede dar quien usa el sistema (lo indica la API). */}
+      {roles.data?.filter((r) => r.canAssign).map((r) => (
         <option key={r.userRole} value={r.userRole ?? ''}>
           {r.description}
         </option>

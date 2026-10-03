@@ -13,7 +13,14 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Por nombre (sin mayúsculas ni tildes) o por parte del correo. */
+                    SearchTerm?: string;
+                    /** @description true solo activos, false solo inactivos; sin valor, todos. */
+                    IsActive?: boolean;
+                    /** @description Solo los de este rol; sin valor, todos. */
+                    Role?: components["schemas"]["UserRole"];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -412,7 +419,12 @@ export interface paths {
         /** Todo el catálogo: primero las activas y luego las demás, cada grupo por nombre de la A a la Z. */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Texto a buscar, sin distinguir mayúsculas ni tildes. */
+                    SearchTerm?: string;
+                    /** @description true solo activos, false solo inactivos; sin valor, todos. */
+                    IsActive?: boolean;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -1325,7 +1337,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["FileContentResult"];
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["Stream"];
                     };
                 };
                 /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
@@ -1357,6 +1369,7 @@ export interface paths {
         /**
          * Productos en el formato de la plantilla, para editarlos y volver a subirlos. Acepta los mismos
          *     filtros y orden que la lista: sin filtros exporta todos; con filtros, solo los que coinciden.
+         *     400 si son más de los que admite la carga.
          */
         get: {
             parameters: {
@@ -1378,7 +1391,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["FileContentResult"];
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": components["schemas"]["Stream"];
                     };
                 };
                 /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
@@ -1524,7 +1537,12 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Texto a buscar, sin distinguir mayúsculas ni tildes. */
+                    SearchTerm?: string;
+                    /** @description true solo activos, false solo inactivos; sin valor, todos. */
+                    IsActive?: boolean;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -2257,8 +2275,8 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    identityDocumentType?: components["schemas"]["IdentityDocumentType"];
-                    documentNumber?: string;
+                    IdentityDocumentType?: components["schemas"]["IdentityDocumentType"];
+                    DocumentNumber?: string;
                     partnerId?: string;
                 };
                 header?: never;
@@ -2311,8 +2329,8 @@ export interface paths {
         get: {
             parameters: {
                 query?: {
-                    identityDocumentType?: components["schemas"]["IdentityDocumentType"];
-                    documentNumber?: string;
+                    IdentityDocumentType?: components["schemas"]["IdentityDocumentType"];
+                    DocumentNumber?: string;
                 };
                 header?: never;
                 path?: never;
@@ -3059,6 +3077,7 @@ export interface components {
         CreatePurchaseNewProductRequest: {
             /** @description Código interno (la pantalla propone el de la factura). */
             code: null | string;
+            /** @description Nombre del producto (la pantalla propone el de la factura). */
             name: null | string;
             /** @description Código con que lo vende el proveedor de esta compra; opcional. */
             supplierCode: null | string;
@@ -3098,22 +3117,8 @@ export interface components {
         };
         /** @enum {unknown} */
         Currency: "PEN" | "USD" | null;
-        EntityTagHeaderValue: {
-            tag?: components["schemas"]["StringSegment"];
-            isWeak?: boolean;
-        };
         ErrorResponse: {
             errors: string[];
-        };
-        FileContentResult: {
-            /** Format: byte */
-            fileContents?: string;
-            contentType: string;
-            fileDownloadName?: null | string;
-            /** Format: date-time */
-            lastModified?: null | string;
-            entityTag?: null | components["schemas"]["EntityTagHeaderValue"];
-            enableRangeProcessing?: boolean;
         };
         FoundBusinessPartnerDto: {
             /** Format: uuid */
@@ -3123,7 +3128,10 @@ export interface components {
             isSupplier: boolean;
             canAddClientRole: boolean;
             canAddSupplierRole: boolean;
+            addClientRoleError: null | string;
+            addSupplierRoleError: null | string;
             roleDescription: string;
+            summary: string;
         };
         FoundProductDto: {
             /** Format: uuid */
@@ -3131,6 +3139,7 @@ export interface components {
             code: string;
             name: string;
             isActive: boolean;
+            message: string;
         };
         GetBusinessPartnerResponseDto: {
             /** Format: uuid */
@@ -3218,8 +3227,11 @@ export interface components {
             invoiceUnitOfMeasureName: string;
             /** Format: double */
             invoiceQuantity: number;
+            invoicePriceType: components["schemas"]["InvoicePriceType"];
             /** Format: double */
-            invoiceUnitAmount: number;
+            invoiceUnitValue: number;
+            /** Format: double */
+            invoiceUnitPrice: number;
             /** Format: double */
             conversionFactor: number;
             /** Format: double */
@@ -3233,6 +3245,8 @@ export interface components {
             /** Format: double */
             total: number;
             invoiceIgvAffectationDescription: string;
+            /** Format: double */
+            invoiceUnitAmount: number;
             inventoryDescription: string;
         };
         GetPurchaseResponseDto: {
@@ -3303,6 +3317,7 @@ export interface components {
         ListAssignableRolesResponseDto: {
             userRole: components["schemas"]["UserRole"];
             description: string;
+            canAssign: boolean;
         };
         ListAuditActionsResponseDto: {
             action: components["schemas"]["AuditAction"];
@@ -3393,9 +3408,11 @@ export interface components {
             /** Format: uint32 */
             rowVersion: number;
             linkCode?: null | string;
+            searchTerm?: null | string;
             igvAffectationDescription: string;
             igvAffectationShortDescription: string;
             statusDescription: string;
+            isSupplierCodeMatch: boolean;
             linkError: null | string;
             searchMatch: null | string;
         };
@@ -3653,15 +3670,8 @@ export interface components {
             to: number;
             pageSizeOptions: number[];
         };
-        StringSegment: {
-            buffer?: null | string;
-            /** Format: int32 */
-            offset?: number;
-            /** Format: int32 */
-            length?: number;
-            value?: null | string;
-            hasValue?: boolean;
-        };
+        /** Format: binary */
+        Stream: string;
         /** @enum {unknown} */
         TaxDocumentType: "Factura" | "Boleta" | null;
         UnblockBusinessPartnerRoleRequest: {
@@ -3720,12 +3730,16 @@ export interface components {
             isDefault: null | boolean;
         };
         /**
-         * @description Aviso previo: lo que se puede revisar sin el catálogo. Que el nombre no sea el de otra unidad lo revisa el caso de
-         *     uso con string? UnitOfMeasure.NameError(string? name, Guid unitId, IReadOnlyCollection&lt;UnitOfMeasure&gt; units), la regla del dominio.
+         * @description Aviso previo: lo que se puede revisar sin el catálogo (string? UnitOfMeasure.NameFormatError(string? name)). Que el nombre
+         *     no sea el de otra unidad lo revisa el caso de uso con string? UnitOfMeasure.NameError(string? name, Guid unitId, IReadOnlyCollection&lt;UnitOfMeasure&gt; units), la regla completa.
          */
         UpdateUnitOfMeasureRequest: {
+            /** @description El nombre corto que se ve en la pantalla (ej.: "Caja"). */
             name: null | string;
-            /** Format: uint32 */
+            /**
+             * Format: uint32
+             * @description La versión que se vio en la lista: si otra persona la cambió mientras tanto, responde 409.
+             */
             rowVersion: null | number;
         };
         UpdateUserProfileRequest: {

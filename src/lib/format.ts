@@ -14,7 +14,6 @@ const withThinSpaces = (f: Intl.NumberFormat, value: number) =>
 
 const integer = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 })
 const decimal = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 6 })
-const cost = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
 const moneyFormats = new Map<string, Intl.NumberFormat>()
 
 /** Monto en la moneda indicada por la API: "S/ 1 234.50", "US$ 1 234.50". */
@@ -41,9 +40,6 @@ export const formatInt = (value: number) => withThinSpaces(integer, value)
 
 /** Cantidad o costo con hasta 6 decimales, sin ceros de más: 12.5, 1 250.083333 */
 export const formatDecimal = (value: number) => withThinSpaces(decimal, value)
-
-/** Costo unitario: como un monto, pero sin perder decimales cuando el costo es muy pequeño: 2.00, 0.004237 */
-export const formatCost = (value: number) => withThinSpaces(cost, value)
 
 /** Fecha de la API (yyyy-mm-dd) como dd/mm/yyyy, sin convertir zonas horarias. */
 export function formatDate(isoDate: string) {

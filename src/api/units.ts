@@ -1,4 +1,5 @@
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toListFilterQuery, type ListFilter } from '@/lib/filters'
 import { unitsOfMeasureQuery } from './catalogs'
 import { api, unwrap, type Schemas } from './client'
 import { useToggleActive } from './mutations'
@@ -10,11 +11,16 @@ export const unitKeys = {
   lists: () => [...unitKeys.all, 'list'] as const,
 }
 
-/** Todo el catálogo SUNAT, para la pantalla de administración (primero las activas; cada grupo de la A a la Z). */
-export const unitsQuery = queryOptions({
-  queryKey: unitKeys.lists(),
-  queryFn: () => unwrap(api.GET('/api/units-of-measure')),
-})
+/**
+ * El catálogo SUNAT para la pantalla de administración (primero las activas; cada grupo de la A a la Z). La API busca
+ * y filtra; mientras llega la respuesta se sigue viendo la lista anterior.
+ */
+export const unitsListQuery = (filter: ListFilter) =>
+  queryOptions({
+    queryKey: [...unitKeys.lists(), filter],
+    queryFn: () => unwrap(api.GET('/api/units-of-measure', { params: { query: toListFilterQuery(filter) } })),
+    placeholderData: keepPreviousData,
+  })
 
 // Al cambiar una unidad también se refresca el catálogo de activas que usan productos y compras.
 const catalogKey = unitsOfMeasureQuery.queryKey

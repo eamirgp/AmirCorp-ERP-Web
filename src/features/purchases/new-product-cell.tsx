@@ -60,7 +60,7 @@ export function NewProductCell({
       </div>
       {taken && (
         <p role="alert" className="text-xs text-bad">
-          {taken.code} ya es el código interno de «{taken.name}»{taken.isActive ? '' : ' (desactivado)'}. Escribe otro código interno para este producto.
+          {taken.message}
         </p>
       )}
       <p className="text-xs text-faint">

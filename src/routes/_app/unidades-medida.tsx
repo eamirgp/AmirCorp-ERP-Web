@@ -5,7 +5,7 @@ import { HistoryIcon, Pencil, Power, Ruler } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { errorMessages } from '@/api/client'
-import { unitsQuery, useToggleUnit, type UnitRow } from '@/api/units'
+import { unitsListQuery, useToggleUnit, type UnitRow } from '@/api/units'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar, type Option } from '@/components/ui/filters'
 import { EmptyState, ListPanel, Loading, SearchBox } from '@/components/ui/list-controls'
@@ -14,8 +14,7 @@ import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet
 import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { UnitNameDialog } from '@/features/units/unit-name-dialog'
 import { isCustomized } from '@/features/saved-views/view-filters'
-import { countLabel, statusSchema, type ActiveFilter } from '@/lib/filters'
-import { matchesText } from '@/lib/text'
+import { countLabel, listFilterOf, statusSchema, type ActiveFilter } from '@/lib/filters'
 
 const searchSchema = z.object({
   q: z.string().optional().catch(undefined),
@@ -31,7 +30,8 @@ const statusOptions: Option<ActiveFilter>[] = [
 
 export const Route = createFileRoute('/_app/unidades-medida')({
   validateSearch: (search) => searchSchema.parse(search),
-  loader: ({ context }) => context.queryClient.ensureQueryData(unitsQuery),
+  loaderDeps: ({ search }) => listFilterOf(search),
+  loader: ({ context, deps }) => context.queryClient.ensureQueryData(unitsListQuery(deps)),
   component: UnitsPage,
 })
 
@@ -40,7 +40,7 @@ const col = createColumnHelper<UnitRow>()
 function UnitsPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const list = useQuery(unitsQuery)
+  const list = useQuery(unitsListQuery(listFilterOf(search)))
   const toggle = useToggleUnit()
   const [editing, setEditing] = useState<UnitRow | null>(null)
   const [history, setHistory] = useState<HistoryTarget | null>(null)
@@ -57,14 +57,7 @@ function UnitsPage() {
   })
   const { request: onToggle, busyId } = activation
 
-  // La API devuelve todo el catálogo (son pocas): buscar y filtrar aquí es solo presentación.
-  const rows = useMemo(
-    () =>
-      (list.data ?? []).filter(
-        (u) => (!search.estado || u.isActive === (search.estado === 'activos')) && (!search.q || matchesText(search.q, u.name, u.code, u.sunatName)),
-      ),
-    [list.data, search.q, search.estado],
-  )
+  const rows = list.data ?? []
 
   const columns = useMemo(
     () => [

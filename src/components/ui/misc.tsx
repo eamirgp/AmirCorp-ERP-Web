@@ -19,10 +19,6 @@ export function Kbd({ children }: { children: ReactNode }) {
   return <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded border border-line px-1 font-sans text-2xs text-faint">{children}</kbd>
 }
 
-export function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`min-w-0 rounded-lg border border-line bg-surface ${className}`}>{children}</section>
-}
-
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
   return (
     <header className="flex flex-col gap-x-6 gap-y-4 sm:flex-row sm:items-end">

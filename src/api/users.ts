@@ -1,4 +1,5 @@
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toListFilterQuery, type ListFilter } from '@/lib/filters'
 import { meQuery } from './account'
 import { api, unwrap, type Schemas } from './client'
 import { useToggleActive } from './mutations'
@@ -8,12 +9,22 @@ export type UserRole = NonNullable<Schemas['UserRole']>
 
 export const userKeys = {
   all: ['users'] as const,
-  lists: () => [...userKeys.all, 'list'] as const,}
+  lists: () => [...userKeys.all, 'list'] as const,
+}
 
+/** Todos los usuarios, para elegir uno (auditoría). */
 export const usersQuery = queryOptions({
   queryKey: userKeys.lists(),
   queryFn: () => unwrap(api.GET('/api/users')),
 })
+
+/** La pantalla de usuarios: la API busca y filtra. Mientras llega la respuesta se sigue viendo la lista anterior. */
+export const usersListQuery = (filter: ListFilter & { rol?: string }) =>
+  queryOptions({
+    queryKey: [...userKeys.lists(), filter],
+    queryFn: () => unwrap(api.GET('/api/users', { params: { query: { ...toListFilterQuery(filter), Role: (filter.rol || undefined) as UserRole | undefined } } })),
+    placeholderData: keepPreviousData,
+  })
 
 // También se recarga "mi cuenta": si el usuario editado es quien está usando el sistema, el menú muestra su nombre nuevo.
 function useUserMutation<V>(fn: (v: V) => Promise<unknown>) {

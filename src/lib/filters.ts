@@ -19,5 +19,17 @@ export const pageSizeSchema = z.coerce.number().int().min(1).optional().catch(un
 /** Convierte el filtro de la URL al parámetro IsActive de la API (undefined = todos). */
 export const toIsActive = (filter: ActiveFilter | undefined): boolean | undefined => (filter === undefined ? undefined : filter === 'activos')
 
+/** Búsqueda y estado de las listas cortas (empresas, usuarios, unidades): los filtra la API, igual que en las largas. */
+export interface ListFilter {
+  q?: string
+  estado?: ActiveFilter
+}
+
+/** Solo la búsqueda y el estado de la URL (abrir el formulario "nuevo" no vuelve a pedir la lista). */
+export const listFilterOf = ({ q, estado }: ListFilter): ListFilter => ({ q, estado })
+
+/** El filtro de la URL como lo espera la API. */
+export const toListFilterQuery = (f: ListFilter) => ({ SearchTerm: f.q || undefined, IsActive: toIsActive(f.estado) })
+
 /** "57 productos", "1 producto" */
 export const countLabel = (n: number, singular: string, plural: string) => `${formatInt(n)} ${n === 1 ? singular : plural}`

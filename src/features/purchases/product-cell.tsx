@@ -143,7 +143,8 @@ export function ProductCell({
         // registrado (se enlaza el código) o uno nuevo.
         extraOptions={(term, items) => {
           const code = term.toUpperCase()
-          if (items.some((p) => p.supplierCode === code)) return []
+          // La API dice si lo buscado es justo el código del proveedor de alguno (normalizado como lo guarda).
+          if (items.some((p) => p.isSupplierCodeMatch)) return []
           return [
             {
               key: 'link',

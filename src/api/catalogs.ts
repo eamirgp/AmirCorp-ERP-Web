@@ -37,6 +37,7 @@ export const currenciesQuery = catalog('currencies', () => unwrap(api.GET('/api/
 export const taxDocumentTypesQuery = catalog('tax-document-types', () => unwrap(api.GET('/api/catalogs/tax-document-types')))
 export const invoicePriceTypesQuery = catalog('invoice-price-types', () => unwrap(api.GET('/api/catalogs/invoice-price-types')))
 export const identityDocumentTypesQuery = catalog('identity-document-types', () => unwrap(api.GET('/api/partners/identity-document-types')))
-export const assignableRolesQuery = catalog('assignable-roles', () => unwrap(api.GET('/api/users/roles')))
+/** Todos los roles, con canAssign: si quien usa el sistema puede darlo. */
+export const userRolesQuery = catalog('user-roles', () => unwrap(api.GET('/api/users/roles')))
 export const auditEntityTypesQuery = catalog('audit-entity-types', () => unwrap(api.GET('/api/audit/entity-types')))
 export const auditActionsQuery = catalog('audit-actions', () => unwrap(api.GET('/api/audit/actions')))

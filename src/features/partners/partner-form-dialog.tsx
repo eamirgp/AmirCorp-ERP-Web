@@ -1,10 +1,10 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Search, UserPlus } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Search } from 'lucide-react'
+import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
-import { fetchPartnerRow, findPartnerByDocument, partnerKeys, useAddPartnerRole, useLookupDocument, useSavePartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
+import { useLookupDocument, useSavePartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input, Select } from '@/components/ui/field'
@@ -12,6 +12,8 @@ import { LookupResult } from '@/components/ui/lookup-result'
 import { ErrorList } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
+import { ExistingPartnerNotice, useExistingPartner } from '@/features/partners/existing-partner'
+import { compactDocument, lookupOnEnter, useLookedUpName } from '@/features/shared/use-looked-up-name'
 import { matchesText } from '@/lib/text'
 
 type CountryOption = Schemas['ListCountriesResponseDto']
@@ -51,14 +53,11 @@ export function PartnerFormDialog({
   // La API envía todos los países (son pocos y fijos): buscar entre ellos es solo presentación, sin tildes.
   const findCountries = (term: string) => Promise.resolve((countries.data ?? []).filter((c) => !term || matchesText(term, c.name, c.code)))
   const save = useSavePartner()
-  const addRole = useAddPartnerRole()
   const form = useForm<Values>({ defaultValues: empty })
 
   useEffect(() => {
     if (!open) return
     save.reset()
-    addRole.reset()
-    lookedUpName.current = ''
     form.reset(
       partner
         ? {
@@ -86,105 +85,32 @@ export function PartnerFormDialog({
   // Buscar el RUC en SUNAT o el DNI en RENIEC: solo si la API lo permite para este tipo (con la consulta configurada).
   const lookup = useLookupDocument()
   const documentNumber = form.watch('documentNumber')
-  // El nombre que llenó la consulta. Si el documento cambia y el nombre sigue siendo ese, ya no corresponde: se
-  // borra para que la consulta del número nuevo lo llene. Un nombre escrito a mano se respeta.
-  const lookedUpName = useRef('')
-  const fillName = (name: string) => {
-    form.setValue('name', name)
-    lookedUpName.current = name
-  }
-  useEffect(() => {
-    lookup.reset()
-    if (lookedUpName.current && form.getValues('name') === lookedUpName.current) form.setValue('name', '')
-    lookedUpName.current = ''
-  }, [open, docType, documentNumber]) // eslint-disable-line react-hooks/exhaustive-deps
-  const compact = (n: string | undefined) => n?.replace(/\s/g, '') ?? ''
-  // Una respuesta que llega tarde, cuando el número ya es otro, no debe llenar el nombre.
-  const stillCurrent = (asked: string) => compact(form.getValues('documentNumber')) === compact(asked)
-  // Al crear o al cambiar el documento: ¿alguien más ya lo tiene? Se consulta un momento después de dejar de escribir.
-  const [typed, setTyped] = useState('')
-  const duplicateKey = (type: string, number: string) => [...partnerKeys.all, 'by-document', type, number]
+  const name = useLookedUpName({
+    getName: () => form.getValues('name'),
+    setName: (v) => form.setValue('name', v),
+    getDocument: () => form.getValues('documentNumber'),
+    onDocumentChange: () => lookup.reset(),
+    deps: [open, docType, documentNumber],
+  })
+  const existing = useExistingPartner({ open, partner, docType, documentNumber })
+  const found = existing.found
 
-  // Antes de gastar una consulta se revisa el duplicado, sin esperar a que el usuario deje de escribir: con un Enter
-  // rápido, el aviso todavía no habría llegado. Si el documento ya lo tiene otro, no se consulta y sale el aviso.
-  const queryClient = useQueryClient()
-  const [checking, setChecking] = useState(false)
+  // Si el documento ya lo tiene otro, no se gasta la consulta y sale el aviso.
   const searchSource = async () => {
     const type = docType as IdentityDocumentType
-    const number = compact(documentNumber)
-    setTyped(number)
-    setChecking(true)
-    try {
-      const duplicate = await queryClient.fetchQuery({ queryKey: duplicateKey(type!, number), queryFn: () => findPartnerByDocument(type, number), staleTime: 30_000 })
-      if (duplicate && duplicate.id !== partner?.id) return
-    } catch {
-      // Si la revisión falla, se sigue: la consulta también avisa si ya está registrado y la API lo impide al guardar.
-    } finally {
-      setChecking(false)
-    }
-    if (!stillCurrent(number)) return
+    const number = compactDocument(documentNumber)
+    if ((await existing.takenByOther(type, number)) || !name.isCurrent(number)) return
     lookup.mutate(
       { identityDocumentType: type, documentNumber: number, partnerId: partner?.id },
-      {
-        // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
-        onSuccess: (r, asked) => stillCurrent(asked.documentNumber) && fillName(r.name),
-      },
+      // Solo se llena el nombre: el número lo normaliza la API al guardar, y cambiarlo aquí borraría el resultado.
+      { onSuccess: (r, asked) => name.fill(r.name, asked.documentNumber) },
     )
   }
-
-  useEffect(() => {
-    const t = setTimeout(() => setTyped(compact(documentNumber)), 400)
-    return () => clearTimeout(t)
-  }, [documentNumber])
-  const existing = useQuery({
-    queryKey: duplicateKey(docType, typed),
-    queryFn: () => findPartnerByDocument(docType as IdentityDocumentType, typed),
-    enabled: open && !!docType && typed.length >= 3,
-  })
-  // Al editar, encontrarse a sí mismo no es un duplicado; sí lo es que el documento nuevo ya lo tenga otro.
-  // Mientras se sigue escribiendo, el resultado es del número anterior y no se muestra.
-  const upToDate = compact(documentNumber) === typed
-  const found = upToDate && existing.data && existing.data.id !== partner?.id ? existing.data : null
-  const canAddHere = found && (isSuppliers ? found.canAddSupplierRole : found.canAddClientRole)
-  const alreadyHere = found && (isSuppliers ? found.isSupplier : found.isClient)
 
   // La consulta en SUNAT o RENIEC nunca es automática: cada una cuenta en el cupo del servicio y un DNI no se puede
   // validar antes (cualquier número de 8 dígitos se consultaría). La pide el usuario con el botón o con Enter en el
   // número. El aviso de duplicado sí es inmediato, porque busca en la base propia.
   const canLookup = !!selectedType?.supportsLookup && !found
-  const lookupOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== 'Enter') return
-    e.preventDefault()
-    if (canLookup && !checking && !lookup.isPending && compact(documentNumber)) searchSource()
-  }
-
-  // Ya está en esta lista: se abre su ficha para editarlo, en vez de dejar al usuario buscándolo.
-  const [opening, setOpening] = useState(false)
-  const openExisting = async () => {
-    if (!found) return
-    setOpening(true)
-    try {
-      const row = await fetchPartnerRow(found.id, typed, role)
-      if (row) onOpenExisting(row)
-      else toast.error('No se pudo abrir. Búscalo en la lista.')
-    } catch (e) {
-      toast.error(errorMessages(e)[0])
-    } finally {
-      setOpening(false)
-    }
-  }
-
-  const addHere = () =>
-    found &&
-    addRole.mutate(
-      { id: found.id, role: isSuppliers ? 'Supplier' : 'Client' },
-      {
-        onSuccess: () => {
-          toast.ok(`${found.name} ahora también es ${noun}`)
-          onClose()
-        },
-      },
-    )
 
   const onSubmit = form.handleSubmit((v) =>
     save.mutate(
@@ -227,10 +153,11 @@ export function PartnerFormDialog({
       }
     >
       <form id="partner-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-        <ErrorList messages={save.isError ? errorMessages(save.error) : addRole.isError ? errorMessages(addRole.error) : []} />
+        <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
 
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <Field label="Tipo de documento" hint={isSuppliers ? 'Un proveedor tiene RUC o documento extranjero.' : 'Un cliente tiene RUC o DNI.'}>
+          {/* La lista ya trae solo los documentos que admite este rol (lo indica la API). */}
+          <Field label="Tipo de documento">
             {(a) => (
               <Select {...a} autoFocus {...form.register('identityDocumentType')}>
                 <option value="">Elige…</option>
@@ -246,9 +173,14 @@ export function PartnerFormDialog({
             {(a) =>
               selectedType?.supportsLookup ? (
                 <div className="flex gap-2">
-                  <Input {...a} className="min-w-0 flex-1 font-mono" {...form.register('documentNumber')} onKeyDown={lookupOnEnter} />
+                  <Input
+                    {...a}
+                    className="min-w-0 flex-1 font-mono"
+                    {...form.register('documentNumber')}
+                    onKeyDown={lookupOnEnter(() => canLookup && !existing.checking && !lookup.isPending && !!compactDocument(documentNumber), searchSource)}
+                  />
                   {/* Si ya está registrado no hace falta consultarlo: el aviso de abajo dice quién es. */}
-                  <Button onClick={searchSource} loading={checking || lookup.isPending} disabled={!canLookup} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
+                  <Button onClick={searchSource} loading={existing.checking || lookup.isPending} disabled={!canLookup} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
                     <Search />
                     {selectedType.lookupSource}
                   </Button>
@@ -260,35 +192,7 @@ export function PartnerFormDialog({
           </Field>
         </div>
 
-        {/* Ya existe: en vez de crear un duplicado, se ofrece agregarlo a esta lista (o se explica por qué no). */}
-        {found && (
-          <div className="flex flex-col gap-3 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
-            <p>
-              <span className="font-medium">{found.name}</span> ya está registrado como <span className="font-medium">{found.roleDescription.toLowerCase()}</span>.
-            </p>
-            {partner ? (
-              <p className="text-muted">Dos registros no pueden tener el mismo documento. Revisa el número.</p>
-            ) : canAddHere ? (
-              <div>
-                <Button variant="primary" size="sm" onClick={addHere} loading={addRole.isPending}>
-                  <UserPlus />
-                  Agregarlo también como {noun}
-                </Button>
-              </div>
-            ) : alreadyHere ? (
-              <div>
-                <Button variant="primary" size="sm" onClick={openExisting} loading={opening}>
-                  <Pencil />
-                  Abrir {found.name}
-                </Button>
-              </div>
-            ) : (
-              <p className="text-muted">
-                Con {selectedType?.description ?? 'este documento'} no puede ser {noun}.
-              </p>
-            )}
-          </div>
-        )}
+        {found && <ExistingPartnerNotice found={found} partner={partner} role={role} typed={existing.typed} onAdded={onClose} onOpenExisting={onOpenExisting} />}
 
         {lookup.isError && <ErrorList messages={errorMessages(lookup.error)} />}
         {lookup.data && <LookupResult data={lookup.data} />}
