@@ -36,7 +36,7 @@ Tokens en `src/styles.css`, usados como utilidades de Tailwind:
 | `bg`, `surface`, `surface-2` | Fondo, paneles y fondo suave del ítem o fila activa |
 | `line`, `line-strong` | Bordes finos y decorativos (tarjetas, separadores, botones) |
 | `control` | Borde de campos y listas desplegables (`#8A8A87`, en oscuro `#6E6E6E`): 3:1 o más sobre la página y las tarjetas, para que se vea dónde escribir (WCAG 1.4.11) |
-| `ink`, `muted`, `faint` | Texto principal, secundario (`#525252`, 7.8:1) y de apoyo (`#6B6B6B`, 4.8:1 sobre la página). Todo texto cumple el contraste AA, medido con la fórmula de WCAG y no a ojo: los dueños son personas mayores |
+| `ink`, `muted`, `faint` | Texto principal, secundario (`#525252`, 7.8:1) y de apoyo (`#6B6B6B`, 4.8:1 sobre la página). Todo texto cumple el contraste AA, medido con la fórmula de WCAG y no a ojo: se lee bien en cualquier pantalla y a cualquier edad |
 | `primary`, `primary-ink` | Botón principal: negro con texto blanco, invertido en modo oscuro |
 | `accent`, `accent-soft`, `accent-text` | Jade: acento, fondo suave y jade legible como texto |
 | `ok`, `warn`, `bad` | Color del punto de estado: activo o aceptado, pendiente, anulado o error. El rojo (`#C0392F`) da 4.9:1 sobre su fondo rosado (`bad-soft`) |
@@ -47,7 +47,7 @@ El tema sigue al sistema operativo y el usuario puede fijarlo en claro u oscuro 
 
 ### Tamaños
 
-La escala está en `src/styles.css` (`@theme`) y es generosa a propósito: el sistema se usa muchas horas al día y lo usan también personas mayores. **Para agrandar o achicar toda la aplicación se cambian esos valores**, no los componentes. En el código nunca se escriben tamaños a mano (`text-[13px]`): se usa la escala.
+La escala está en `src/styles.css` (`@theme`) y es cómoda a propósito: el sistema se usa muchas horas al día. (Al principio se pensó para personas mayores; los usuarios son el dueño y su equipo, en buena parte gente joven: ver la decisión 11 en decisiones.md.) **Para agrandar o achicar toda la aplicación se cambian esos valores**, no los componentes. En el código nunca se escriben tamaños a mano (`text-[13px]`): se usa la escala.
 
 | Clase | Tamaño | Uso |
 |---|---|---|

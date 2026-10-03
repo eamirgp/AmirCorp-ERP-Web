@@ -72,3 +72,8 @@ El detalle y el motivo de cada cambio están en las decisiones 32, 33 y 34 de la
 - **Legible para personas mayores (33):** contraste medido (rojo de errores, gris tenue y borde propio de los campos), errores del mismo tamaño, avisos con todos los mensajes, "Reintentar" en las listas y montos con el símbolo de moneda que envía la API.
 - **La pantalla deja de decidir (34):** si se puede anular una compra (`cancelError`) y qué acciones hay sobre cada usuario (`canManage`) lo dice la API; las empresas activas las filtra la API; los códigos se ven en mayúsculas solo con CSS. Las 7 listas usan `ListBody`.
 - **Pendiente:** algunas explicaciones fijas siguen escritas aquí (bloqueo de compras o ventas, etiquetas de orden, resumen de la importación). ESLint no está instalado aunque el código tiene comentarios para él.
+
+### 11. Usuarios: el equipo completo, no solo personas mayores
+**Fecha:** octubre 2026
+
+Hasta ahora el diseño se pensó para personas mayores (letra y campos grandes, nada de etiquetas dentro de los campos). Los usuarios reales son el dueño y su equipo, en buena parte gente joven (sus hijos y trabajadores). Desde ahora el diseño apunta a un estilo moderno, al estilo Apple, sin agrandar todo por defecto. Se mantiene lo que sirve a cualquiera: textos claros, pocos campos, contraste medido y movimiento suave que se apaga con "reducir movimiento". La primera pantalla con este criterio es el inicio de sesión (pantalla dividida con la marca a la izquierda), diseñada antes de programarla.
