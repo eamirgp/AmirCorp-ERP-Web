@@ -27,7 +27,7 @@ import type { NewProduct } from '@/features/purchases/new-product-cell'
 import { ProductCell } from '@/features/purchases/product-cell'
 import { SupplierField, type NewSupplier } from '@/features/purchases/supplier-field'
 import { Totals } from '@/features/purchases/totals'
-import { formatAmount, formatDecimal, formatMoney, todayIso } from '@/lib/format'
+import { formatAmount, formatCost, formatDecimal, formatMoney, todayIso } from '@/lib/format'
 import { parseNumberInput } from '@/lib/number-input'
 import { useDebounced } from '@/lib/use-debounced'
 
@@ -485,9 +485,10 @@ function NewPurchasePage() {
                     </td>
                     <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap">
                       {result?.total != null ? formatAmount(result.total) : <span className="text-faint">—</span>}
+                      {/* Lo que entra al inventario: unidades y costo de cada una. El IGV no es costo (es crédito fiscal). */}
                       {result?.inventoryQuantity != null && result.inventoryUnitCost != null && (
                         <span className="block text-xs text-faint">
-                          {formatDecimal(result.inventoryQuantity)} und. a {formatDecimal(result.inventoryUnitCost)}
+                          {formatDecimal(result.inventoryQuantity)} und. · costo {formatCost(result.inventoryUnitCost)} c/u sin IGV
                         </span>
                       )}
                     </td>
