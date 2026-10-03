@@ -105,7 +105,8 @@ export function PurchaseLinesTable({
                       key={supplierKey(supplier, newSupplier)}
                       lineNumber={i + 1}
                       supplierId={supplier?.id}
-                      supplierName={supplier?.name ?? newSupplier?.name ?? null}
+                      // Un proveedor nuevo sin razón social todavía (SUNAT no respondió) ya es un proveedor: se nombra por su RUC.
+                      supplierName={supplier?.name ?? (newSupplier ? newSupplier.name.trim() || `RUC ${newSupplier.ruc}` : null)}
                       product={(line?.product as ProductRow | null | undefined) ?? null}
                       newProduct={(line?.newProduct as NewProduct | null | undefined) ?? null}
                       linkCode={line?.supplierCode ?? ''}

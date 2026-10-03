@@ -124,6 +124,11 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
             {(a) => (
               <Select {...a} {...form.register('unitOfMeasure')}>
                 <option value="">Elige…</option>
+                {/* La lista trae las unidades activas. Si la del producto se desactivó, se muestra igual: el producto la
+                    conserva y puede seguir editándose (la API la acepta si no cambia). */}
+                {product && units.data && !units.data.some((u) => u.code === product.unitOfMeasureCode) && (
+                  <option value={product.unitOfMeasureCode}>{product.unitOfMeasureName}</option>
+                )}
                 {units.data?.map((u) => (
                   <option key={u.code} value={u.code}>
                     {u.name}

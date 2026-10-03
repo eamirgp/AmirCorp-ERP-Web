@@ -16,12 +16,15 @@ const integer = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 })
 const decimal = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 6 })
 const moneyFormats = new Map<string, Intl.NumberFormat>()
 
-/** Monto en la moneda indicada por la API: "S/ 1 234.50", "US$ 1 234.50". */
+/**
+ * Monto en la moneda indicada por la API: "S/ 1 234.50", "US$ 1 234.50". Siempre con céntimos, y sin esconder decimales
+ * de más: un precio antiguo de 10.555 se ve 10.555, no 10.56.
+ */
 export function formatMoney(value: number, currency: string | null | undefined) {
   const code = currency ?? 'PEN'
   let f = moneyFormats.get(code)
   if (!f) {
-    f = new Intl.NumberFormat('es-PE', { style: 'currency', currency: code, minimumFractionDigits: 2 })
+    f = new Intl.NumberFormat('es-PE', { style: 'currency', currency: code, minimumFractionDigits: 2, maximumFractionDigits: 6 })
     moneyFormats.set(code, f)
   }
   return withThinSpaces(f, value)

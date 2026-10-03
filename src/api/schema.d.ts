@@ -3488,6 +3488,7 @@ export interface components {
             condition: null | string;
             address: null | string;
             warnings: string[];
+            summary: string;
         };
         PagedResultOfAuditEntryDto: {
             items: components["schemas"]["AuditEntryDto"][];

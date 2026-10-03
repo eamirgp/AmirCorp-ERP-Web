@@ -1,15 +1,16 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ApiError } from '@/api/client'
+import { ConnectionError } from '@/components/layout/connection-error'
 import { RouteError } from '@/components/layout/route-error'
 import { Toaster } from '@/components/ui/toast'
 import { session } from '@/lib/session'
 import { routeTree } from './routeTree.gen'
 import './styles.css'
 
-const queryClient = new QueryClient({
+const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 30_000,
@@ -18,6 +19,13 @@ const queryClient = new QueryClient({
       retry: (count, error) => count < 2 && (!(error instanceof ApiError) || error.status === 0 || error.status >= 500),
     },
   },
+  mutationCache: new MutationCache({
+    // Un 409 dice que los datos cambiaron (otra persona los modificó, o el código ya es de otro): se vuelven a pedir.
+    // Sin esto, al reabrir el formulario se enviaría otra vez la versión vieja y el 409 se repetiría hasta recargar.
+    onError: (error) => {
+      if (error instanceof ApiError && error.status === 409) void queryClient.invalidateQueries()
+    },
+  }),
 })
 
 const router = createRouter({
@@ -38,23 +46,46 @@ declare module '@tanstack/react-router' {
   }
 }
 
-// Al cerrar la sesión (manual, por vencimiento o por un 401) se limpian los datos y se vuelve al login.
+// El usuario cuyos datos muestra la pantalla.
+let shownUser: string | null = null
+
 session.subscribe(() => {
-  if (session.isAuthenticated) return
-  queryClient.clear()
-  const { pathname, href } = router.state.location
-  if (pathname !== '/login') router.navigate({ to: '/login', search: { redirect: href } })
+  // Al cerrar la sesión (manual, por vencimiento o por un 401) se limpian los datos y se vuelve al login.
+  if (!session.isAuthenticated) {
+    shownUser = null
+    queryClient.clear()
+    const { pathname, href } = router.state.location
+    if (pathname !== '/login') router.navigate({ to: '/login', search: { redirect: href } })
+    return
+  }
+
+  // En otra pestaña se inició sesión con otro usuario y esta renovó con su cookie: no se deja a la vista lo del anterior.
+  if (shownUser !== null && session.userId !== shownUser) {
+    queryClient.clear()
+    router.navigate({ to: '/' })
+  }
+  shownUser = session.userId
 })
 
-// El token de acceso solo vive en memoria: al abrir o recargar la página, la sesión se recupera con la cookie del
-// refresh token antes de decidir si mostrar el sistema o el inicio de sesión.
-await session.restore()
+const root = createRoot(document.getElementById('root')!)
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster />
-    </QueryClientProvider>
-  </StrictMode>,
-)
+// El token de acceso solo vive en memoria: al abrir o recargar la página, la sesión se recupera con la cookie del
+// refresh token antes de decidir si mostrar el sistema o el inicio de sesión. Sin conexión no se sabe si hay sesión:
+// se avisa y se reintenta, en vez de mostrar el inicio de sesión como si se hubiera cerrado.
+async function start() {
+  if ((await session.restore()) === 'unreachable') {
+    root.render(<ConnectionError onRetry={start} />)
+    return
+  }
+
+  root.render(
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <Toaster />
+      </QueryClientProvider>
+    </StrictMode>,
+  )
+}
+
+await start()

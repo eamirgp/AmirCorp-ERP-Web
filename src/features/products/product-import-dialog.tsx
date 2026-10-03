@@ -109,8 +109,11 @@ export function ProductImportDialog({
             <Button
               disabled={confirm.isPending}
               onClick={() => {
-                // Al volver a subir se limpia el error de la importación anterior.
+                // Al volver a subir se limpia el error de la importación anterior, y el archivo se elige de nuevo: si se
+                // corrigió en el disco, el navegador no puede volver a enviar el que se eligió antes.
                 confirm.reset()
+                review.reset()
+                setFile(null)
                 setStep('upload')
               }}
             >

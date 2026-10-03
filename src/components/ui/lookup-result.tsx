@@ -5,19 +5,8 @@ import type { Schemas } from '@/api/client'
 export function LookupResult({ data }: { data: Schemas['LookupDocumentResponseDto'] }) {
   return (
     <div className="flex flex-col gap-2 rounded-md border border-line bg-surface-2 px-4 py-3 text-sm">
-      {/* SUNAT informa estado y condición; RENIEC solo el nombre. */}
-      <p>
-        <span className="text-muted">Según {data.source}: </span>
-        {data.status ? (
-          <>
-            <span className="font-medium">{data.status}</span>
-            <span className="text-muted"> · </span>
-            <span className="font-medium">{data.condition}</span>
-          </>
-        ) : (
-          <span className="font-medium">{data.name}</span>
-        )}
-      </p>
+      {/* "Según SUNAT: ACTIVO · HABIDO" o "Según RENIEC: el nombre", armado por la API. */}
+      <p className="font-medium">{data.summary}</p>
       {data.address && <p className="text-muted">{data.address}</p>}
       {data.warnings.map((w) => (
         <p key={w} className="flex gap-2 rounded bg-warn-soft px-3 py-2 text-warn-text">

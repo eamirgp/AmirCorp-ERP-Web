@@ -16,11 +16,23 @@ export const api = createClient<paths>({
 // puede volver a leer).
 const retries = new WeakMap<Request, Request>()
 
+/**
+ * La renovación trajo el token de otro usuario: en otra pestaña se inició sesión con otra cuenta (la cookie es una sola
+ * por navegador). El pedido no se envía con esa cuenta; la pantalla se limpia y vuelve al inicio (main.tsx).
+ */
+const userChanged = () =>
+  new Response(
+    JSON.stringify({ errors: ['En este navegador se inició sesión con otro usuario. Revisa los datos y vuelve a intentarlo.'] }),
+    { status: 409, headers: { 'Content-Type': 'application/json' } },
+  )
+
 const auth: Middleware = {
   async onRequest({ request }) {
     // El token de acceso dura 15 minutos: si está por vencer, se renueva antes de enviar el pedido. Así la sesión se
     // renueva solo cuando se usa el sistema y una pestaña abierta sin usar vence igual.
+    const user = session.userId
     if (session.needsRefresh) await session.refresh()
+    if (user && session.userId && session.userId !== user) return userChanged()
     const token = session.token
     if (token) {
       request.headers.set('Authorization', `Bearer ${token}`)
@@ -36,7 +48,9 @@ const auth: Middleware = {
     // El token pudo vencer antes de lo que creía este equipo (su reloj no coincide con el de la API), o ser de antes
     // de un cambio en la API: se renueva una vez y se repite el pedido. Si la renovación dice que la sesión ya no
     // sirve, ella misma la cierra con el motivo.
+    const user = session.userId
     if (await session.refresh()) {
+      if (user && session.userId !== user) return userChanged()
       retry.headers.set('Authorization', `Bearer ${session.token}`)
       const again = await fetch(retry)
       if (again.status !== 401) return again
@@ -69,6 +83,9 @@ export class ApiError extends Error {
   }
 }
 
+/** Sin conexión con el servidor (sin internet, o el sistema apagado o reiniciándose). */
+export const CONNECTION_ERROR = 'No se pudo conectar con el sistema. Revisa tu conexión a internet e inténtalo de nuevo.'
+
 const fallbackMessages: Record<number, string> = {
   401: 'Tu sesión venció. Vuelve a iniciar sesión.',
   403: 'No tienes permisos para hacer esto.',
@@ -86,7 +103,7 @@ export async function unwrap<T>(request: Promise<{ data?: T; error?: unknown; re
   try {
     result = await request
   } catch {
-    throw new ApiError(0, ['No se pudo conectar con el servidor. Revisa que la API esté encendida.'])
+    throw new ApiError(0, [CONNECTION_ERROR])
   }
 
   const { data, error, response } = result

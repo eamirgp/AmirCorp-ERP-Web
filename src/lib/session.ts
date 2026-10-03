@@ -27,7 +27,7 @@ let endReason: string | null = null
 // Una sola renovación a la vez: si varios pedidos la necesitan juntos, esperan la misma.
 let refreshing: Promise<boolean> | null = null
 
-function payloadOf(jwt: string): { exp?: number } | null {
+function payloadOf(jwt: string): Record<string, unknown> | null {
   try {
     const part = jwt.split('.')[1] ?? ''
     return JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')))
@@ -35,6 +35,18 @@ function payloadOf(jwt: string): { exp?: number } | null {
     return null
   }
 }
+
+// El Id del usuario del token (la API lo envía con el nombre largo de .NET).
+const NAME_IDENTIFIER = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+
+function userOf(jwt: string | null): string | null {
+  const payload = jwt ? payloadOf(jwt) : null
+  const id = payload?.[NAME_IDENTIFIER] ?? payload?.nameid ?? payload?.sub
+  return typeof id === 'string' ? id : null
+}
+
+/** Cómo terminó la recuperación de la sesión al abrir la página. */
+export type RestoreResult = 'restored' | 'none' | 'unreachable'
 
 const notify = () => listeners.forEach((l) => l())
 
@@ -72,6 +84,14 @@ export const session = {
   get needsRefresh(): boolean {
     const exp = token ? payloadOf(token)?.exp : undefined
     return token !== null && (typeof exp !== 'number' || exp * 1000 - Date.now() < 60_000)
+  },
+
+  /**
+   * El usuario de la sesión, o null sin sesión. Puede cambiar sin cerrarla: si en otra pestaña se inició sesión con otro
+   * usuario, la cookie es la suya y la próxima renovación trae su token.
+   */
+  get userId(): string | null {
+    return userOf(token)
   },
 
   /** Milisegundos hasta que la sesión venza por falta de uso (0 si no hay sesión). */
@@ -124,10 +144,17 @@ export const session = {
     if (!(await session.refresh())) session.end()
   },
 
-  /** Al abrir la página: recupera la sesión con la cookie, si la hay. */
-  async restore() {
+  /**
+   * Al abrir la página: recupera la sesión con la cookie, si la hay. Sin conexión o con un error del servidor no se sabe
+   * si hay sesión ('unreachable'): no se muestra el inicio de sesión como si se hubiera cerrado.
+   */
+  async restore(): Promise<RestoreResult> {
     const response = await callAuth('refresh')
-    if (response?.ok) session.start((await response.json()) as SessionResponse)
+    if (response?.ok) {
+      session.start((await response.json()) as SessionResponse)
+      return 'restored'
+    }
+    return response === null || response.status >= 500 ? 'unreachable' : 'none'
   },
 
   /** "Cerrar sesión": la anula también en el servidor, para que la cookie ya no sirva. */

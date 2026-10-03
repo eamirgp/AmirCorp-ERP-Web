@@ -148,7 +148,7 @@ export function SupplierField({
         <p className="text-xs text-faint">
           {existingNote ??
             (lookup.data
-              ? `Según ${lookup.data.source}: ${lookup.data.status} · ${lookup.data.condition}. Se registrará como proveedor al guardar la compra.`
+              ? `${lookup.data.summary}. Se registrará como proveedor al guardar la compra.`
               : 'Escribe la razón social. Se registrará como proveedor al guardar la compra.')}
         </p>
       </div>
