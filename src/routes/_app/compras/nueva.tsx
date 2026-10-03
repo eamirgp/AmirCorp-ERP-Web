@@ -49,6 +49,8 @@ interface LineValues {
   product: ProductRow | null
   /** Producto que todavía no existe: la API lo registra junto con la compra. Va en vez de `product`. */
   newProduct: NewProduct | null
+  /** Con un producto existente: el código con que lo vende el proveedor de esta compra, para enlazarlo. */
+  supplierCode: string
   invoiceIgvAffectation: string
   invoiceUnitOfMeasure: string
   invoiceQuantity: string
@@ -70,7 +72,7 @@ interface Values {
   lines: LineValues[]
 }
 
-const emptyLine: LineValues = { product: null, newProduct: null,invoiceIgvAffectation: '', invoiceUnitOfMeasure: '', invoiceQuantity: '', invoiceAmount: '', conversionFactor: '' }
+const emptyLine: LineValues = { product: null, newProduct: null, supplierCode: '',invoiceIgvAffectation: '', invoiceUnitOfMeasure: '', invoiceQuantity: '', invoiceAmount: '', conversionFactor: '' }
 
 /** Texto → número para el contrato de la API; si no es un número, va null y la API responde con el mensaje. */
 const orNull = <T,>(value: string | undefined) => (value ? (value as T) : null)
@@ -124,6 +126,18 @@ function NewPurchasePage() {
   // Al cambiar de unidad, lo escrito ya no corresponde. Con una fija (Unidad, Docena) no se envía nada: la cantidad
   // la pone la API desde su catálogo. Con una variable (Caja) queda vacío para escribir lo que trae esta factura.
   const applyUnit = (index: number, _unit: string) => form.setValue(`lines.${index}.conversionFactor`, '')
+  /**
+   * Elige un producto existente para la línea: se proponen su afectación y su unidad (si está activa; si no, el campo
+   * se vería vacío pero se enviaría), y el código del proveedor que se vaya a enlazar.
+   */
+  const chooseProduct = (index: number, p: ProductRow, supplierCode: string) => {
+    form.setValue(`lines.${index}.product`, p)
+    form.setValue(`lines.${index}.supplierCode`, supplierCode)
+    form.setValue(`lines.${index}.invoiceIgvAffectation`, p.igvAffectation ?? '')
+    const unit = units.data?.some((u) => u.code === p.unitOfMeasureCode) ? p.unitOfMeasureCode : ''
+    form.setValue(`lines.${index}.invoiceUnitOfMeasure`, unit)
+    applyUnit(index, unit)
+  }
   const unitsPerFor = (l: { invoiceUnitOfMeasure?: string; conversionFactor?: string } | undefined) =>
     asksUnitsPer(l?.invoiceUnitOfMeasure) ? parseNumberInput(l?.conversionFactor) : null
 
@@ -216,6 +230,7 @@ function NewPurchasePage() {
           invoiceQuantity: parseNumberInput(l.invoiceQuantity),
           invoiceAmount: parseNumberInput(l.invoiceAmount),
           conversionFactor: unitsPerFor(l),
+          supplierCode: !l.newProduct && l.product && l.supplierCode.trim() ? l.supplierCode.trim() : null,
         })),
       },
       {
@@ -398,11 +413,20 @@ function NewPurchasePage() {
                       {watched.lines?.[i]?.newProduct ? (
                         <NewProductCell
                           lineNumber={i + 1}
+                          supplierId={watched.supplier?.id}
                           value={watched.lines[i]!.newProduct as NewProduct}
                           onChange={(v) => form.setValue(`lines.${i}.newProduct`, v)}
                           onCancel={() => form.setValue(`lines.${i}.newProduct`, null)}
+                          // "Es este": la línea usa el producto existente y le enlaza el código de esta factura.
+                          onPickExisting={(p) => {
+                            const typed = watched.lines?.[i]?.newProduct?.supplierCode ?? ''
+                            form.setValue(`lines.${i}.newProduct`, null)
+                            chooseProduct(i, p, p.supplierCode ? '' : typed)
+                          }}
+                          isInOtherLine={(id) => lineOf(id, i) > 0}
                         />
                       ) : (
+                      <>
                       <Controller
                         control={form.control}
                         name={`lines.${i}.product`}
@@ -416,17 +440,7 @@ function NewPurchasePage() {
                               },
                             }}
                             value={f.value}
-                            onChange={(p) => {
-                              f.onChange(p)
-                              // Se proponen la afectación y la unidad del producto; el usuario puede cambiarlas.
-                              if (p) {
-                                form.setValue(`lines.${i}.invoiceIgvAffectation`, p.igvAffectation ?? '')
-                                // Solo si la unidad está entre las activas: si no, el campo se vería vacío pero se enviaría.
-                                const unit = units.data?.some((u) => u.code === p.unitOfMeasureCode) ? p.unitOfMeasureCode : ''
-                                form.setValue(`lines.${i}.invoiceUnitOfMeasure`, unit)
-                                applyUnit(i, unit)
-                              }
-                            }}
+                            onChange={(p) => (p ? chooseProduct(i, p, '') : f.onChange(null))}
                             queryKey="products"
                             // Con el proveedor elegido, cada producto trae el código de ese proveedor (el de su factura).
                             scope={watched.supplier?.id}
@@ -455,6 +469,22 @@ function NewPurchasePage() {
                           />
                         )}
                       />
+                      {/* Producto existente sin código de este proveedor: se puede enlazar el de la factura, y la próxima
+                          compra a este proveedor lo encuentra escribiendo ese código. */}
+                      {watched.lines?.[i]?.product && !watched.lines[i]?.product?.supplierCode && (watched.supplier || watched.newSupplier) && (
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <label className="shrink-0 text-xs text-muted" htmlFor={`line-supplier-code-${i}`}>
+                            Código de este proveedor
+                          </label>
+                          <Input
+                            id={`line-supplier-code-${i}`}
+                            className="h-8 min-w-0 flex-1 font-mono text-sm"
+                            placeholder="Opcional"
+                            {...form.register(`lines.${i}.supplierCode`, { setValueAs: (v: string) => v.toUpperCase() })}
+                          />
+                        </div>
+                      )}
+                      </>
                       )}
                       {result?.error && <p className="mt-1.5 text-sm text-bad">{result.error}</p>}
                     </td>

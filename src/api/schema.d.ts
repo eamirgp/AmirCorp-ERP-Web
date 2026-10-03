@@ -2891,6 +2891,7 @@ export interface components {
             invoiceAmount: null | number;
             /** Format: double */
             conversionFactor: null | number;
+            supplierCode: null | string;
         };
         CreatePurchaseNewProductRequest: {
             /** @description Código interno (la pantalla propone el de la factura). */
