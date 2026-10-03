@@ -488,7 +488,7 @@ function NewPurchasePage() {
                       {/* Lo que entra al inventario: unidades y costo de cada una. El IGV no es costo (es crédito fiscal). */}
                       {result?.inventoryQuantity != null && result.inventoryUnitCost != null && (
                         <span className="block text-xs text-faint">
-                          {formatDecimal(result.inventoryQuantity)} und. · costo {formatCost(result.inventoryUnitCost)} c/u sin IGV
+                          {formatDecimal(result.inventoryQuantity)} und. · costo {formatCost(result.inventoryUnitCost)} c/u
                         </span>
                       )}
                     </td>
