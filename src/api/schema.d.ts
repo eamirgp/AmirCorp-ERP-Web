@@ -2514,7 +2514,13 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UnblockBusinessPartnerRoleRequest"];
+                    "text/json": components["schemas"]["UnblockBusinessPartnerRoleRequest"];
+                    "application/*+json": components["schemas"]["UnblockBusinessPartnerRoleRequest"];
+                };
+            };
             responses: {
                 /** @description No Content */
                 204: {
@@ -2897,6 +2903,11 @@ export interface components {
         BlockBusinessPartnerRoleRequest: {
             /** @description Motivo opcional ("Mercadería defectuosa"); queda en la lista y en el historial. */
             reason: null | string;
+            /**
+             * Format: uint32
+             * @description Versión que se veía en la lista: si otra persona lo cambió mientras tanto, no se pisa su cambio.
+             */
+            rowVersion: null | number;
         };
         /** @enum {unknown} */
         BusinessPartnerRole: "Client" | "Supplier";
@@ -2907,6 +2918,8 @@ export interface components {
         };
         ChangeUserRoleRequest: {
             role: null | components["schemas"]["UserRole"];
+            /** Format: uint32 */
+            rowVersion: null | number;
         };
         CreateBusinessPartnerRequest: {
             identityDocumentType: null | components["schemas"]["IdentityDocumentType"];
@@ -3231,6 +3244,8 @@ export interface components {
             ruc: string;
             name: string;
             isActive: boolean;
+            /** Format: uint32 */
+            rowVersion: number;
         };
         ListCountriesResponseDto: {
             code: string;
@@ -3332,6 +3347,8 @@ export interface components {
             email: string;
             role: components["schemas"]["UserRole"];
             isActive: boolean;
+            /** Format: uint32 */
+            rowVersion: number;
             roleDescription: string;
         };
         LoginRequest: {
@@ -3540,6 +3557,13 @@ export interface components {
         };
         /** @enum {unknown} */
         TaxDocumentType: "Factura" | "Boleta" | null;
+        UnblockBusinessPartnerRoleRequest: {
+            /**
+             * Format: uint32
+             * @description Versión que se veía en la lista: si otra persona lo cambió mientras tanto, no se pisa su cambio.
+             */
+            rowVersion: null | number;
+        };
         UnitOfMeasureListItemDto: {
             /** Format: uuid */
             id: string;
@@ -3566,6 +3590,8 @@ export interface components {
         UpdateCompanyRequest: {
             ruc: null | string;
             name: null | string;
+            /** Format: uint32 */
+            rowVersion: null | number;
         };
         UpdateProductRequest: {
             code: null | string;
@@ -3589,6 +3615,8 @@ export interface components {
         UpdateUserProfileRequest: {
             name: null | string;
             email: null | string;
+            /** Format: uint32 */
+            rowVersion: null | number;
         };
         /** @enum {unknown} */
         UserRole: "SuperAdmin" | "Admin" | "Employee" | null;

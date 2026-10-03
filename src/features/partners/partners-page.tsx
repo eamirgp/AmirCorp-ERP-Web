@@ -189,7 +189,7 @@ export function PartnersPage({
   const unblock = useBlockPartnerRole()
   const onUnblock = (p: PartnerRow) =>
     unblock.mutate(
-      { id: p.id, role: config.apiRole, blocked: false },
+      { id: p.id, role: config.apiRole, blocked: false, rowVersion: p.rowVersion },
       {
         onSuccess: () => toast.ok(`${isSuppliers ? 'Compras' : 'Ventas'} desbloqueadas: ${p.name}`),
         onError: (e) => toast.error(errorMessages(e)[0]),

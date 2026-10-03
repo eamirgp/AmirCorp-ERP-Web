@@ -20,7 +20,7 @@ export function BlockRoleDialog({ partner, role, onClose }: { partner: PartnerRo
 
   const onSubmit = form.handleSubmit((v) =>
     block.mutate(
-      { id: partner.id, role, blocked: true, reason: v.reason.trim() },
+      { id: partner.id, role, blocked: true, reason: v.reason.trim(), rowVersion: partner.rowVersion },
       {
         onSuccess: () => {
           toast.ok(`${isSupplier ? 'Compras' : 'Ventas'} bloqueadas: ${partner.name}`)

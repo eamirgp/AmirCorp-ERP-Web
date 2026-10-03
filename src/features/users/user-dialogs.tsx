@@ -79,7 +79,7 @@ function CreateUserDialog({ onClose }: { onClose: () => void }) {
 function ProfileDialog({ user, onClose }: { user: UserRow; onClose: () => void }) {
   const update = useUpdateUserProfile()
   const form = useForm({ defaultValues: { name: user.name, email: user.email } })
-  const onSubmit = form.handleSubmit((v) => update.mutate({ id: user.id, input: v }, { onSuccess: () => (toast.ok('Usuario actualizado'), onClose()) }))
+  const onSubmit = form.handleSubmit((v) => update.mutate({ id: user.id, input: { ...v, rowVersion: user.rowVersion } },{ onSuccess: () => (toast.ok('Usuario actualizado'), onClose()) }))
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()} title="Editar usuario" description={user.email} footer={<Footer formId="profile-form" label="Guardar cambios" pending={update.isPending} onClose={onClose} />}>
@@ -96,7 +96,7 @@ function RoleDialog({ user, onClose }: { user: UserRow; onClose: () => void }) {
   const change = useChangeUserRole()
   const form = useForm({ defaultValues: { role: user.role ?? '' } })
   const onSubmit = form.handleSubmit((v) =>
-    change.mutate({ id: user.id, role: (v.role || null) as Schemas['UserRole'] }, { onSuccess: () => (toast.ok('Rol actualizado'), onClose()) }),
+    change.mutate({ id: user.id, role: (v.role || null) as Schemas['UserRole'], rowVersion: user.rowVersion },{ onSuccess: () => (toast.ok('Rol actualizado'), onClose()) }),
   )
 
   return (

@@ -122,11 +122,12 @@ export function useSavePartner() {
 export function useBlockPartnerRole() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, role, blocked, reason }: { id: string; role: PartnerApiRole; blocked: boolean; reason?: string }) =>
+    // rowVersion: la versión que se ve en la lista; si otra persona lo cambió mientras tanto, la API responde 409.
+    mutationFn: ({ id, role, blocked, reason, rowVersion }: { id: string; role: PartnerApiRole; blocked: boolean; reason?: string; rowVersion: number }) =>
       unwrap(
         blocked
-          ? api.PATCH('/api/partners/{id}/roles/{role}/block', { params: { path: { id, role } }, body: { reason: reason || null } })
-          : api.PATCH('/api/partners/{id}/roles/{role}/unblock', { params: { path: { id, role } } }),
+          ? api.PATCH('/api/partners/{id}/roles/{role}/block', { params: { path: { id, role } }, body: { reason: reason || null, rowVersion } })
+          : api.PATCH('/api/partners/{id}/roles/{role}/unblock', { params: { path: { id, role } }, body: { rowVersion } }),
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: partnerKeys.all }),
   })

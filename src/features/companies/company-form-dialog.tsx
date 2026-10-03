@@ -59,7 +59,7 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
 
   const onSubmit = form.handleSubmit((v) =>
     save.mutate(
-      { id: company?.id, input: v },
+      { edit: company ? { id: company.id, rowVersion: company.rowVersion } : undefined, input: v },
       {
         onSuccess: () => {
           toast.ok(company ? 'Empresa actualizada' : 'Empresa creada')

@@ -17,9 +17,10 @@ export const companiesQuery = queryOptions({
 export function useSaveCompany() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, input }: { id?: string; input: CompanyInput }) =>
-      id
-        ? unwrap(api.PUT('/api/companies/{id}', { params: { path: { id } }, body: input })).then(() => id)
+    // edit.rowVersion: la versión que se abrió en el formulario; si otra persona la cambió mientras tanto, la API responde 409.
+    mutationFn: ({ edit, input }: { edit?: { id: string; rowVersion: number }; input: CompanyInput }) =>
+      edit
+        ? unwrap(api.PUT('/api/companies/{id}', { params: { path: { id: edit.id } }, body: { ...input, rowVersion: edit.rowVersion } })).then(() => edit.id)
         : unwrap(api.POST('/api/companies', { body: input })).then((r) => r.id),
     onSuccess: () => qc.invalidateQueries({ queryKey: companyKeys.all }),
   })

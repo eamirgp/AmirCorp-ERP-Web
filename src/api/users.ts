@@ -27,9 +27,10 @@ export const useUpdateUserProfile = () =>
     unwrap(api.PUT('/api/users/{id}', { params: { path: { id } }, body: input })),
   )
 
+// rowVersion: la versión que se abrió en el formulario; si otra persona lo cambió mientras tanto, la API responde 409.
 export const useChangeUserRole = () =>
-  useUserMutation(({ id, role }: { id: string; role: Schemas['UserRole'] }) =>
-    unwrap(api.PATCH('/api/users/{id}/role', { params: { path: { id } }, body: { role } })),
+  useUserMutation(({ id, role, rowVersion }: { id: string; role: Schemas['UserRole']; rowVersion: number }) =>
+    unwrap(api.PATCH('/api/users/{id}/role', { params: { path: { id } }, body: { role, rowVersion } })),
   )
 
 export const useResetUserPassword = () =>
