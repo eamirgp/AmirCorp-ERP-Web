@@ -141,6 +141,36 @@ function NewPurchasePage() {
   const unitsPerFor = (l: { invoiceUnitOfMeasure?: string; conversionFactor?: string } | undefined) =>
     asksUnitsPer(l?.invoiceUnitOfMeasure) ? parseNumberInput(l?.conversionFactor) : null
 
+  // Los productos de las líneas se buscan y se enlazan con los códigos de un proveedor. Si se cambia por otro, ya no
+  // corresponden: se pregunta antes y se quitan de las líneas (la unidad, las cantidades y los montos se quedan).
+  // "Cambiar" en un proveedor nuevo deja el campo vacío sin preguntar; se pregunta al elegir el siguiente.
+  const linesSupplier = useRef<{ key: string; name: string } | null>(null)
+  const [supplierChange, setSupplierChange] = useState<{ from: string; to: string; apply: () => void } | null>(null)
+  const changeSupplier = (key: string | null, name: string, apply: () => void) => {
+    const from = linesSupplier.current
+    const hasProducts = form.getValues('lines').some((l) => l.product || l.newProduct)
+    if (key && from && from.key !== key && hasProducts) {
+      setSupplierChange({
+        from: from.name,
+        to: name,
+        apply: () => {
+          apply()
+          form.getValues('lines').forEach((_, i) => {
+            form.setValue(`lines.${i}.product`, null)
+            form.setValue(`lines.${i}.newProduct`, null)
+            form.setValue(`lines.${i}.supplierCode`, '')
+          })
+          linesSupplier.current = { key, name }
+        },
+      })
+      return
+    }
+    apply()
+    if (key) linesSupplier.current = { key, name }
+  }
+  /** Identifica al proveedor de la compra: el registrado por su id, el nuevo por su RUC. */
+  const supplierKey = (s: PartnerRow | null, n: NewSupplier | null | undefined) => s?.id ?? (n ? `ruc:${n.ruc}` : 'ninguno')
+
   // Vista previa: la API calcula montos y totales mientras se llena el formulario.
   const watched = useWatch({ control: form.control })
   const supplier = useWatch({ control: form.control, name: 'supplier' })
@@ -284,15 +314,34 @@ function NewPurchasePage() {
           supplier={supplier}
           newSupplier={newSupplier}
           // Uno u otro: el registrado o el nuevo, que la API registra junto con la compra.
-          onSupplier={(s) => {
-            form.setValue('supplier', s)
-            form.setValue('newSupplier', null)
-          }}
-          onNewSupplier={(s) => {
-            form.setValue('newSupplier', s)
-            form.setValue('supplier', null)
-          }}
+          onSupplier={(s) =>
+            changeSupplier(s?.id ?? null, s?.name ?? '', () => {
+              form.setValue('supplier', s)
+              form.setValue('newSupplier', null)
+            })
+          }
+          onNewSupplier={(s) =>
+            changeSupplier(s ? `ruc:${s.ruc}` : null, s ? s.name || `RUC ${s.ruc}` : '', () => {
+              form.setValue('newSupplier', s)
+              form.setValue('supplier', null)
+            })
+          }
         />
+        {supplierChange && (
+          <ConfirmDialog
+            open
+            title="¿Cambiar el proveedor?"
+            confirmLabel="Cambiar proveedor"
+            onConfirm={() => {
+              supplierChange.apply()
+              setSupplierChange(null)
+            }}
+            onCancel={() => setSupplierChange(null)}
+          >
+            Los productos de las líneas se buscaron con los códigos de {supplierChange.from}. Al cambiar a {supplierChange.to} se quitarán de las
+            líneas para que los busques de nuevo. La unidad, las cantidades y los montos se quedan.
+          </ConfirmDialog>
+        )}
       </Card>
 
       <Card title="Comprobante">
@@ -409,6 +458,8 @@ function NewPurchasePage() {
                   <tr key={field.id} className="border-b border-line align-top">
                     <td className="py-2 pr-3">
                       <ProductCell
+                        // Con otro proveedor la celda empieza de cero (también un enlace que se estaba buscando).
+                        key={supplierKey(supplier, newSupplier)}
                         lineNumber={i + 1}
                         supplierId={watched.supplier?.id}
                         supplierName={watched.supplier?.name ?? watched.newSupplier?.name ?? null}

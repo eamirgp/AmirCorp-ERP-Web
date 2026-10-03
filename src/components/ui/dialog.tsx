@@ -36,6 +36,11 @@ export function Dialog({
               field.focus()
             }
           }}
+          // Esc en un buscador con la lista abierta cierra solo la lista (lo hace el buscador); el siguiente Esc cierra la
+          // ventana. Radix escucha Esc antes que el campo, por eso se revisa aquí.
+          onEscapeKeyDown={(e) => {
+            if (e.target instanceof Element && e.target.closest('[role="combobox"][aria-expanded="true"]')) e.preventDefault()
+          }}
           className={`fixed top-[8vh] left-1/2 z-50 flex max-h-[84vh] w-[calc(100%-32px)] ${width} -translate-x-1/2 flex-col rounded-xl border border-line bg-surface shadow-float focus:outline-none data-[state=open]:animate-[pop-in_140ms_ease-out]`}
         >
           <div className="flex items-start gap-3 px-6 pt-5 pb-3">
