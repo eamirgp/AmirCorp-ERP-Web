@@ -1416,12 +1416,13 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description Si es true, los productos cuyo código ya existe se actualizan; si no, se omiten. */
+            /** @description Al confirmar: la huella (`planVersion`) que entregó la vista previa. Sin ella no se importa. */
             requestBody: {
                 content: {
                     "multipart/form-data": {
                         File?: components["schemas"]["IFormFile"];
                         UpdateExisting?: boolean;
+                        PlanVersion?: string;
                     };
                 };
             };
@@ -1474,12 +1475,13 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            /** @description Si es true, los productos cuyo código ya existe se actualizan; si no, se omiten. */
+            /** @description Al confirmar: la huella (`planVersion`) que entregó la vista previa. Sin ella no se importa. */
             requestBody: {
                 content: {
                     "multipart/form-data": {
                         File?: components["schemas"]["IFormFile"];
                         UpdateExisting?: boolean;
+                        PlanVersion?: string;
                     };
                 };
             };
@@ -3540,6 +3542,7 @@ export interface components {
             unchanged: number;
             /** Format: int32 */
             withErrors: number;
+            planVersion: string;
             /** Format: int32 */
             toImport: number;
             canImport: boolean;
@@ -3670,6 +3673,8 @@ export interface components {
             isActive: boolean;
             /** Format: int32 */
             productCount: number;
+            /** Format: uint32 */
+            rowVersion: number;
             conversionDescription: string;
             productCountDescription: string;
         };
@@ -3710,6 +3715,8 @@ export interface components {
          */
         UpdateUnitOfMeasureRequest: {
             name: null | string;
+            /** Format: uint32 */
+            rowVersion: null | number;
         };
         UpdateUserProfileRequest: {
             name: null | string;

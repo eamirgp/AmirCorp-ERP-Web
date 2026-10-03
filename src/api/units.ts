@@ -22,7 +22,9 @@ const catalogKey = unitsOfMeasureQuery.queryKey
 export function useRenameUnit() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, name }: { id: string; name: string }) => unwrap(api.PUT('/api/units-of-measure/{id}', { params: { path: { id } }, body: { name } })),
+    // Se envía la versión que se vio en la lista: si otra persona la cambió mientras tanto, la API responde 409.
+    mutationFn: ({ id, name, rowVersion }: { id: string; name: string; rowVersion: number }) =>
+      unwrap(api.PUT('/api/units-of-measure/{id}', { params: { path: { id } }, body: { name, rowVersion } })),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: unitKeys.all })
       void qc.invalidateQueries({ queryKey: catalogKey })

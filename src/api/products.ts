@@ -124,12 +124,13 @@ export const exportProducts = (p: ProductExportParams = {}) =>
   )
 
 /** El archivo va como multipart/form-data; el navegador arma los límites del envío. */
-const importForm = (file: File, updateExisting: boolean) => ({
-  body: { File: file as unknown as string, UpdateExisting: updateExisting },
-  bodySerializer: (body: { File?: string; UpdateExisting?: boolean }) => {
+const importForm = (file: File, updateExisting: boolean, planVersion?: string) => ({
+  body: { File: file as unknown as string, UpdateExisting: updateExisting, PlanVersion: planVersion },
+  bodySerializer: (body: { File?: string; UpdateExisting?: boolean; PlanVersion?: string }) => {
     const form = new FormData()
     form.append('File', body.File as unknown as Blob)
     form.append('UpdateExisting', String(body.UpdateExisting ?? false))
+    if (body.PlanVersion) form.append('PlanVersion', body.PlanVersion)
     return form
   },
 })
@@ -140,8 +141,9 @@ export const previewProductImport = (file: File, updateExisting: boolean) =>
 export function useImportProducts() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ file, updateExisting }: { file: File; updateExisting: boolean }) =>
-      unwrap(api.POST('/api/products/import', importForm(file, updateExisting))),
+    // planVersion: la huella que dio la revisión; si los productos cambiaron desde entonces, la API responde 409.
+    mutationFn: ({ file, updateExisting, planVersion }: { file: File; updateExisting: boolean; planVersion: string }) =>
+      unwrap(api.POST('/api/products/import', importForm(file, updateExisting, planVersion))),
     onSuccess: () => qc.invalidateQueries({ queryKey: productKeys.all }),
   })
 }

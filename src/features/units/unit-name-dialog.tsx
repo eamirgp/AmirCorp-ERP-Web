@@ -25,7 +25,7 @@ export function UnitNameDialog({ unit, onClose }: { unit: UnitRow | null; onClos
 
   const onSubmit = form.handleSubmit((v) =>
     rename.mutate(
-      { id: unit!.id, name: v.name },
+      { id: unit!.id, name: v.name, rowVersion: unit!.rowVersion },
       {
         onSuccess: () => {
           toast.ok('Nombre actualizado')

@@ -76,7 +76,7 @@ export function ProductImportDialog({
 
   const runImport = () =>
     confirm.mutate(
-      { file: file!, updateExisting },
+      { file: file!, updateExisting, planVersion: preview!.planVersion },
       {
         onSuccess: (data) => {
           setResult(data)
