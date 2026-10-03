@@ -55,6 +55,19 @@ export const searchProducts = (term: string, supplierId?: string) =>
     api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SupplierId: supplierId } } }),
   ).then((r) => r.items)
 
+/**
+ * Productos activos enlazados a un proveedor (los que tienen un código suyo) que coinciden con el texto: la primera
+ * búsqueda de una línea de compra. Un proveedor que todavía no está registrado no tiene ninguno.
+ */
+export const searchSupplierProducts = (term: string, supplierId: string | undefined) =>
+  supplierId
+    ? unwrap(
+        api.GET('/api/products', {
+          params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SupplierId: supplierId, OnlySupplierProducts: true } },
+        }),
+      ).then((r) => r.items)
+    : Promise.resolve([] as ProductRow[])
+
 export type FoundProduct = Schemas['FoundProductDto']
 
 /** El producto que ya usa ese código interno, o null si está libre (la API responde 404). */

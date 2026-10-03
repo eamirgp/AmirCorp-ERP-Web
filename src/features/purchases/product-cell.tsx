@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { searchProducts, type ProductRow } from '@/api/products'
+import { searchProducts, searchSupplierProducts, type ProductRow } from '@/api/products'
 import { SearchSelect } from '@/components/ui/search-select'
 import { NewProductCell, type NewProduct } from './new-product-cell'
 
 /**
- * Producto de una línea de compra. Se escribe el código de la factura, el código interno o el nombre:
- * - Si el código ya está enlazado a un producto de este proveedor, aparece primero y se elige.
+ * Producto de una línea de compra. La búsqueda es solo entre los productos enlazados a este proveedor (por su código,
+ * el código interno o el nombre):
+ * - Si está, se elige.
  * - Si no, la lista pregunta qué es: "Enlazar X a un producto que ya tengo" (se busca el producto y el código queda
  *   enlazado al registrar la compra) o "Crear producto nuevo con código X".
  * La decisión "¿lo tengo o es nuevo?" se toma una sola vez, al principio. Sin proveedor no se busca: el código de la
@@ -57,7 +58,8 @@ export function ProductCell({
             onChoose(p, linking)
           }}
           queryKey="products"
-          scope={supplierId}
+          // Para enlazar se busca en todo el catálogo (la primera búsqueda era solo lo de este proveedor).
+          scope={`all:${supplierId ?? 'nuevo'}`}
           fetchItems={(term) => searchProducts(term, supplierId)}
           itemKey={(p) => p.id}
           itemLabel={(p) => `${p.code} · ${p.name}`}
@@ -100,9 +102,9 @@ export function ProductCell({
         value={product}
         onChange={(p) => (p ? onChoose(p, '') : onClear())}
         queryKey="products"
-        // Con el proveedor elegido, cada producto trae el código de ese proveedor (el de su factura).
-        scope={supplierId}
-        fetchItems={(term) => searchProducts(term, supplierId)}
+        // Solo lo que ya se le compra a este proveedor, con su código. Si no está, se enlaza o se crea.
+        scope={`supplier:${supplierId ?? 'nuevo'}`}
+        fetchItems={(term) => searchSupplierProducts(term, supplierId)}
         itemKey={(p) => p.id}
         itemLabel={(p) => `${p.code} · ${p.name}`}
         // Un producto va en una sola línea (la API también lo exige): el que ya está en otra se ve, pero no se elige.
@@ -148,7 +150,9 @@ export function ProductCell({
             },
           ]
         }}
-        emptyText={() => 'Ningún producto tiene ese código o nombre.'}
+        emptyText={(term) =>
+          term ? `Ningún producto de ${supplierName} tiene ese código o nombre.` : `Todavía no tienes productos enlazados a ${supplierName}.`
+        }
         placeholder={supplierName ? 'Código de la factura, código interno o nombre' : 'Elige primero el proveedor'}
       />
       {product && linkCode && (
