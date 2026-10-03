@@ -3704,6 +3704,10 @@ export interface components {
             filters: null | string;
             isDefault: null | boolean;
         };
+        /**
+         * @description Aviso previo: lo que se puede revisar sin el catálogo. Que el nombre no sea el de otra unidad lo revisa el caso de
+         *     uso con string? UnitOfMeasure.NameError(string? name, Guid unitId, IReadOnlyCollection&lt;UnitOfMeasure&gt; units), la regla del dominio.
+         */
         UpdateUnitOfMeasureRequest: {
             name: null | string;
         };
