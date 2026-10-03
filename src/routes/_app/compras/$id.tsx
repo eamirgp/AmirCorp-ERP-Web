@@ -101,8 +101,14 @@ function PurchaseDetailPage() {
                 <Td className="text-faint">{l.lineNumber}</Td>
                 <Td>
                   {l.productName}
-                  <span className="block font-mono text-xs text-faint">
-                    {l.productCode} · {l.invoiceIgvAffectationDescription}
+                  {/* El código de la factura es una copia: aunque el enlace se corrija después en Productos, aquí queda lo que decía el comprobante. */}
+                  {l.supplierProductCode && (
+                    <span className="block text-xs text-faint">
+                      Código en la factura: <span className="font-mono text-muted">{l.supplierProductCode}</span>
+                    </span>
+                  )}
+                  <span className="block text-xs text-faint">
+                    Código interno: <span className="font-mono">{l.productCode}</span> · {l.invoiceIgvAffectationDescription}
                   </span>
                 </Td>
                 <Td className="text-muted">{l.invoiceUnitOfMeasureName}</Td>
@@ -110,7 +116,11 @@ function PurchaseDetailPage() {
                 <Td right>{formatDecimal(l.invoiceUnitAmount)}</Td>
                 <Td right>{money(l.baseAmount)}</Td>
                 <Td right>{money(l.igvAmount)}</Td>
-                <Td right>{money(l.total)}</Td>
+                <Td right>
+                  {money(l.total)}
+                  {/* Lo que entró al inventario, como al registrarla: "120 und. (24 por caja) · costo 5.00 c/u". */}
+                  <span className="block text-xs whitespace-nowrap text-faint">{l.inventoryDescription}</span>
+                </Td>
               </tr>
             ))}
           </tbody>

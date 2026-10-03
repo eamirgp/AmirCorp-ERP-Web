@@ -3050,6 +3050,7 @@ export interface components {
             productId: string;
             productCode: string;
             productName: string;
+            supplierProductCode: null | string;
             invoiceIgvAffectation: components["schemas"]["IgvAffectation"];
             invoiceUnitOfMeasureCode: string;
             invoiceUnitOfMeasureName: string;
@@ -3058,12 +3059,19 @@ export interface components {
             /** Format: double */
             invoiceUnitAmount: number;
             /** Format: double */
+            conversionFactor: number;
+            /** Format: double */
+            inventoryQuantity: number;
+            /** Format: double */
+            inventoryUnitCost: number;
+            /** Format: double */
             baseAmount: number;
             /** Format: double */
             igvAmount: number;
             /** Format: double */
             total: number;
             invoiceIgvAffectationDescription: string;
+            inventoryDescription: string;
         };
         GetPurchaseResponseDto: {
             /** Format: uuid */
