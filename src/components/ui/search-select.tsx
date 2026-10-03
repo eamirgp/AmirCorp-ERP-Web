@@ -205,10 +205,11 @@ export function SearchSelect<T>({
           id={listId}
           role="listbox"
           style={placement}
-          className="fixed z-50 overflow-y-auto rounded-md border border-line bg-surface p-1 shadow-float"
+          // El mismo vidrio de los menús.
+          className="animate-menu-open fixed z-50 origin-top overflow-y-auto rounded-[14px] bg-glass-menu p-1.5 text-fg shadow-menu backdrop-blur-[30px] backdrop-saturate-[1.8]"
         >
           {items.length === 0 ? (
-            <li className="px-2.5 py-2 text-sm text-faint">{results.isFetching ? 'Buscando…' : (emptyText?.(debounced) ?? 'Sin resultados.')}</li>
+            <li className="px-2.5 py-2 text-sm text-fg-muted">{results.isFetching ? 'Buscando…' : (emptyText?.(debounced) ?? 'Sin resultados.')}</li>
           ) : (
             items.map((item, i) => (
               <li
@@ -222,7 +223,7 @@ export function SearchSelect<T>({
                   choose(item)
                 }}
                 onMouseEnter={() => setActive(i)}
-                className="cursor-pointer rounded px-2.5 py-2 text-sm aria-selected:bg-surface-2 aria-disabled:cursor-not-allowed aria-disabled:text-faint"
+                className="cursor-pointer rounded-lg px-2.5 py-2 text-sm aria-selected:bg-hover aria-disabled:cursor-not-allowed aria-disabled:text-disabled"
               >
                 {renderItem ? renderItem(item) : itemLabel(item)}
               </li>
@@ -238,7 +239,7 @@ export function SearchSelect<T>({
                 runExtra(option)
               }}
               onMouseEnter={() => setActive(items.length + k)}
-              className={`cursor-pointer rounded px-2.5 py-2 text-sm font-medium aria-selected:bg-surface-2 ${k === 0 ? 'mt-1 border-t border-line' : ''}`}
+              className={`cursor-pointer rounded-lg px-2.5 py-2 text-sm font-medium aria-selected:bg-hover ${k === 0 ? 'mt-1 border-t border-hairline' : ''}`}
             >
               {option.label}
             </li>

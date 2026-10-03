@@ -29,6 +29,10 @@ export const toast = {
   error: (text: string) => push('bad', text),
 }
 
+/**
+ * Avisos en una cápsula de vidrio que baja arriba al centro, como los del iPhone al copiar algo (Apple no tiene
+ * "toasts"; HIG "Feedback": confirmar lo importante sin interrumpir). El de error lleva su ✕ y se queda.
+ */
 export function Toaster() {
   const items = useSyncExternalStore(
     (l) => {
@@ -38,30 +42,36 @@ export function Toaster() {
     () => toasts,
   )
 
-  const box = 'pointer-events-auto flex max-w-sm animate-[pop-in_160ms_ease-out] items-start gap-2.5 rounded-xl border bg-surface px-4 py-3 text-base font-medium shadow-float'
+  const box =
+    'animate-toast-in pointer-events-auto flex max-w-[min(440px,calc(100vw-32px))] items-start gap-2.5 bg-glass-menu text-sm font-medium text-fg shadow-toast backdrop-blur-[30px] backdrop-saturate-[1.8] [&>svg]:mt-px [&>svg]:size-5 [&>svg]:shrink-0'
 
   return (
-    <div className="pointer-events-none fixed right-4 bottom-4 z-[60] flex flex-col items-end gap-2">
+    <div className="pointer-events-none fixed inset-x-0 top-4 z-[60] flex flex-col items-center gap-2">
       {/* Éxitos: se anuncian sin interrumpir. */}
-      <div role="status" aria-live="polite" className="flex flex-col items-end gap-2">
+      <div role="status" aria-live="polite" className="flex flex-col items-center gap-2">
         {items
           .filter((t) => t.tone === 'ok')
           .map((t) => (
-            <div key={t.id} className={`${box} border-line`}>
-              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-ok" />
+            <div key={t.id} className={`${box} rounded-full py-2.5 pr-5 pl-3.5`}>
+              <CheckCircle2 className="text-link" />
               {t.text}
             </div>
           ))}
       </div>
       {/* Errores: se anuncian de inmediato y se cierran a mano. */}
-      <div role="alert" aria-live="assertive" className="flex flex-col items-end gap-2">
+      <div role="alert" aria-live="assertive" className="flex flex-col items-center gap-2">
         {items
           .filter((t) => t.tone === 'bad')
           .map((t) => (
-            <div key={t.id} className={`${box} border-bad/40`}>
-              <CircleAlert className="mt-0.5 size-5 shrink-0 text-bad" />
-              <span className="flex-1">{t.text}</span>
-              <button type="button" onClick={() => dismiss(t.id)} className="-mr-1 rounded p-0.5 text-muted hover:bg-surface-2 hover:text-ink" aria-label="Cerrar aviso">
+            <div key={t.id} className={`${box} rounded-[18px] py-2.5 pr-2 pl-3.5`}>
+              <CircleAlert className="text-bad" />
+              <span className="flex-1 pt-px">{t.text}</span>
+              <button
+                type="button"
+                onClick={() => dismiss(t.id)}
+                className="press -my-0.5 flex size-7 shrink-0 items-center justify-center rounded-full text-fg-muted hover:bg-hover hover:text-fg"
+                aria-label="Cerrar aviso"
+              >
                 <X className="size-4" />
               </button>
             </div>

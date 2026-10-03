@@ -3026,7 +3026,7 @@ export interface components {
         /** @enum {unknown} */
         BusinessPartnerRole: "Client" | "Supplier";
         /** @enum {unknown} */
-        BusinessPartnerSortBy: "Name" | "CreatedAt";
+        BusinessPartnerSortBy: "Name" | "CreatedAt" | "DocumentNumber";
         CancelPurchaseRequest: {
             cancellationReason: null | string;
         };
@@ -3596,7 +3596,7 @@ export interface components {
             actionDescription: string;
         };
         /** @enum {unknown} */
-        ProductSortBy: "Name" | "CreatedAt";
+        ProductSortBy: "Name" | "CreatedAt" | "Code" | "SalePrice";
         ProductSupplierCodeRequest: {
             /** Format: uuid */
             supplierId: null | string;
@@ -3610,7 +3610,7 @@ export interface components {
             code: string;
         };
         /** @enum {unknown} */
-        PurchaseSortBy: "IssueDate" | "SupplierName" | "Total" | "CreatedAt";
+        PurchaseSortBy: "IssueDate" | "SupplierName" | "Total" | "CreatedAt" | "Document" | "CompanyName";
         ResetUserPasswordRequest: {
             newPassword: null | string;
         };

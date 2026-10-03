@@ -172,7 +172,7 @@ export function PartnerFormDialog({
           <Field label="Número de documento" hint={canLookup ? `Presiona ${selectedType?.lookupSource} o Enter para ${partner ? 'actualizar' : 'traer'} el nombre.` : undefined}>
             {(a) =>
               selectedType?.supportsLookup ? (
-                <div className="flex gap-2">
+                <div className="flex items-start gap-2">
                   <Input
                     {...a}
                     className="min-w-0 flex-1 font-mono"
@@ -180,7 +180,7 @@ export function PartnerFormDialog({
                     onKeyDown={lookupOnEnter(() => canLookup && !existing.checking && !lookup.isPending && !!compactDocument(documentNumber), searchSource)}
                   />
                   {/* Si ya está registrado no hace falta consultarlo: el aviso de abajo dice quién es. */}
-                  <Button onClick={searchSource} loading={existing.checking || lookup.isPending} disabled={!canLookup} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
+                  <Button className="mt-1.5" onClick={searchSource} loading={existing.checking || lookup.isPending} disabled={!canLookup} title={`Trae el nombre desde ${selectedType.lookupSource}`}>
                     <Search />
                     {selectedType.lookupSource}
                   </Button>

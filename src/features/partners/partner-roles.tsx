@@ -12,7 +12,7 @@ export const partnerSearchSchema = z.object({
   // Estado del rol de la lista: en Proveedores, si sus compras están bloqueadas; en Clientes, sus ventas.
   estado: z.enum(['activos', 'bloqueados']).optional().catch(undefined),
   doc: z.enum(['Ruc', 'Dni', 'TributarioExtranjero']).optional().catch(undefined),
-  orden: z.enum(['Name', 'CreatedAt']).optional().catch(undefined),
+  orden: z.enum(['Name', 'CreatedAt', 'DocumentNumber']).optional().catch(undefined),
   dir: directionSchema,
   nuevo: z.boolean().optional().catch(undefined),
 })

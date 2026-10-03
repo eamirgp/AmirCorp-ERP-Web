@@ -21,6 +21,7 @@ import { useHotkey } from '@/lib/hotkeys'
 
 const sortOptions: Option<PartnerSortBy>[] = [
   { value: 'Name', label: 'Nombre' },
+  { value: 'DocumentNumber', label: 'Documento' },
   { value: 'CreatedAt', label: 'Fecha de creación' },
 ]
 
@@ -100,6 +101,9 @@ export function PartnersPage({
   })
 
   const data = list.data
+  // Ordenar con el menú o con un clic en el título de una columna: el orden va a la URL y lo aplica la API.
+  const changeSort = (orden: string, desc: boolean) =>
+    setSearch((prev) => ({ ...prev, orden: orden as PartnerSearch['orden'], dir: desc ? 'desc' : 'asc', page: undefined }))
 
   return (
     <>
@@ -152,7 +156,7 @@ export function PartnersPage({
                 options={sortOptions}
                 value={data.sortBy}
                 descending={data.sortDescending}
-                onChange={(orden, desc) => setSearch((prev) => ({ ...prev, orden, dir: desc ? 'desc' : 'asc', page: undefined }))}
+                onChange={changeSort}
               />
             )
           }
@@ -177,7 +181,16 @@ export function PartnersPage({
             ),
           }}
         >
-          {(rows) => <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={config.isBlocked} />}
+          {(rows) => (
+            <DataTable
+              data={rows}
+              columns={columns}
+              getRowId={(r) => r.id}
+              onOpen={setEditing}
+              isMuted={config.isBlocked}
+              sort={data && { by: data.sortBy, descending: data.sortDescending, onChange: changeSort }}
+            />
+          )}
         </ListBody>
 
         <Pagination

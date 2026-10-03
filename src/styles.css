@@ -75,6 +75,20 @@
   --monogram-top: #7c7c80; /* círculo con las iniciales, como el de Contactos: blanco al centro del degradado, 5.4:1 */
   --monogram-bottom: #58585c;
   --veil: rgb(29 29 31 / 0.18); /* detrás del menú lateral abierto en el celular */
+
+  /* Componentes base (decisión 14). */
+  --fill: #e8e8ed; /* botón secundario, menús y control segmentado: #1D1D1F encima da 13.8:1 */
+  --fill-hover: #dcdce1;
+  --muted-fill: #f5f5f7; /* buscador, pastilla gris (#6E6E73 encima, 4.7:1), campo bloqueado */
+  --stripe: #fafafa; /* filas pares de la tabla (#6E6E73 encima, 4.9:1) */
+  --row-hover: #f0f0f2;
+  --rule: #d2d2d7; /* línea bajo la cabecera de la tabla, borde de un campo bloqueado */
+  --ok-soft: #e4f2e8; /* pastilla "Activo" y fichas de filtro: jade #2A7445 encima, 4.9:1 */
+  --dim: rgb(29 29 31 / 0.22); /* pantalla atenuada detrás de una ventana */
+  --focus-ring: 0 0 0 4px rgb(90 175 118 / 0.28); /* halo jade del campo enfocado */
+  --error-ring: 0 0 0 4px rgb(192 57 47 / 0.18);
+  --shadow-sheet: 0 24px 60px rgb(29 29 31 / 0.22), 0 0 0 1px rgb(0 0 0 / 0.05);
+  --shadow-toast: 0 0 0 1px rgb(0 0 0 / 0.06), 0 10px 30px rgb(29 29 31 / 0.14);
   --shadow-glass: 0 10px 30px rgb(29 29 31 / 0.08), 0 1px 3px rgb(29 29 31 / 0.05);
   --shadow-menu: 0 0 0 1px rgb(0 0 0 / 0.07), 0 16px 40px rgb(29 29 31 / 0.14);
 }
@@ -174,6 +188,11 @@
   --text-apple--line-height: 1.45;
   --text-label: 12px;
   --text-label--line-height: 1.2;
+  /* Títulos del estilo Apple: el de una ventana o sección y el grande de cada pantalla. */
+  --text-title: 26px;
+  --text-title--line-height: 1.15;
+  --text-display: 40px;
+  --text-display--line-height: 1.1;
   /* La curva de frenado suave de Apple, para entradas y cambios de estado. */
   --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
   /* La curva de los paneles que entran y salen (el menú lateral): arranca rápido y se asienta sin rebotar. */
@@ -224,6 +243,18 @@
   --color-monogram-top: var(--monogram-top);
   --color-monogram-bottom: var(--monogram-bottom);
   --color-veil: var(--veil);
+  --color-fill: var(--fill);
+  --color-fill-hover: var(--fill-hover);
+  --color-muted-fill: var(--muted-fill);
+  --color-stripe: var(--stripe);
+  --color-row-hover: var(--row-hover);
+  --color-rule: var(--rule);
+  --color-ok-soft: var(--ok-soft);
+  --color-dim: var(--dim);
+  --shadow-sheet: var(--shadow-sheet);
+  --shadow-toast: var(--shadow-toast);
+  --shadow-focus: var(--focus-ring);
+  --shadow-error: var(--error-ring);
   --shadow-float: var(--shadow-lg);
   --shadow-glass: var(--shadow-glass);
   --shadow-menu: var(--shadow-menu);
@@ -417,6 +448,42 @@
   }
 }
 
+/* Una ventana (hoja o alerta) que aparece: crece apenas y se vuelve visible. */
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Un aviso que baja desde arriba. */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+}
+
+/* El panel lateral de la derecha (filtros, historial): entra desde la derecha. */
+@keyframes panel-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(calc(100% + 24px));
+  }
+}
+
+@utility animate-sheet-in {
+  animation: sheet-in 260ms var(--ease-apple) both;
+}
+
+@utility animate-toast-in {
+  animation: toast-in 420ms var(--ease-apple) both;
+}
+
+@utility animate-panel-in-right {
+  animation: panel-in-right 420ms var(--ease-panel) both;
+}
+
 /* El menú lateral del celular: entra desde la izquierda. */
 @keyframes panel-in {
   from {
@@ -467,6 +534,44 @@
   &:active:not(:disabled) {
     transform: scale(0.97);
   }
+}
+
+/*
+  Etiqueta dentro del campo (`Field`), como en Cuenta de Apple: con el campo vacío se ve grande, como texto de ejemplo;
+  al enfocarlo o escribir sube y se achica. Una lista desplegable o una fecha siempre tienen algo escrito, así que su
+  etiqueta queda arriba. Va en CSS (con :has) porque el campo puede venir envuelto (con un botón al lado, o el aviso de
+  un número).
+*/
+.float-field {
+  position: relative;
+}
+.float-label {
+  position: absolute;
+  top: 28px;
+  left: 17px;
+  max-width: calc(100% - 52px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  translate: 0 -50%;
+  font-size: var(--text-apple);
+  line-height: 1.2;
+  color: var(--fg-muted);
+  pointer-events: none;
+  transition:
+    top 200ms var(--ease-apple),
+    translate 200ms var(--ease-apple),
+    font-size 200ms var(--ease-apple);
+}
+.float-field:has(input:focus, input:not(:placeholder-shown), input[type="date"], select) .float-label {
+  top: 8px;
+  translate: 0 0;
+  font-size: var(--text-label);
+  font-weight: 500;
+}
+/* El texto de ejemplo del campo (placeholder) solo se ve con el campo enfocado: vacío, la etiqueta hace de ejemplo. */
+.float-field input:not(:focus)::placeholder {
+  color: transparent;
 }
 
 /* Lo que el navegador autocompleta no pinta el campo de amarillo: queda con el fondo del campo. */

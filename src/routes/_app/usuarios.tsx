@@ -14,7 +14,7 @@ import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
-import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
+import { useActivation } from '@/features/shared/use-activation'
 import { UserDialog } from '@/features/users/user-dialogs'
 import { countLabel, listFilterOf, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
@@ -60,16 +60,7 @@ function UsersPage() {
   }
   useHotkey('n', openNew)
 
-  const activation = useConfirmToggle<UserRow>(toggle, {
-    title: '¿Desactivar este usuario?',
-    body: (u) => (
-      <>
-        <strong className="font-medium text-ink">{u.name}</strong> ({u.email}) ya no podrá iniciar sesión. Lo que registró se conserva y puedes activarlo de nuevo
-        cuando quieras.
-      </>
-    ),
-    done: (u, active) => `${u.name} ${active ? 'activado' : 'desactivado'}`,
-  })
+  const activation = useActivation<UserRow>(toggle, (u, active) => `${u.name} ${active ? 'activado' : 'desactivado'}`)
   const onToggle = activation.request
 
   const rows = list.data ?? []
@@ -166,7 +157,6 @@ function UsersPage() {
 
       <UserDialog mode={search.nuevo ? 'create' : (action?.mode ?? null)} user={action?.user ?? null} onClose={closeDialog} />
       <HistorySheet target={history} onClose={() => setHistory(null)} />
-      {activation.dialog}
     </>
   )
 }

@@ -14,7 +14,7 @@ import { ProductExportDialog, useProductExport } from '@/features/products/produ
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductImportDialog } from '@/features/products/product-import-dialog'
 import { ProductsTable } from '@/features/products/products-table'
-import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
+import { useActivation } from '@/features/shared/use-activation'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
@@ -23,6 +23,8 @@ import { useHotkey } from '@/lib/hotkeys'
 // El estado de la pantalla vive en la URL: se puede compartir, recargar y usar el botón Atrás.
 const sortOptions: Option<ProductSortBy>[] = [
   { value: 'Name', label: 'Nombre' },
+  { value: 'Code', label: 'Código' },
+  { value: 'SalePrice', label: 'Precio' },
   { value: 'CreatedAt', label: 'Fecha de creación' },
 ]
 
@@ -31,7 +33,7 @@ const searchSchema = z.object({
   page: pageSchema,
   filas: pageSizeSchema,
   estado: statusSchema,
-  orden: z.enum(['Name', 'CreatedAt']).optional().catch(undefined),
+  orden: z.enum(['Name', 'CreatedAt', 'Code', 'SalePrice']).optional().catch(undefined),
   dir: directionSchema,
   nuevo: z.boolean().optional().catch(undefined),
   importar: z.boolean().optional().catch(undefined),
@@ -77,21 +79,13 @@ function ProductsPage() {
 
   const onSearch = useCallback((q: string | undefined) => navigate({ search: (prev) => ({ ...prev, q, page: undefined }), replace: true }), [navigate])
 
-  const activation = useConfirmToggle<ProductRow>(toggle, {
-    title: '¿Desactivar este producto?',
-    body: (p) => (
-      <>
-        <strong className="font-medium text-ink">
-          {p.code} · {p.name}
-        </strong>{' '}
-        dejará de aparecer al registrar compras y ventas. Su historial se conserva y puedes activarlo de nuevo cuando quieras.
-      </>
-    ),
-    done: (p, active) => `${p.code} ${active ? 'activado' : 'desactivado'}`,
-  })
+  const activation = useActivation<ProductRow>(toggle, (p, active) => `${p.code} ${active ? 'activado' : 'desactivado'}`)
   const clearFilters = () => navigate({ search: {} })
 
   const data = list.data
+  // Ordenar con el menú o con un clic en el título de una columna: el orden va a la URL y lo aplica la API.
+  const changeSort = (orden: string, desc: boolean) =>
+    navigate({ search: (prev) => ({ ...prev, orden: orden as Search['orden'], dir: desc ? 'desc' : 'asc', page: undefined }) })
 
   return (
     <>
@@ -139,7 +133,7 @@ function ProductsPage() {
                 options={sortOptions}
                 value={data.sortBy}
                 descending={data.sortDescending}
-                onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden, dir: desc ? 'desc' : 'asc', page: undefined }) })}
+                onChange={changeSort}
               />
             )
           }
@@ -170,6 +164,7 @@ function ProductsPage() {
               onEdit={setEditing}
               onToggle={activation.request}
               busyId={activation.busyId}
+              sort={data && { by: data.sortBy, descending: data.sortDescending, onChange: changeSort }}
               onHistory={(p) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` })}
             />
           )}
@@ -186,7 +181,6 @@ function ProductsPage() {
       <HistorySheet target={history} onClose={() => setHistory(null)} />
       {/* Mientras llega la lista con los filtros nuevos no se muestra el conteo anterior. */}
       {exporting && <ProductExportDialog open params={exportParams} matching={list.isPlaceholderData ? undefined : data?.totalCount} onClose={() => setExporting(false)} />}
-      {activation.dialog}
       <ProductImportDialog
         open={!!search.importar}
         onClose={closeImport}

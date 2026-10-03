@@ -1,62 +1,53 @@
 import type { ReactNode } from 'react'
+import { InlineError } from './inline-error'
 
 type Tone = 'ok' | 'warn' | 'bad' | 'neutral'
 
+// Contrastes medidos: jade sobre verde claro 4.9:1, ámbar 5.4:1, rojo 4.9:1, gris sobre gris claro 4.7:1.
 const tones: Record<Tone, string> = {
-  ok: 'bg-accent-soft text-accent-text',
+  ok: 'bg-ok-soft text-link',
   warn: 'bg-warn-soft text-warn-text',
   bad: 'bg-bad-soft text-bad',
-  neutral: 'bg-surface-2 text-muted ring-1 ring-inset ring-line',
+  neutral: 'bg-muted-fill text-fg-muted',
 }
 
 /** Estado como pastilla de color suave: "Activo", "Pendiente", "Anulada". El color ayuda; el texto dice el estado. */
 export function Pill({ tone, children }: { tone: Tone; children: ReactNode }) {
-  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-medium whitespace-nowrap ${tones[tone]}`}>{children}</span>
+  return <span className={`inline-flex h-6 items-center rounded-full px-2.5 text-xs font-semibold whitespace-nowrap ${tones[tone]}`}>{children}</span>
 }
 
 /** Tecla de un atajo: <Kbd>Ctrl</Kbd><Kbd>K</Kbd> */
 export function Kbd({ children }: { children: ReactNode }) {
-  return <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded border border-line px-1 font-sans text-2xs text-faint">{children}</kbd>
+  return <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-muted-fill px-1.5 font-sans text-2xs text-fg-muted">{children}</kbd>
 }
 
+/** Encabezado de una pantalla: el título grande (como los de Apple), su descripción y las acciones a la derecha. */
 export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
   return (
-    <header className="flex flex-col gap-x-6 gap-y-4 sm:flex-row sm:items-end">
+    <header className="flex flex-col gap-x-6 gap-y-4 pt-2 sm:flex-row sm:items-end">
       <div className="min-w-0 flex-1">
-        <h1 className="font-display text-2xl leading-tight font-semibold tracking-[-0.01em]">{title}</h1>
-        {description && <p className="mt-1 max-w-2xl text-base text-muted">{description}</p>}
+        <h1 className="font-display text-display font-bold tracking-[-0.025em] text-fg">{title}</h1>
+        {description && <p className="mt-1.5 max-w-2xl text-apple text-fg-muted">{description}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
     </header>
   )
 }
 
 /**
- * Sección de un formulario largo como tarjeta con título ("Proveedor", "Comprobante", "Productos"): separa los
- * bloques igual que las listas, que van en una tarjeta sobre el fondo de la página.
+ * Sección de un formulario largo con su título ("Proveedor", "Comprobante", "Productos"). En el estilo Apple los
+ * bloques se separan con espacio y una línea fina, sin tarjetas.
  */
 export function Card({ title, children, className = '' }: { title: string; children: ReactNode; className?: string }) {
   return (
-    <section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-line bg-surface p-5 ${className}`}>
-      <h2 className="font-display text-base font-semibold">{title}</h2>
+    <section className={`flex min-w-0 flex-col gap-4 border-t border-rule pt-5 ${className}`}>
+      <h2 className="font-display text-xl font-bold tracking-[-0.015em] text-fg">{title}</h2>
       {children}
     </section>
   )
 }
 
+/** Errores de un formulario que no son de un campo (los envía la API): en rojo, con ícono, junto al formulario. */
 export function ErrorList({ messages }: { messages: string[] }) {
-  if (messages.length === 0) return null
-  return (
-    <div role="alert" className="border-l-2 border-bad bg-bad-soft px-3.5 py-2.5 text-sm text-bad">
-      {messages.length === 1 ? (
-        messages[0]
-      ) : (
-        <ul className="list-disc space-y-0.5 pl-4">
-          {messages.map((m) => (
-            <li key={m}>{m}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  )
+  return <InlineError messages={messages} />
 }

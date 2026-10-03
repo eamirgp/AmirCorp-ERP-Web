@@ -4,13 +4,14 @@ import { errorMessages } from '@/api/client'
 import { formatInt } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
 import { useDebounced } from '@/lib/use-debounced'
-import { Button } from './button'
-import { Input, Select } from './field'
+import { Button, Spinner } from './button'
+import { Select } from './field'
 
 /**
- * Buscador de una lista. Avisa el texto 250 ms después de dejar de escribir.
- * El atajo "/" lo enfoca. El placeholder es corto ("Buscar productos") para que se lea completo; en qué campos
- * busca va en `hint`, que aparece al pasar el mouse y lo leen los lectores de pantalla.
+ * Buscador de una lista: una cápsula gris con lupa (HIG "Search fields"). Avisa el texto 250 ms después de dejar de
+ * escribir, así la lista se refina mientras se escribe. El atajo "/" lo enfoca. El texto de ejemplo es corto
+ * ("Buscar productos") para que se lea completo; en qué campos busca va en `hint`, que aparece al pasar el mouse y lo
+ * leen los lectores de pantalla.
  */
 export function SearchBox({
   value,
@@ -47,27 +48,30 @@ export function SearchBox({
 
   return (
     // En celular ocupa toda la fila; en pantallas grandes, un ancho fijo junto a los filtros.
-    <div className="relative w-full min-w-0 sm:w-72 sm:flex-none">
-      <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" />
-      <Input
+    <label
+      className="flex h-9 w-full min-w-0 items-center gap-2 rounded-full bg-muted-fill px-3 text-fg-muted transition-[background-color,box-shadow] duration-200 ease-apple focus-within:bg-field focus-within:shadow-[0_0_0_1px_var(--fg),var(--focus-ring)] sm:w-72 sm:flex-none"
+      title={hint ? `${hint}. Atajo: /` : 'Atajo: /'}
+    >
+      <Search className="size-4 shrink-0" aria-hidden />
+      <input
         ref={inputRef}
+        type="search"
         value={term}
         onChange={(e) => setTerm(e.target.value)}
         placeholder={placeholder}
-        className="pl-9"
+        className="min-w-0 flex-1 bg-transparent text-sm text-fg outline-none placeholder:text-fg-muted [&::-webkit-search-cancel-button]:cursor-pointer"
         aria-label={hint ? `${placeholder}: ${hint}` : placeholder}
-        title={hint ? `${hint}. Atajo: /` : 'Atajo: /'}
       />
-    </div>
+    </label>
   )
 }
 
 /**
- * Tarjeta blanca que contiene una lista completa (pestañas de vistas, filtros, tabla y pie), sobre el fondo gris
- * de la página, al estilo de Stripe o Shopify: la tabla se distingue del resto de la pantalla.
+ * Una lista completa (vistas, filtros, tabla y pie) sin tarjeta alrededor: en el estilo Apple la página es blanca y la
+ * tabla se distingue por sus franjas.
  */
 export function ListPanel({ children }: { children: ReactNode }) {
-  return <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-line bg-surface">{children}</section>
+  return <section className="flex min-w-0 flex-col gap-3">{children}</section>
 }
 
 /** Datos de paginación que devuelve la API en cada lista paginada. */
@@ -84,21 +88,21 @@ export interface PageInfo {
 }
 
 /**
- * Pie de una lista paginada: "1–20 de 57", filas por página y botones para ir a la primera, anterior,
+ * Pie de una lista paginada: "1–20 de 57", filas por página y botones redondos para ir a la primera, anterior,
  * siguiente y última página.
  * Todo sale de la respuesta de la API: la pantalla no calcula páginas ni rangos.
  */
 export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | undefined; onPage: (page: number) => void; onPageSize: (size: number) => void }) {
   if (!info || info.totalCount === 0) return null
   return (
-    <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line px-4 py-3 text-sm text-muted">
+    <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-1 pl-4 text-sm text-fg-muted">
       <span className="num">
         {formatInt(info.from)}–{formatInt(info.to)} de {formatInt(info.totalCount)}
       </span>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <label className="flex items-center gap-2 whitespace-nowrap">
           Filas por página
-          <Select className="num w-auto" value={info.pageSize} onChange={(e) => onPageSize(Number(e.target.value))}>
+          <Select popup className="num" value={info.pageSize} onChange={(e) => onPageSize(Number(e.target.value))}>
             {info.pageSizeOptions.map((size) => (
               <option key={size} value={size}>
                 {size}
@@ -107,16 +111,16 @@ export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | unde
           </Select>
         </label>
         {info.totalPages > 1 && (
-          // Solo íconos, como en Shopify o Stripe: las flechas de página se reconocen sin texto. El nombre sale al
-          // pasar el mouse y lo leen los lectores de pantalla.
-          <div className="flex items-center gap-1.5">
+          // Solo íconos: las flechas de página se reconocen sin texto. El nombre sale al pasar el mouse y lo leen los
+          // lectores de pantalla.
+          <div className="flex items-center gap-1">
             <PageButton label="Primera página" disabled={!info.hasPreviousPage} onClick={() => onPage(1)}>
               <ChevronsLeft />
             </PageButton>
             <PageButton label="Página anterior" disabled={!info.hasPreviousPage} onClick={() => onPage(info.page - 1)}>
               <ChevronLeft />
             </PageButton>
-            <span className="num px-2 whitespace-nowrap">
+            <span className="num min-w-14 text-center whitespace-nowrap text-fg">
               {info.page} / {info.totalPages}
             </span>
             <PageButton label="Página siguiente" disabled={!info.hasNextPage} onClick={() => onPage(info.page + 1)}>
@@ -134,20 +138,22 @@ export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | unde
 
 function PageButton({ label, disabled, onClick, children }: { label: string; disabled: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <Button size="sm" className="w-9 px-0 [&_svg]:size-5" disabled={disabled} onClick={onClick} aria-label={label} title={label}>
+    <Button size="icon" disabled={disabled} onClick={onClick} aria-label={label} title={label}>
       {children}
     </Button>
   )
 }
 
-/** Mensaje cuando una lista no tiene registros. */
+/** Mensaje cuando una lista no tiene registros: un ícono en un círculo gris, el título y qué hacer. */
 export function EmptyState({ icon, title, text, action }: { icon: ReactNode; title?: string; text: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-3 border-t border-line px-6 py-20 text-center">
-      <span className="text-faint [&_svg]:size-6">{icon}</span>
-      {title && <p className="font-display text-lg font-semibold">{title}</p>}
-      <p className="max-w-sm text-base text-muted">{text}</p>
-      {action}
+    <div className="flex flex-col items-center gap-2.5 border-t border-rule px-6 py-16 text-center">
+      <span aria-hidden className="flex size-14 items-center justify-center rounded-full bg-muted-fill text-fg-muted [&_svg]:size-[26px]">
+        {icon}
+      </span>
+      {title && <p className="text-lg font-semibold text-fg">{title}</p>}
+      <p className="max-w-sm text-sm text-fg-muted">{text}</p>
+      {action && <div className="mt-1">{action}</div>}
     </div>
   )
 }
@@ -155,14 +161,16 @@ export function EmptyState({ icon, title, text, action }: { icon: ReactNode; tit
 /** La lista no se pudo cargar (sin conexión, error del servidor): el mensaje y "Reintentar", como en una pantalla. */
 export function ListError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 border-t border-line px-6 py-16 text-center">
-      <TriangleAlert className="size-6 text-bad" strokeWidth={1.5} />
+    <div className="flex flex-col items-center gap-2.5 border-t border-rule px-6 py-16 text-center">
+      <span aria-hidden className="flex size-14 items-center justify-center rounded-full bg-bad-soft text-bad">
+        <TriangleAlert className="size-[26px]" strokeWidth={1.75} />
+      </span>
       {errorMessages(error).map((m) => (
-        <p key={m} className="max-w-md text-base text-muted">
+        <p key={m} className="max-w-md text-sm text-fg-muted">
           {m}
         </p>
       ))}
-      <Button variant="primary" onClick={onRetry}>
+      <Button variant="primary" size="sm" className="mt-1" onClick={onRetry}>
         <RotateCw />
         Reintentar
       </Button>
@@ -170,8 +178,14 @@ export function ListError({ error, onRetry }: { error: unknown; onRetry: () => v
   )
 }
 
+/** Mientras carga: el círculo que gira y qué se está cargando. */
 export function Loading({ text }: { text: string }) {
-  return <div className="py-16 text-center text-base text-faint">{text}</div>
+  return (
+    <div className="flex items-center justify-center gap-2.5 border-t border-rule py-16 text-sm text-fg-muted">
+      <Spinner className="size-[18px] text-disabled" />
+      {text}
+    </div>
+  )
 }
 
 /**
@@ -209,6 +223,17 @@ export function ListBody<T>({
   if (query.isError) return <ListError error={query.error} onRetry={() => void query.refetch()} />
   if (!rows) return <Loading text={loading} />
   if (rows.length > 0) return children(rows)
-  if (filtered || !empty) return <EmptyState icon={icon} text={noMatch} action={<Button onClick={onClear}>Limpiar filtros</Button>} />
+  if (filtered || !empty)
+    return (
+      <EmptyState
+        icon={icon}
+        text={noMatch}
+        action={
+          <Button size="sm" variant="ghost" onClick={onClear}>
+            Limpiar filtros
+          </Button>
+        }
+      />
+    )
   return <EmptyState icon={icon} title={empty.title} text={empty.text} action={empty.action} />
 }

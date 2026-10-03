@@ -32,6 +32,7 @@ export function usePartnerColumns({
     () => [
       col.accessor('documentNumber', {
         header: 'Documento',
+        meta: { sortBy: 'DocumentNumber' },
         cell: (c) => (
           <span>
             <span className="block font-mono text-sm whitespace-nowrap">{c.getValue()}</span>
@@ -41,6 +42,7 @@ export function usePartnerColumns({
       }),
       col.accessor('name', {
         header: 'Nombre o razón social',
+        meta: { sortBy: 'Name' },
         // Si también tiene el otro rol se indica debajo: es el mismo registro en las dos listas.
         cell: (c) => (
           <span>

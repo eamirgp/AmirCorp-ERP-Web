@@ -10,7 +10,7 @@ import { FilterBar, type Option } from '@/components/ui/filters'
 import { ListBody, ListPanel, SearchBox } from '@/components/ui/list-controls'
 import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
-import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
+import { useActivation } from '@/features/shared/use-activation'
 import { UnitNameDialog } from '@/features/units/unit-name-dialog'
 import { isCustomized } from '@/features/saved-views/view-filters'
 import { countLabel, listFilterOf, statusSchema, type ActiveFilter } from '@/lib/filters'
@@ -44,17 +44,7 @@ function UnitsPage() {
   const [editing, setEditing] = useState<UnitRow | null>(null)
   const [history, setHistory] = useState<HistoryTarget | null>(null)
 
-  const activation = useConfirmToggle<UnitRow>(toggle, {
-    title: '¿Desactivar esta unidad?',
-    body: (u) => (
-      <>
-        <strong className="font-medium text-ink">{u.name}</strong> ({u.code}) dejará de aparecer en productos, compras y la planilla de Excel. Puedes activarla
-        de nuevo cuando quieras.
-      </>
-    ),
-    done: (u, active) => `${u.name} ${active ? 'activada' : 'desactivada'}`,
-  })
-  const { request: onToggle, busyId } = activation
+  const { request: onToggle, busyId } = useActivation<UnitRow>(toggle, (u, active) => `${u.name} ${active ? 'activada' : 'desactivada'}`)
 
   const rows = list.data ?? []
 
@@ -142,7 +132,6 @@ function UnitsPage() {
       </ListPanel>
 
       <UnitNameDialog unit={editing} onClose={() => setEditing(null)} />
-      {activation.dialog}
       <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )

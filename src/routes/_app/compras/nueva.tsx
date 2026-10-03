@@ -257,14 +257,14 @@ function NewPurchasePage() {
           {/* Solo aplica a las monedas que lo piden (lo dice el catálogo de la API): en soles queda bloqueado y vacío. */}
           <Field label="Tipo de cambio" error={rate.lookup.isError ? errorText(rate.lookup.error) : undefined} hint={rate.hint}>
             {(a) => (
-              <div className="flex gap-2">
+              <div className="flex items-start gap-2">
                 {/* El campo ocupa todo el ancho que deja el botón (o toda la celda, si no hay botón). */}
                 <div className="min-w-0 flex-1">
                   <NumberInput {...a} disabled={!rate.needed} placeholder={rate.needed ? '0.000' : 'No aplica'} {...form.register('exchangeRate', { onChange: rate.typed })} />
                 </div>
                 {/* La consulta es a pedido, como la de RUC: cada una cuenta en el cupo del servicio. */}
                 {rate.canLookup && (
-                  <Button onClick={rate.fetch} loading={rate.lookup.isPending} title="Trae el tipo de cambio venta de SUNAT para la fecha de emisión">
+                  <Button className="mt-1.5" onClick={rate.fetch} loading={rate.lookup.isPending} title="Trae el tipo de cambio venta de SUNAT para la fecha de emisión">
                     <Search />
                     SUNAT
                   </Button>

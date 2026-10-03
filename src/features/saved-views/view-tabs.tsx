@@ -7,9 +7,10 @@ import { ManageViewsDialog, SaveViewDialog } from './view-dialogs'
 import { fromFilters, isCustomized, toFilters } from './view-filters'
 
 /**
- * Vistas de una lista como pestañas en la parte de arriba de la tarjeta de la lista, al estilo de Shopify:
- * "Todos" (la pantalla sin vista), una pestaña por vista guardada y "Guardar vista" cuando lo que se ve
- * no coincide con ninguna. La estrella marca la vista con la que abre la pantalla.
+ * Vistas de una lista como control segmentado (HIG "Segmented controls": opciones muy relacionadas que cambian lo que
+ * se ve): "Todos" (la pantalla sin vista) y una vista guardada por segmento; la elegida queda blanca y en relieve. Al
+ * lado, "Guardar vista" cuando lo que se ve no coincide con ninguna. La estrella marca la vista con la que abre la
+ * pantalla.
  */
 export function ViewTabs({
   screen,
@@ -30,30 +31,28 @@ export function ViewTabs({
 
   return (
     <>
-      <div className="flex items-center gap-2 border-b border-line px-3 py-2.5">
-        <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" aria-label="Vistas guardadas">
-          <Tab active={!customized} onClick={() => onApply({})}>
-            Todos
-          </Tab>
-          {list.map((v) => (
-            <Tab key={v.id} active={v.id === active?.id} onClick={() => onApply(fromFilters(v.filters))} title={v.isDefault ? 'La pantalla abre con esta vista' : undefined}>
-              {v.name}
-              {v.isDefault && <Star className="size-3.5 text-accent-text" fill="currentColor" aria-label="predeterminada" />}
-            </Tab>
-          ))}
-          {customized && !active && (
-            <button
-              type="button"
-              onClick={() => setDialog('save')}
-              className="ml-1 inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap text-accent-text hover:bg-surface-2"
-            >
-              <BookmarkPlus className="size-4" />
-              Guardar vista
-            </button>
-          )}
+      <div className="flex min-w-0 items-center gap-2">
+        <nav className="flex min-w-0 overflow-x-auto" aria-label="Vistas guardadas">
+          <div className="flex shrink-0 gap-0.5 rounded-full bg-fill p-[3px]">
+            <Segment active={!customized} onClick={() => onApply({})}>
+              Todos
+            </Segment>
+            {list.map((v) => (
+              <Segment key={v.id} active={v.id === active?.id} onClick={() => onApply(fromFilters(v.filters))} title={v.isDefault ? 'La pantalla abre con esta vista' : undefined}>
+                {v.name}
+                {v.isDefault && <Star className="size-3.5 text-link" fill="currentColor" aria-label="predeterminada" />}
+              </Segment>
+            ))}
+          </div>
         </nav>
+        {customized && !active && (
+          <Button size="sm" variant="ghost" onClick={() => setDialog('save')}>
+            <BookmarkPlus />
+            Guardar vista
+          </Button>
+        )}
         {list.length > 0 && (
-          <Button size="sm" variant="ghost" onClick={() => setDialog('manage')} aria-label="Administrar vistas" title="Administrar vistas">
+          <Button size="icon" variant="ghost" onClick={() => setDialog('manage')} aria-label="Administrar vistas" title="Administrar vistas">
             <Settings2 />
           </Button>
         )}
@@ -65,13 +64,13 @@ export function ViewTabs({
   )
 }
 
-function Tab({ active, children, ...props }: { active: boolean } & ButtonHTMLAttributes<HTMLButtonElement>) {
+function Segment({ active, children, ...props }: { active: boolean } & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       type="button"
       aria-current={active ? 'page' : undefined}
-      className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-base whitespace-nowrap transition-colors ${
-        active ? 'bg-accent-soft font-medium text-accent-text' : 'text-muted hover:bg-surface-2 hover:text-ink'
+      className={`inline-flex h-[30px] shrink-0 items-center gap-1.5 rounded-full px-4 text-sm whitespace-nowrap transition-[background-color,box-shadow] duration-200 ease-apple outline-none focus-visible:shadow-focus ${
+        active ? 'bg-page font-semibold text-fg shadow-[0_1px_3px_rgb(0_0_0/0.12),0_0_0_0.5px_rgb(0_0_0/0.04)]' : 'font-medium text-fg hover:bg-fill-hover'
       }`}
       {...props}
     >

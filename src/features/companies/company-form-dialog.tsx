@@ -80,7 +80,7 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
         <Field label="RUC" hint={source ? `Presiona ${source} o Enter para ${company ? 'actualizar' : 'traer'} la razón social.` : undefined}>
           {(a) => (
-            <div className="flex gap-2">
+            <div className="flex items-start gap-2">
               <Input
                 {...a}
                 className="min-w-0 flex-1 font-mono"
@@ -90,7 +90,7 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
                 onKeyDown={source ? lookupOnEnter(() => !lookup.isPending && !!compactDocument(ruc), searchSunat) : undefined}
               />
               {source && (
-                <Button onClick={searchSunat} loading={lookup.isPending} disabled={!compactDocument(ruc)} title={`Trae la razón social desde ${source}`}>
+                <Button className="mt-1.5" onClick={searchSunat} loading={lookup.isPending} disabled={!compactDocument(ruc)} title={`Trae la razón social desde ${source}`}>
                   <Search />
                   {source}
                 </Button>

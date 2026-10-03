@@ -2,7 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { HistoryIcon, Pencil, Power } from 'lucide-react'
 import { useMemo } from 'react'
 import type { ProductRow } from '@/api/products'
-import { DataTable, RowMenu } from '@/components/ui/data-table'
+import { DataTable, RowMenu, type TableSort } from '@/components/ui/data-table'
 import { Pill } from '@/components/ui/misc'
 import { formatPen } from '@/lib/format'
 
@@ -14,6 +14,7 @@ export function ProductsTable({
   onToggle,
   onHistory,
   busyId,
+  sort,
 }: {
   rows: ProductRow[]
   onEdit: (p: ProductRow) => void
@@ -21,12 +22,14 @@ export function ProductsTable({
   onHistory: (p: ProductRow) => void
   /** Producto que se está activando o desactivando: su botón queda bloqueado. */
   busyId?: string
+  sort?: TableSort
 }) {
   const columns = useMemo(
     () => [
-      col.accessor('code', { header: 'Código', cell: (c) => <span className="font-mono text-xs whitespace-nowrap text-muted">{c.getValue()}</span> }),
+      col.accessor('code', { header: 'Código', meta: { sortBy: 'Code' }, cell: (c) => <span className="font-mono text-xs whitespace-nowrap text-muted">{c.getValue()}</span> }),
       col.accessor('name', {
         header: 'Producto',
+        meta: { sortBy: 'Name' },
         // Solo si apareció al buscar un código de proveedor, la API dice cuál: así se entiende por qué salió.
         cell: (c) => (
           <span>
@@ -47,8 +50,9 @@ export function ProductsTable({
         ),
       }),
       col.accessor('salePrice', {
-        header: () => <span className="block text-right">Precio</span>,
-        cell: (c) => <span className="num block text-right">{formatPen(Number(c.getValue()))}</span>,
+        header: 'Precio',
+        meta: { alignRight: true, sortBy: 'SalePrice' },
+        cell: (c) => <span className="num">{formatPen(Number(c.getValue()))}</span>,
       }),
       col.accessor('isActive', { header: 'Estado', cell: (c) => <Pill tone={c.getValue() ? 'ok' : 'neutral'}>{c.row.original.statusDescription}</Pill> }),
       col.display({
@@ -75,5 +79,5 @@ export function ProductsTable({
     [onEdit, onToggle, onHistory, busyId],
   )
 
-  return <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={onEdit} isMuted={(r) => !r.isActive} />
+  return <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={onEdit} isMuted={(r) => !r.isActive} sort={sort} />
 }

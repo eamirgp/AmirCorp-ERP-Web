@@ -23,6 +23,30 @@ Todas las pantallas se rediseñan, una por una, con el mismo estilo Apple que se
 | Tema | Por ahora todo es claro, aunque el sistema operativo esté en modo oscuro: `index.html` fija `data-theme="light"` (decisión 13). El modo oscuro se rediseña al final. El inicio de sesión además usa `always-light`. |
 | Marco de la aplicación | `AppShell` (`components/layout/app-shell.tsx`), según la guía de Apple ("Sidebars" y "Toolbars"). **Menú lateral** flotante: panel de vidrio `sidebar` (gris `#F5F5F7` al 82 % con desenfoque), 264 px de ancho, a 10 px de los bordes, esquinas de 22 px, sombra suave. Se oculta con el botón redondo de vidrio (`GlassButton`, símbolo del panel lateral) y entra o sale en 420 ms con la curva `ease-panel`. Opciones de 36 px de alto en píldora, texto de 15 px, íconos de 18 px en jade (`link`); la pantalla actual en píldora `selected` (`#2A7445`, texto blanco 5.7:1); al pasar el mouse, `hover`; los módulos "Pronto" en `disabled`. Títulos de grupo de 13.5 px en gris (`fg-muted`, 4.7:1 sobre el vidrio), sin mayúsculas. El grupo Configuración se despliega con una flecha que gira (`animate-unfold`). **Barra superior** de 64 px, transparente; al bajar 40 px se vuelve vidrio `glass` con una línea fina (`hairline`) y aparece el nombre del módulo. **Menú del usuario:** iniciales en un círculo gris degradado (`monogram-top` a `monogram-bottom`, blanco 5.4:1 al centro) y un menú de vidrio (`glass-menu`, `shadow-menu`) que crece desde la esquina en 180 ms (`animate-menu-open`). En pantallas angostas el menú lateral se abre encima con un velo (`veil`) y entra desde la izquierda (`animate-panel-in`). |
 
+### Componentes base (decisión 14)
+
+Aprobados en el lienzo de diseño y programados en `src/components/ui`, así que todas las pantallas los usan. Cada uno sigue la página de la guía de Apple (HIG) que se indica.
+
+| Componente | Regla |
+|---|---|
+| Botón (`Button`, HIG "Buttons") | Píldora que se hunde al presionarla (`press`). Se distinguen por el estilo, no por el tamaño, y hay uno o dos principales por vista: `primary` negro (`pill`), `secondary` gris (`fill`, `#E8E8ED`, texto 13.8:1), `ghost` solo texto jade (`link`), `danger` texto rojo sobre gris. Normal de 44 px (el mínimo que pide Apple para tocar o hacer clic) y `sm` de 36 px en barras y tablas; `size="icon"` es un círculo de 36 px con un solo ícono, sin fondo. Con `loading` muestra un círculo que gira (`Spinner`) junto al texto. `PillButton` (50 px) queda para el inicio de sesión. |
+| Campo de formulario (`Field`) | Dentro de un `Field`, `Input`, `Select`, `NumberInput` y `SearchSelect` miden 56 px, con esquinas de 12 px, y la etiqueta va adentro y sube al enfocar o escribir (`.float-field` y `.float-label` en `styles.css`, con `:has`); el texto de ejemplo (`placeholder`) solo se ve con el campo enfocado. Una lista o una fecha tienen la etiqueta siempre arriba. Debajo, la ayuda en gris o el error en rojo con ícono. Bloqueado: fondo `muted-fill` y borde `rule`. |
+| Campo compacto | Fuera de un `Field` (celdas de la tabla de una compra, filtros) el mismo campo mide 36 px, con esquinas de 10 px, y se nombra con `aria-label`. `Select popup` es el botón gris en píldora ("Filas por página", HIG "Pop-up buttons"). |
+| Buscador (`SearchBox`, HIG "Search fields") | Cápsula gris de 36 px con lupa; al enfocarlo se vuelve blanca con borde y halo jade. Busca mientras se escribe (250 ms). |
+| Vistas (`ViewTabs`, HIG "Segmented controls") | Control segmentado gris (`fill`): la vista elegida queda blanca y en relieve. Al lado, "Guardar vista" (texto jade) y el engranaje para administrarlas. |
+| Filtros y orden (`FilterBar`, `SortMenu`) | "Filtros" y "Ordenar: Nombre ⌄" son botones grises en píldora que abren menús de vidrio (los del menú del usuario). Los filtros aplicados se ven como fichas verdes (`ok-soft`, jade 4.9:1) con ✕ (HIG: tokens). El panel de filtros es una lista de opciones con una marca, como las de Apple. |
+| Tabla (`DataTable`, HIG "Lists and tables") | Sin tarjeta alrededor (`ListPanel` solo agrupa). Filas de 52 px en franjas (`stripe`, `#FAFAFA`; `#6E6E73` encima, 4.9:1), al pasar el mouse `row-hover`; cabecera de 13.5 px en gris con una línea `rule` debajo. Las columnas con `meta.sortBy` ordenan con un clic en su título y otro clic invierte el orden (como el Finder); la flecha se asoma al pasar el mouse y queda en la columna elegida. `meta.sortDescendingFirst` hace que fechas y montos empiecen de mayor a menor. `meta.alignRight` para montos. Una fila inactiva o anulada se atenúa (55 %), salvo su menú. El menú "⋯" (`RowMenu`) es un botón redondo con un menú de vidrio; lo que quita algo va al final, en rojo. |
+| Estados (`Pill`) | Pastillas de 24 px, texto de 13.5 px semibold: "Activo" jade sobre `ok-soft` (4.9:1), "Pendiente" ámbar (5.4:1), "Anulada" rojo (4.9:1), "Inactivo" gris sobre `muted-fill` (4.7:1). |
+| Lista vacía, error y carga | Un ícono en un círculo gris (o rojo, si falló), el título y qué hacer ("Limpiar filtros" como texto jade, "Reintentar" como botón). Mientras carga, el círculo que gira y qué se carga. |
+| Ventana de formulario (`Dialog`, HIG "Sheets") | Tarjeta blanca con esquinas de 24 px sobre la pantalla atenuada (`dim`), título de 26 px (`text-title`), botón redondo para cerrar, y Cancelar y el botón principal abajo a la derecha. Aparece creciendo apenas (`animate-sheet-in`). |
+| Alerta (`ConfirmDialog`, HIG "Alerts") | Solo para lo que pierde algo y no se puede deshacer (salir sin guardar una compra, cambiar el proveedor con productos en las líneas). Como en la Mac: el ícono de la marca, un título que describe la situación, un texto corto y dos botones del mismo tamaño; el de confirmar en rojo y el foco en "Cancelar". Con un texto largo los botones van uno sobre otro, el de confirmar arriba. **Desactivar no pregunta** (`useActivation`): se deshace activando. |
+| Aviso (`toast`, HIG "Feedback") | Apple no tiene "toasts": se usan cápsulas de vidrio que bajan arriba al centro, como las del iPhone al copiar algo (`animate-toast-in`). Éxito con un check jade, se va a los 5 s; error con ícono rojo y ✕, se queda hasta cerrarlo. |
+| Panel lateral (`Sheet`) | Filtros e historial: el mismo vidrio del menú lateral, flotando a la derecha (a 10 px de los bordes, esquinas de 22 px), entra desde la derecha (`animate-panel-in-right`). |
+| Encabezado de pantalla (`PageHeader`) | Título de 40 px (`text-display`), descripción de 17 px en gris y las acciones a la derecha. |
+| Sección de formulario (`Card`) | Sin tarjeta: un título de 24 px y una línea fina arriba. |
+
+Tokens nuevos en `styles.css`: `fill`, `fill-hover`, `muted-fill`, `stripe`, `row-hover`, `rule`, `ok-soft`, `dim`, sombras `shadow-sheet`, `shadow-toast`, `shadow-focus` y `shadow-error`, y tamaños `text-title` (26 px) y `text-display` (40 px).
+
 Basado en el **Manual de Identidad Visual de H&P Pizarro Accesorios E.I.R.L.** (Lorena Salcedo): negro como base, verde jade como secundario y gris como acento. Títulos en League Spartan y textos en Source Sans.
 
 Un ERP se usa muchas horas al día, así que la identidad se aplica con criterio **minimalista**: fondo blanco, neutros puros, bordes finos, sin sombras en la página y mucho aire. El negro es la acción principal y el jade aparece solo como acento puntual.
@@ -82,7 +106,7 @@ La escala está en `src/styles.css` (`@theme`) y es cómoda a propósito: el sis
 | `text-lg` | 19 px | Totales, títulos de diálogo |
 | `text-xl` / `text-2xl` | 24 / 28 px | Títulos de pantalla |
 
-Los campos y botones miden 40 px de alto, y los botones pequeños y chips de filtro 36 px.
+Antes los campos y botones medían 40 px de alto. Desde la decisión 14: botones de 44 px y 36 px los compactos; campos de formulario de 56 px y compactos de 36 px (ver "Componentes base"). Se agregaron `text-title` (26 px, título de una ventana) y `text-display` (40 px, título de una pantalla).
 
 ### Fuentes
 
@@ -104,6 +128,8 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 
 ## Reglas
 
+Desde la decisión 14 varias de estas reglas cambiaron con los componentes base del estilo Apple (ver arriba): las listas ya no van en tarjeta y la tabla va en franjas; la paginación usa botones redondos; los estados son las pastillas nuevas; **desactivar ya no pide confirmación**; los avisos bajan arriba al centro; los filtros aplicados son fichas verdes; las columnas ordenan con un clic. Lo demás sigue vigente.
+
 - **Listas en tarjeta (estilo Stripe/Shopify):** la página es gris claro (`--bg`) y cada lista va en una tarjeta blanca (`ListPanel`) con, de arriba abajo: pestañas de vistas como pastillas, barra de filtros, tabla y pie de paginación. La cabecera de la tabla tiene fondo `surface-2` y letra `text-sm`; las filas se separan con una línea fina.
 - **Acciones de fila:** un clic en la fila la abre. Las demás acciones van en un solo botón **"⋯"** siempre visible (`RowMenu`), con los nombres escritos; lo que quita algo (desactivar) va al final, en rojo y separado. No se usan íconos sueltos: un ícono sin texto no le dice a una persona mayor qué hace.
 - **Paginación con íconos:** cuatro botones cuadrados con borde (primera, anterior, siguiente, última) y "3 / 21" al medio. Las flechas se reconocen sin texto; el nombre sale al pasar el mouse.
@@ -120,20 +146,21 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 - **Nada de emojis, degradados ni íconos decorativos.**
 - **Movimiento mínimo:** solo la aparición de diálogos y avisos, desactivado con `prefers-reduced-motion`.
 
-## Componentes base
+## Lista de componentes
 
-En `src/components/ui/`:
+En `src/components/ui/` (su aspecto está en "Componentes base", arriba):
 
 | Componente | Uso |
 |---|---|
-| `Button`, `Input`, `Select`, `Field` | Controles de formulario; `Field` enlaza etiqueta, control y ayuda |
-| `Dialog`, `ConfirmDialog`, `toast` | Ventanas modales, confirmaciones y avisos |
-| `DataTable`, `RowMenu` | Tabla estándar con navegación por teclado y el menú "⋯" de cada fila |
-| `FilterBar`, `FilterChip`, `SortMenu` | Barra de filtros, chips y menú de orden |
-| `ListPanel`, `SearchBox`, `Pagination` | Tarjeta de la lista, buscador y pie de paginación |
+| `Button` (`Spinner`), `Input`, `Select`, `NumberInput`, `Field` | Controles de formulario; `Field` enlaza etiqueta, control y ayuda, y pone la etiqueta adentro |
+| `Dialog`, `ConfirmDialog`, `Sheet`, `toast` | Ventana de formulario, alerta de lo que no se puede deshacer, panel lateral y avisos |
+| `DataTable`, `RowMenu` | Tabla en franjas, con orden por columna, navegación por teclado y el menú "⋯" de cada fila |
+| `FilterBar`, `FilterChip`, `SortMenu` | Barra de filtros, fichas de filtro y menú de orden |
+| `ListPanel`, `SearchBox`, `Pagination` | Agrupa la lista, buscador y pie de paginación |
+| `FloatingField`, `PillButton`, `InlineError` | Los del inicio de sesión: campo con etiqueta adentro, botón de 50 px y error junto a los campos |
 | `ListBody` (`ListError`, `EmptyState`, `Loading`) | Los estados de una lista: error con "Reintentar", cargando, filas, nada coincide con "Limpiar filtros" y estado inicial |
 | `SearchSelect` | Elegir un registro buscándolo en la API (proveedor, producto) |
 | `LookupResult` | Lo que respondió SUNAT o RENIEC, con el resumen y los avisos de la API |
-| `Pill`, `Kbd`, `PageHeader`, `ErrorList` | Estado, tecla, título de pantalla, errores de la API |
+| `Pill`, `Kbd`, `PageHeader`, `Card`, `ErrorList` | Estado, tecla, título de pantalla, sección de formulario, errores de la API |
 
-En `src/components/layout/`: el menú, la barra superior, `RouteError` (una pantalla que no cargó) y `ConnectionError` (al abrir la página sin conexión con la API).
+En `src/components/layout/`: el marco (`AppShell`: menú lateral, barra superior y menú del usuario), `RouteError` (una pantalla que no cargó) y `ConnectionError` (al abrir la página sin conexión con la API).

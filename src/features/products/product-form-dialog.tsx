@@ -185,7 +185,7 @@ export function ProductFormDialog({ open, product, onClose }: { open: boolean; p
                 )}
               />
               <Input className="font-mono" placeholder="YH-2045-BK" aria-label={`Código del proveedor, fila ${i + 1}`} {...form.register(`supplierCodes.${i}.code`)} />
-              <Button variant="ghost" onClick={() => supplierCodes.remove(i)} aria-label={`Quitar el código de la fila ${i + 1}`} title="Quitar">
+              <Button size="icon" variant="ghost" onClick={() => supplierCodes.remove(i)} aria-label={`Quitar el código de la fila ${i + 1}`} title="Quitar">
                 <X />
               </Button>
             </div>

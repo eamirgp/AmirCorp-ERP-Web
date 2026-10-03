@@ -12,7 +12,7 @@ import { ListBody, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
-import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
+import { useActivation } from '@/features/shared/use-activation'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { countLabel, listFilterOf, statusOptions, statusSchema } from '@/lib/filters'
@@ -50,17 +50,7 @@ function CompaniesPage() {
   }
   useHotkey('n', openNew)
 
-  const activation = useConfirmToggle<CompanyRow>(toggle, {
-    title: '¿Desactivar esta empresa?',
-    body: (c) => (
-      <>
-        <strong className="font-medium text-ink">{c.name}</strong> (RUC {c.ruc}) ya no podrá usarse en compras ni ventas nuevas. Sus registros se conservan y
-        puedes activarla de nuevo cuando quieras.
-      </>
-    ),
-    done: (c, active) => `${c.name} ${active ? 'activada' : 'desactivada'}`,
-  })
-  const { request: onToggle, busyId } = activation
+  const { request: onToggle, busyId } = useActivation<CompanyRow>(toggle, (c, active) => `${c.name} ${active ? 'activada' : 'desactivada'}`)
 
   const rows = list.data ?? []
   const filtered = !!search.q || !!search.estado
@@ -150,7 +140,6 @@ function CompaniesPage() {
       </ListPanel>
 
       <CompanyFormDialog open={!!search.nuevo || editing !== null} company={editing} onClose={closeForm} />
-      {activation.dialog}
       <HistorySheet target={history} onClose={() => setHistory(null)} />
     </>
   )

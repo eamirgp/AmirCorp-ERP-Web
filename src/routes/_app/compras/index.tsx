@@ -21,6 +21,8 @@ const sortOptions: Option<PurchaseSortBy>[] = [
   { value: 'IssueDate', label: 'Fecha de emisión' },
   { value: 'SupplierName', label: 'Proveedor' },
   { value: 'Total', label: 'Total' },
+  { value: 'Document', label: 'Comprobante' },
+  { value: 'CompanyName', label: 'Empresa' },
   { value: 'CreatedAt', label: 'Fecha de registro' },
 ]
 
@@ -29,7 +31,7 @@ const searchSchema = z.object({
   page: pageSchema,
   filas: pageSizeSchema,
   empresa: z.string().optional().catch(undefined),
-  orden: z.enum(['IssueDate', 'SupplierName', 'Total', 'CreatedAt']).optional().catch(undefined),
+  orden: z.enum(['IssueDate', 'SupplierName', 'Total', 'CreatedAt', 'Document', 'CompanyName']).optional().catch(undefined),
   dir: directionSchema,
 })
 type Search = z.infer<typeof searchSchema>
@@ -72,9 +74,10 @@ function PurchasesPage() {
 
   const columns = useMemo(
     () => [
-      col.accessor('issueDate', { header: 'Fecha', cell: (c) => <span className="num whitespace-nowrap text-muted">{formatDate(c.getValue())}</span> }),
+      col.accessor('issueDate', { header: 'Fecha', meta: { sortBy: 'IssueDate', sortDescendingFirst: true }, cell: (c) => <span className="num whitespace-nowrap text-muted">{formatDate(c.getValue())}</span> }),
       col.accessor('fullNumber', {
         header: 'Comprobante',
+        meta: { sortBy: 'Document' },
         cell: (c) => (
           <span className="whitespace-nowrap">
             <span className="text-xs text-faint">{c.row.original.taxDocumentTypeDescription} </span>
@@ -84,6 +87,7 @@ function PurchasesPage() {
       }),
       col.accessor('supplierName', {
         header: 'Proveedor',
+        meta: { sortBy: 'SupplierName' },
         cell: (c) => (
           <span>
             {c.getValue()}
@@ -91,10 +95,11 @@ function PurchasesPage() {
           </span>
         ),
       }),
-      col.accessor('companyName', { header: 'Empresa', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('companyName', { header: 'Empresa', meta: { hideOnMobile: true, sortBy: 'CompanyName' }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('total', {
-        header: () => <span className="block text-right">Total</span>,
-        cell: (c) => <span className="num block text-right whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currencySymbol)}</span>,
+        header: 'Total',
+        meta: { alignRight: true, sortBy: 'Total', sortDescendingFirst: true },
+        cell: (c) => <span className="num whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currencySymbol)}</span>,
       }),
       col.accessor('isCancelled', { header: 'Estado', cell: (c) => <Pill tone={c.getValue() ? 'bad' : 'ok'}>{c.row.original.statusDescription}</Pill> }),
     ],
@@ -102,6 +107,9 @@ function PurchasesPage() {
   )
 
   const data = list.data
+  // Ordenar con el menú o con un clic en el título de una columna: el orden va a la URL y lo aplica la API.
+  const changeSort = (orden: string, desc: boolean) =>
+    navigate({ search: (prev) => ({ ...prev, orden: orden as Search['orden'], dir: desc ? 'desc' : 'asc', page: undefined }) })
 
   return (
     <>
@@ -139,7 +147,7 @@ function PurchasesPage() {
                 options={sortOptions}
                 value={data.sortBy}
                 descending={data.sortDescending}
-                onChange={(orden, desc) => navigate({ search: (prev) => ({ ...prev, orden, dir: desc ? 'desc' : 'asc', page: undefined }) })}
+                onChange={changeSort}
               />
             )
           }
@@ -164,7 +172,16 @@ function PurchasesPage() {
             ),
           }}
         >
-          {(rows) => <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={open} isMuted={(r) => r.isCancelled} />}
+          {(rows) => (
+            <DataTable
+              data={rows}
+              columns={columns}
+              getRowId={(r) => r.id}
+              onOpen={open}
+              isMuted={(r) => r.isCancelled}
+              sort={data && { by: data.sortBy, descending: data.sortDescending, onChange: changeSort }}
+            />
+          )}
         </ListBody>
 
         <Pagination

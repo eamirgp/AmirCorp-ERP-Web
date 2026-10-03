@@ -101,7 +101,7 @@ function AuditPage() {
         header: () => <span className="sr-only">Acciones</span>,
         cell: (c) => (
           <RowActions>
-            <Button size="sm" variant="ghost" onClick={() => openHistory(c.row.original)} aria-label={`Historial de ${c.row.original.entityLabel}`} title="Historial del registro">
+            <Button size="icon" variant="ghost" onClick={() => openHistory(c.row.original)} aria-label={`Historial de ${c.row.original.entityLabel}`} title="Historial del registro">
               <HistoryIcon />
             </Button>
           </RowActions>
