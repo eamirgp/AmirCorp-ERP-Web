@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plus, X } from 'lucide-react'
 import { useWatch, type UseFieldArrayReturn, type UseFormReturn } from 'react-hook-form'
-import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
+import { currenciesQuery, igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
 import type { PartnerRow } from '@/api/partners'
 import type { ProductRow } from '@/api/products'
@@ -61,7 +61,10 @@ export function PurchaseLinesTable({
   /** Número de la otra línea que ya tiene ese producto, o 0 si ninguna. */
   const lineOf = (productId: string, except: number) => (watched ?? []).findIndex((l, i) => i !== except && l?.product?.id === productId) + 1
   const showUnitsPer = (watched ?? []).some((l) => asksUnitsPer(units.data, l?.invoiceUnitOfMeasure))
-  const money = (v: number) => formatMoney(v, currency || 'PEN')
+  // El símbolo lo envía la API con cada moneda; sin moneda elegida todavía, soles.
+  const currencies = useQuery(currenciesQuery)
+  const symbol = currencies.data?.find((c) => c.currency === currency)?.symbol ?? 'S/'
+  const money = (v: number) => formatMoney(v, symbol)
 
   return (
     <>

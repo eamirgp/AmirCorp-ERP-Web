@@ -2,7 +2,7 @@ import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode, 
 import { COMMA_MESSAGE, formatNumberInput, hasComma, numberInputProblem } from '@/lib/number-input'
 
 const control =
-  'h-10 w-full min-w-0 rounded-md border border-line-strong bg-surface px-3 text-base text-ink placeholder:text-faint transition-colors focus:border-ink focus:outline-none aria-[invalid=true]:border-bad disabled:opacity-60'
+  'h-10 w-full min-w-0 rounded-md border border-control bg-surface px-3 text-base text-ink placeholder:text-faint transition-colors focus:border-ink focus:outline-none aria-[invalid=true]:border-bad disabled:opacity-60'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input(
   { className = '', ...props },
@@ -92,7 +92,8 @@ export function Field({
       </label>
       {children({ id, 'aria-invalid': !!error, 'aria-describedby': describedBy })}
       {(error || hint) && (
-        <p id={describedBy} className={`text-xs ${error ? 'text-bad' : 'text-faint'}`}>
+        // Los errores, del mismo tamaño en todas las pantallas (text-sm); la ayuda, más chica.
+        <p id={describedBy} className={error ? 'text-sm text-bad' : 'text-xs text-faint'}>
           {error ?? hint}
         </p>
       )}

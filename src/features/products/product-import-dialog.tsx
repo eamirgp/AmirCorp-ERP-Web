@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { CheckCircle2, Download, FileSpreadsheet, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react'
-import { errorMessages } from '@/api/client'
+import { errorMessages, errorText } from '@/api/client'
 import {
   downloadProductTemplate,
   previewProductImport,
@@ -178,7 +178,7 @@ function UploadStep({
       const { blob, fileName } = await downloadProductTemplate()
       saveBlob(blob, fileName)
     } catch (e) {
-      toast.error(errorMessages(e)[0])
+      toast.error(errorText(e))
     } finally {
       setDownloading(false)
     }

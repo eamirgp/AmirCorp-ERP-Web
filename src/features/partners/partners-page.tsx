@@ -4,7 +4,7 @@ import { Ban, HistoryIcon, LockOpen, Pencil, Plus, Truck, UserPlus, Users } from
 import { useMemo, useState, type ReactNode } from 'react'
 import { z } from 'zod'
 import { identityDocumentTypesQuery } from '@/api/catalogs'
-import { errorMessages } from '@/api/client'
+import { errorText } from '@/api/client'
 import {
   partnerListQuery,
   useAddPartnerRole,
@@ -19,8 +19,8 @@ import type { SavedViewScreen } from '@/api/saved-views'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
-import { EmptyState, ListPanel, Loading, Pagination, SearchBox } from '@/components/ui/list-controls'
-import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
+import { EmptyState, ListPanel, Loading, Pagination, SearchBox, ListError } from '@/components/ui/list-controls'
+import { PageHeader, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { BlockRoleDialog } from '@/features/partners/block-role-dialog'
@@ -166,7 +166,7 @@ export function PartnersPage({
       { id: p.id, role: isSuppliers ? 'Client' : 'Supplier' },
       {
         onSuccess: () => toast.ok(`${p.name} ahora también es ${isSuppliers ? 'cliente' : 'proveedor'}`),
-        onError: (e) => toast.error(errorMessages(e)[0]),
+        onError: (e) => toast.error(errorText(e)),
       },
     )
   const [editing, setEditing] = useState<PartnerRow | null>(null)
@@ -192,7 +192,7 @@ export function PartnersPage({
       { id: p.id, role: config.apiRole, blocked: false, rowVersion: p.rowVersion },
       {
         onSuccess: () => toast.ok(`${isSuppliers ? 'Compras' : 'Ventas'} desbloqueadas: ${p.name}`),
-        onError: (e) => toast.error(errorMessages(e)[0]),
+        onError: (e) => toast.error(errorText(e)),
       },
     )
   const busyId = unblock.isPending ? unblock.variables?.id : addRole.isPending ? addRole.variables?.id : undefined
@@ -324,7 +324,7 @@ export function PartnersPage({
         />
 
         {list.isError ? (
-          <ErrorList messages={errorMessages(list.error)} />
+          <ListError error={list.error} onRetry={() => void list.refetch()} />
         ) : !data ? (
           <Loading text={config.loading} />
         ) : data.items.length > 0 ? (

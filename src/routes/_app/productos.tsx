@@ -4,12 +4,11 @@ import { Download, FileSpreadsheet, PackagePlus, Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { z } from 'zod'
 import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
-import { errorMessages } from '@/api/client'
 import { productListQuery, useToggleProduct, type ProductRow, type ProductSortBy } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
-import { ErrorList, PageHeader } from '@/components/ui/misc'
+import { EmptyState, Loading, Pagination, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { PageHeader } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ProductExportDialog, useProductExport } from '@/features/products/product-export-dialog'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
@@ -147,7 +146,7 @@ function ProductsPage() {
         />
 
         {list.isError ? (
-          <ErrorList messages={errorMessages(list.error)} />
+          <ListError error={list.error} onRetry={() => void list.refetch()} />
         ) : !data ? (
           <Loading text="Cargando productos…" />
         ) : data.items.length > 0 ? (

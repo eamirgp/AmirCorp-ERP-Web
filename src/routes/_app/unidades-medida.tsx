@@ -4,12 +4,12 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { HistoryIcon, Pencil, Power, Ruler } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
-import { errorMessages } from '@/api/client'
 import { unitsListQuery, useToggleUnit, type UnitRow } from '@/api/units'
+import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar, type Option } from '@/components/ui/filters'
-import { EmptyState, ListPanel, Loading, SearchBox } from '@/components/ui/list-controls'
-import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
+import { EmptyState, ListPanel, Loading, SearchBox, ListError } from '@/components/ui/list-controls'
+import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
 import { UnitNameDialog } from '@/features/units/unit-name-dialog'
@@ -131,13 +131,13 @@ function UnitsPage() {
         />
 
         {list.isError ? (
-          <ErrorList messages={errorMessages(list.error)} />
+          <ListError error={list.error} onRetry={() => void list.refetch()} />
         ) : !list.data ? (
           <Loading text="Cargando unidades…" />
         ) : rows.length > 0 ? (
           <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />
         ) : (
-          <EmptyState icon={<Ruler strokeWidth={1.5} />} text="Ninguna unidad coincide con la búsqueda o el filtro." />
+          <EmptyState icon={<Ruler strokeWidth={1.5} />} text="Ninguna unidad coincide con la búsqueda o el filtro." action={<Button onClick={() => navigate({ search: {} })}>Limpiar filtros</Button>} />
         )}
       </ListPanel>
 

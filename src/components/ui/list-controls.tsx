@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCw, Search, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { errorMessages } from '@/api/client'
 import { formatInt } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
 import { useDebounced } from '@/lib/use-debounced'
@@ -147,6 +148,24 @@ export function EmptyState({ icon, title, text, action }: { icon: ReactNode; tit
       {title && <p className="font-display text-lg font-semibold">{title}</p>}
       <p className="max-w-sm text-base text-muted">{text}</p>
       {action}
+    </div>
+  )
+}
+
+/** La lista no se pudo cargar (sin conexión, error del servidor): el mensaje y "Reintentar", como en una pantalla. */
+export function ListError({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-3 border-t border-line px-6 py-16 text-center">
+      <TriangleAlert className="size-6 text-bad" strokeWidth={1.5} />
+      {errorMessages(error).map((m) => (
+        <p key={m} className="max-w-md text-base text-muted">
+          {m}
+        </p>
+      ))}
+      <Button variant="primary" onClick={onRetry}>
+        <RotateCw />
+        Reintentar
+      </Button>
     </div>
   )
 }

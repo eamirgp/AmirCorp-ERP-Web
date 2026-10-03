@@ -4,14 +4,13 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { Plus, ShoppingCart } from 'lucide-react'
 import { useMemo } from 'react'
 import { z } from 'zod'
-import { errorMessages } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
 import { purchaseListQuery, type PurchaseRow, type PurchaseSortBy } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
-import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
+import { EmptyState, Loading, Pagination, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { PageHeader, Pill } from '@/components/ui/misc'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { directionSchema, pageSchema, pageSizeSchema } from '@/lib/filters'
@@ -95,7 +94,7 @@ function PurchasesPage() {
       col.accessor('companyName', { header: 'Empresa', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('total', {
         header: () => <span className="block text-right">Total</span>,
-        cell: (c) => <span className="num block text-right whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currency)}</span>,
+        cell: (c) => <span className="num block text-right whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currencySymbol)}</span>,
       }),
       col.accessor('isCancelled', { header: 'Estado', cell: (c) => <Pill tone={c.getValue() ? 'bad' : 'ok'}>{c.row.original.statusDescription}</Pill> }),
     ],
@@ -147,7 +146,7 @@ function PurchasesPage() {
         />
 
         {list.isError ? (
-          <ErrorList messages={errorMessages(list.error)} />
+          <ListError error={list.error} onRetry={() => void list.refetch()} />
         ) : !data ? (
           <Loading text="Cargando compras…" />
         ) : data.items.length > 0 ? (

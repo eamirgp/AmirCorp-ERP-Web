@@ -3244,6 +3244,7 @@ export interface components {
             igvAmount: number;
             /** Format: double */
             total: number;
+            currency: components["schemas"]["Currency"];
             invoiceIgvAffectationDescription: string;
             /** Format: double */
             invoiceUnitAmount: number;
@@ -3286,6 +3287,7 @@ export interface components {
             lines: components["schemas"]["GetPurchaseLineResponseDto"][];
             taxDocumentTypeDescription: string;
             currencyDescription: string;
+            currencySymbol: string;
             invoicePriceTypeDescription: string;
             supplierIdentityDocumentTypeDescription: string;
             fullNumber: string;
@@ -3369,6 +3371,7 @@ export interface components {
             description: string;
             supportsExchangeRateLookup: boolean;
             requiresExchangeRate: boolean;
+            symbol: string;
         };
         ListIdentityDocumentTypesResponseDto: {
             identityDocumentType: components["schemas"]["IdentityDocumentType"];
@@ -3438,6 +3441,7 @@ export interface components {
             cancellationReason: null | string;
             taxDocumentTypeDescription: string;
             currencyDescription: string;
+            currencySymbol: string;
             fullNumber: string;
             statusDescription: string;
         };
@@ -3540,6 +3544,7 @@ export interface components {
         PreviewPurchaseRequest: {
             invoicePriceType: null | components["schemas"]["InvoicePriceType"];
             lines: null | components["schemas"]["PreviewPurchaseLineRequest"][];
+            currency?: null | components["schemas"]["Currency"];
         };
         PreviewPurchaseResponseDto: {
             lines: components["schemas"]["PreviewPurchaseLineResponseDto"][];

@@ -120,3 +120,6 @@ export async function unwrap<T>(request: Promise<{ data?: T; error?: unknown; re
 
 export const errorMessages = (error: unknown): string[] =>
   error instanceof ApiError ? error.messages : ['Ocurrió un error inesperado. Inténtalo de nuevo.']
+
+/** Todos los mensajes en un solo texto, para un aviso flotante: si la API envió varios, no se pierde ninguno. */
+export const errorText = (error: unknown): string => errorMessages(error).join(' ')

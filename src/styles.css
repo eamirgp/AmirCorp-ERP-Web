@@ -24,10 +24,13 @@
   --surface-2: #f8f8f7;
   --line: #e8e8e6;
   --line-strong: #d4d4d2;
+  /* Borde de campos y listas desplegables: 3:1 o más sobre la página y las tarjetas (WCAG 1.4.11), para que una persona
+     mayor vea dónde escribir. Los bordes decorativos siguen con --line y --line-strong. */
+  --control: #8a8a87;
   --ink: #0a0a0a;
-  /* Contraste AA (4.5:1 o más) sobre blanco, pensado para usuarios mayores: */
+  /* Contraste AA (4.5:1 o más) sobre blanco y sobre el gris de la página, pensado para usuarios mayores: */
   --muted: #525252; /* texto secundario, 7.8:1 */
-  --faint: #737373; /* gris del manual, lo más tenue que se usa para texto: 4.7:1 */
+  --faint: #6b6b6b; /* lo más tenue que se usa para texto: 4.8:1 sobre la página (el gris del manual, #737373, no llegaba) */
   /* Acción principal: el negro "base" del manual. */
   --primary: #0a0a0a;
   --primary-hover: #2a2a2a;
@@ -40,7 +43,7 @@
   --warn: #d48a1f;
   --warn-soft: #fdf4e6;
   --warn-text: #8a5a12;
-  --bad: #d4453d;
+  --bad: #c0392f; /* errores: 4.9:1 sobre su fondo rosado, 5.4:1 sobre blanco */
   --bad-soft: #fdf1f0;
   --overlay: rgb(0 0 0 / 0.35);
   --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.14);
@@ -54,6 +57,7 @@
     --surface-2: #1b1b1b;
     --line: #262626;
     --line-strong: #333333;
+    --control: #6e6e6e;
     --ink: #f2f2f2;
     --muted: #b3b3b3;
     --faint: #8f8f8f;
@@ -78,6 +82,7 @@
   --surface-2: #1b1b1b;
   --line: #262626;
   --line-strong: #333333;
+  --control: #6e6e6e;
   --ink: #f2f2f2;
   --muted: #b3b3b3;
   --faint: #8f8f8f;
@@ -124,6 +129,7 @@
   --color-surface-2: var(--surface-2);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-control: var(--control);
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-faint: var(--faint);

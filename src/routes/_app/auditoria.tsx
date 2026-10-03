@@ -6,13 +6,12 @@ import { useCallback, useMemo, useState } from 'react'
 import { z } from 'zod'
 import { auditListQuery, type AuditAction, type AuditEntityType, type AuditEntry } from '@/api/audit'
 import { auditActionsQuery, auditEntityTypesQuery } from '@/api/catalogs'
-import { errorMessages } from '@/api/client'
 import { usersQuery } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowActions } from '@/components/ui/data-table'
 import { FilterBar } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
-import { ErrorList, PageHeader } from '@/components/ui/misc'
+import { EmptyState, Loading, Pagination, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { PageHeader } from '@/components/ui/misc'
 import { ChangeList } from '@/features/audit/change-list'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
@@ -134,7 +133,7 @@ function AuditPage() {
         />
 
         {list.isError ? (
-          <ErrorList messages={errorMessages(list.error)} />
+          <ListError error={list.error} onRetry={() => void list.refetch()} />
         ) : !data ? (
           <Loading text="Cargando historial…" />
         ) : data.items.length > 0 ? (

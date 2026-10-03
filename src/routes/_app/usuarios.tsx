@@ -5,13 +5,12 @@ import { HistoryIcon, KeyRound, Pencil, Plus, Power, ShieldCheck, UserRound } fr
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
 import { userRolesQuery } from '@/api/catalogs'
-import { errorMessages } from '@/api/client'
 import { usersListQuery, useToggleUser, type UserRow } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar } from '@/components/ui/filters'
-import { EmptyState, Loading, SearchBox, ListPanel } from '@/components/ui/list-controls'
-import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
+import { EmptyState, Loading, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
@@ -142,13 +141,13 @@ function UsersPage() {
         />
 
         {list.isError ? (
-          <ErrorList messages={errorMessages(list.error)} />
+          <ListError error={list.error} onRetry={() => void list.refetch()} />
         ) : !list.data ? (
           <Loading text="Cargando usuarios…" />
         ) : rows.length > 0 ? (
           <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={(u) => setAction({ mode: 'profile', user: u })} isMuted={(r) => !r.isActive} />
         ) : (
-          <EmptyState icon={<UserRound strokeWidth={1.5} />} text="Ningún usuario coincide con la búsqueda o el filtro." />
+          <EmptyState icon={<UserRound strokeWidth={1.5} />} text="Ningún usuario coincide con la búsqueda o el filtro." action={<Button onClick={() => navigate({ search: {} })}>Limpiar filtros</Button>} />
         )}
       </ListPanel>
 

@@ -59,7 +59,7 @@ export function NewProductCell({
         <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-text">Nuevo</span>
       </div>
       {taken && (
-        <p role="alert" className="text-xs text-bad">
+        <p role="alert" className="text-sm text-bad">
           {taken.message}
         </p>
       )}

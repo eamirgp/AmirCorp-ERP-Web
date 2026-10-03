@@ -1,6 +1,6 @@
 import type { UseMutationResult } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
-import { errorMessages } from '@/api/client'
+import { errorText } from '@/api/client'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { toast } from '@/components/ui/toast'
 
@@ -31,7 +31,7 @@ export function useConfirmToggle<T extends { id: string; isActive: boolean }>(
     toggle
       .mutateAsync({ id: row.id, active })
       .then(() => toast.ok(copy.done(row, active)))
-      .catch((e: unknown) => toast.error(errorMessages(e)[0]))
+      .catch((e: unknown) => toast.error(errorText(e)))
       .finally(() => setConfirming(null))
   }
 

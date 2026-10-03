@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { errorMessages } from '@/api/client'
+import { errorMessages, errorText } from '@/api/client'
 import { fetchPartnerRow, findPartnerByDocument, partnerKeys, useAddPartnerRole, type FoundPartner, type IdentityDocumentType, type PartnerRole, type PartnerRow } from '@/api/partners'
 import { Button } from '@/components/ui/button'
 import { ErrorList } from '@/components/ui/misc'
@@ -94,7 +94,7 @@ export function ExistingPartnerNotice({
       if (row) onOpenExisting(row)
       else toast.error('No se pudo abrir. Búscalo en la lista.')
     } catch (e) {
-      toast.error(errorMessages(e)[0])
+      toast.error(errorText(e))
     } finally {
       setOpening(false)
     }

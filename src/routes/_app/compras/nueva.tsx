@@ -4,7 +4,7 @@ import { ArrowLeft, Search } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { currenciesQuery, igvAffectationsQuery, invoicePriceTypesQuery, taxDocumentTypesQuery, unitsOfMeasureQuery } from '@/api/catalogs'
-import { errorMessages, type Schemas } from '@/api/client'
+import { errorMessages, errorText, type Schemas } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
@@ -97,6 +97,8 @@ function NewPurchasePage() {
   const previewInput = useMemo<Schemas['PreviewPurchaseRequest']>(
     () => ({
       invoicePriceType: orNull<Schemas['InvoicePriceType']>(watched.invoicePriceType),
+      // Solo para que el costo de cada línea salga con su moneda ("costo US$ 5.00 c/u").
+      currency: orNull<Schemas['Currency']>(watched.currency),
       lines: (watched.lines ?? []).map((l) => ({
         invoiceIgvAffectation: orNull<Schemas['IgvAffectation']>(l?.invoiceIgvAffectation),
         invoiceUnitOfMeasureCode: l?.invoiceUnitOfMeasure || null,
@@ -255,7 +257,7 @@ function NewPurchasePage() {
             )}
           </Field>
           {/* Solo aplica a las monedas que lo piden (lo dice el catálogo de la API): en soles queda bloqueado y vacío. */}
-          <Field label="Tipo de cambio" error={rate.lookup.isError ? errorMessages(rate.lookup.error)[0] : undefined} hint={rate.hint}>
+          <Field label="Tipo de cambio" error={rate.lookup.isError ? errorText(rate.lookup.error) : undefined} hint={rate.hint}>
             {(a) => (
               <div className="flex gap-2">
                 {/* El campo ocupa todo el ancho que deja el botón (o toda la celda, si no hay botón). */}

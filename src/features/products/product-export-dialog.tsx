@@ -1,6 +1,6 @@
 import { Download } from 'lucide-react'
 import { useState } from 'react'
-import { errorMessages } from '@/api/client'
+import { errorText } from '@/api/client'
 import { exportProducts, type ProductExportParams } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
@@ -20,7 +20,7 @@ export function useProductExport() {
       toast.ok('Excel descargado')
       return true
     } catch (e) {
-      toast.error(errorMessages(e)[0])
+      toast.error(errorText(e))
       return false
     } finally {
       setBusy(false)

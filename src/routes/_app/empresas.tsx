@@ -4,13 +4,12 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { Building2, HistoryIcon, Pencil, Plus, Power } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { z } from 'zod'
-import { errorMessages } from '@/api/client'
 import { companiesListQuery, useToggleCompany, type CompanyRow } from '@/api/companies'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar } from '@/components/ui/filters'
-import { EmptyState, Loading, SearchBox, ListPanel } from '@/components/ui/list-controls'
-import { ErrorList, PageHeader, Pill } from '@/components/ui/misc'
+import { EmptyState, Loading, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
 import { useConfirmToggle } from '@/features/shared/use-confirm-toggle'
@@ -128,13 +127,13 @@ function CompaniesPage() {
         />
 
         {list.isError ? (
-          <ErrorList messages={errorMessages(list.error)} />
+          <ListError error={list.error} onRetry={() => void list.refetch()} />
         ) : !list.data ? (
           <Loading text="Cargando empresas…" />
         ) : rows.length > 0 ? (
           <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />
         ) : filtered ? (
-          <EmptyState icon={<Building2 strokeWidth={1.5} />} text="Ninguna empresa coincide con la búsqueda o el filtro." />
+          <EmptyState icon={<Building2 strokeWidth={1.5} />} text="Ninguna empresa coincide con la búsqueda o el filtro." action={<Button onClick={() => navigate({ search: {} })}>Limpiar filtros</Button>} />
         ) : (
           <EmptyState
             icon={<Building2 strokeWidth={1.5} />}

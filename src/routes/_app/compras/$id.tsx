@@ -13,7 +13,7 @@ import { ErrorList, Pill } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
 import { HistorySheet } from '@/features/audit/history-sheet'
 import { Totals } from '@/features/purchases/totals'
-import { formatDate, formatDecimal, formatMoney } from '@/lib/format'
+import { formatDate, formatDecimal, formatMoney, formatUnitAmount } from '@/lib/format'
 
 export const Route = createFileRoute('/_app/compras/$id')({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(purchaseQuery(params.id)),
@@ -29,7 +29,7 @@ function PurchaseDetailPage() {
   if (purchase.isError) return <ErrorList messages={errorMessages(purchase.error)} />
   if (!purchase.data) return <Loading text="Cargando compra…" />
   const p = purchase.data
-  const money = (v: number) => formatMoney(v, p.currency)
+  const money = (v: number) => formatMoney(v, p.currencySymbol)
 
   return (
     <>
@@ -113,7 +113,7 @@ function PurchaseDetailPage() {
                 </Td>
                 <Td className="text-muted">{l.invoiceUnitOfMeasureName}</Td>
                 <Td right>{formatDecimal(l.invoiceQuantity)}</Td>
-                <Td right>{formatDecimal(l.invoiceUnitAmount)}</Td>
+                <Td right>{formatUnitAmount(l.invoiceUnitAmount)}</Td>
                 <Td right>{money(l.baseAmount)}</Td>
                 <Td right>{money(l.igvAmount)}</Td>
                 <Td right>

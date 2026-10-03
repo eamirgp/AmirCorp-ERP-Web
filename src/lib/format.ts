@@ -14,29 +14,30 @@ const withThinSpaces = (f: Intl.NumberFormat, value: number) =>
 
 const integer = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 0 })
 const decimal = new Intl.NumberFormat('es-PE', { maximumFractionDigits: 6 })
-const moneyFormats = new Map<string, Intl.NumberFormat>()
+const money = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
 
 /**
- * Monto en la moneda indicada por la API: "S/ 1 234.50", "US$ 1 234.50". Siempre con céntimos, y sin esconder decimales
- * de más: un precio antiguo de 10.555 se ve 10.555, no 10.56.
+ * Monto con el símbolo de su moneda que envía la API ("S/ 1 234.50", "US$ 1 234.50"), el mismo de sus textos. Siempre
+ * con céntimos, y sin esconder decimales de más: un precio antiguo de 10.555 se ve 10.555, no 10.56.
  */
-export function formatMoney(value: number, currency: string | null | undefined) {
-  const code = currency ?? 'PEN'
-  let f = moneyFormats.get(code)
-  if (!f) {
-    f = new Intl.NumberFormat('es-PE', { style: 'currency', currency: code, minimumFractionDigits: 2, maximumFractionDigits: 6 })
-    moneyFormats.set(code, f)
-  }
-  return withThinSpaces(f, value)
-}
+export const formatMoney = (value: number, symbol: string) =>
+  `${value < 0 ? '-' : ''}${symbol}${THOUSANDS}${withThinSpaces(money, Math.abs(value))}`
 
 /** S/ 1 234.50 */
-export const formatPen = (value: number) => formatMoney(value, 'PEN')
+export const formatPen = (value: number) => formatMoney(value, 'S/')
 
 const amount = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 /** Monto sin símbolo de moneda, para columnas donde la moneda ya se sabe: 1 234.50 */
 export const formatAmount = (value: number) => withThinSpaces(amount, value)
+
+const unitAmount = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })
+
+/**
+ * Monto unitario sin símbolo: con céntimos como al escribirlo en la compra (5.00) y sin esconder decimales de más
+ * (8.474576).
+ */
+export const formatUnitAmount = (value: number) => withThinSpaces(unitAmount, value)
 
 /** 1 234 */
 export const formatInt = (value: number) => withThinSpaces(integer, value)
