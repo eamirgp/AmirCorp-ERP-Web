@@ -13,12 +13,12 @@ import { navGroups } from './nav'
 
 export function AppShell({ children }: { children: ReactNode }) {
   // Cierra la sesión justo cuando vence por falta de uso, sin esperar a que falle una petición. Cada renovación (al
-  // usar el sistema) vuelve a programar el plazo.
+  // usar el sistema) vuelve a programar el plazo. Si se siguió usando en otra pestaña, la API lo dice y sigue abierta.
   useEffect(() => {
-    let t = setTimeout(() => session.end(), session.msUntilExpiry)
+    let t = setTimeout(() => void session.expire(), session.msUntilExpiry)
     const unsubscribe = session.subscribe(() => {
       clearTimeout(t)
-      if (session.isAuthenticated) t = setTimeout(() => session.end(), session.msUntilExpiry)
+      if (session.isAuthenticated) t = setTimeout(() => void session.expire(), session.msUntilExpiry)
     })
     return () => {
       clearTimeout(t)

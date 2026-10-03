@@ -39,12 +39,23 @@ function payloadOf(jwt: string): { exp?: number } | null {
 const notify = () => listeners.forEach((l) => l())
 
 async function callAuth(path: 'refresh' | 'logout'): Promise<Response | null> {
-  try {
-    return await fetch(`${apiBaseUrl}/api/auth/${path}`, { method: 'POST', credentials: 'include' })
-  } catch {
-    return null
+  const call = async () => {
+    try {
+      return await fetch(`${apiBaseUrl}/api/auth/${path}`, { method: 'POST', credentials: 'include' })
+    } catch {
+      return null
+    }
   }
+  // Una renovación a la vez entre todas las pestañas: cada una reemplaza la cookie, y si dos la renovaran juntas con
+  // la misma, la que llegue última podría dejar guardada una ya reemplazada y la sesión se cerraría más tarde.
+  return 'locks' in navigator ? navigator.locks.request('erp-session', call) : call()
 }
+
+// "Cerrar sesión" en una pestaña la cierra también en las demás (la cookie ya no sirve en ninguna).
+const channel = 'BroadcastChannel' in window ? new BroadcastChannel('erp-session') : null
+channel?.addEventListener('message', (e) => {
+  if (e.data === 'logout') session.end()
+})
 
 export const session = {
   /** Token de acceso actual (puede estar por vencer: el cliente de la API lo renueva antes de usarlo). */
@@ -82,9 +93,9 @@ export const session = {
   },
 
   /**
-   * Pide un token de acceso nuevo con la cookie. Si la sesión ya no sirve (venció, cuenta desactivada), la cierra con
-   * el motivo que envió la API.
-   * @returns Si hay sesión después de intentarlo.
+   * Pide un token de acceso nuevo con la cookie. Si la API dice que la sesión ya no sirve (401: venció, cuenta
+   * desactivada), la cierra con el motivo que envió.
+   * @returns Si se obtuvo un token nuevo.
    */
   refresh(): Promise<boolean> {
     refreshing ??= (async () => {
@@ -93,15 +104,24 @@ export const session = {
         session.start((await response.json()) as SessionResponse)
         return true
       }
-      // Sin conexión no se cierra la sesión: el pedido fallará y se podrá reintentar.
-      if (response) {
+      // Solo un 401 cierra la sesión. Sin conexión o con un error del servidor (500, 503) sigue abierta: el pedido
+      // fallará con su mensaje y se podrá reintentar.
+      if (response?.status === 401) {
         const body = (await response.json().catch(() => null)) as { errors?: unknown } | null
         const errors = Array.isArray(body?.errors) ? (body.errors as unknown[]) : []
         session.end(errors.length > 0 ? String(errors[0]) : undefined)
       }
-      return session.isAuthenticated
+      return false
     })().finally(() => (refreshing = null))
     return refreshing
+  },
+
+  /**
+   * El plazo de la sesión se cumplió en esta pestaña. Antes de cerrarla se pregunta a la API: si se siguió usando en
+   * otra pestaña, la sesión sigue viva y solo se actualiza el plazo.
+   */
+  async expire() {
+    if (!(await session.refresh())) session.end()
   },
 
   /** Al abrir la página: recupera la sesión con la cookie, si la hay. */
@@ -113,6 +133,7 @@ export const session = {
   /** "Cerrar sesión": la anula también en el servidor, para que la cookie ya no sirva. */
   async logout() {
     await callAuth('logout')
+    channel?.postMessage('logout')
     session.end()
   },
 

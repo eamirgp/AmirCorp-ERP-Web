@@ -12,22 +12,44 @@ export const api = createClient<paths>({
   credentials: 'include',
 })
 
+// Copia de cada pedido con token, para repetirlo una vez si la API responde 401 (el cuerpo de un pedido ya enviado no se
+// puede volver a leer).
+const retries = new WeakMap<Request, Request>()
+
 const auth: Middleware = {
   async onRequest({ request }) {
     // El token de acceso dura 15 minutos: si está por vencer, se renueva antes de enviar el pedido. Así la sesión se
     // renueva solo cuando se usa el sistema y una pestaña abierta sin usar vence igual.
     if (session.needsRefresh) await session.refresh()
     const token = session.token
-    if (token) request.headers.set('Authorization', `Bearer ${token}`)
+    if (token) {
+      request.headers.set('Authorization', `Bearer ${token}`)
+      retries.set(request, request.clone())
+    }
     return request
   },
   async onResponse({ request, response }) {
-    // La API ya no acepta al usuario (por ejemplo, lo desactivaron): se cierra la sesión y el router lleva al login, que
-    // muestra el motivo. Un 401 del propio inicio de sesión no lleva token.
-    if (response.status === 401 && request.headers.has('Authorization')) {
-      const body = (await response.clone().json().catch(() => null)) as { errors?: unknown } | null
-      session.end(Array.isArray(body?.errors) && body.errors.length > 0 ? String(body.errors[0]) : undefined)
+    // Un 401 del propio inicio de sesión no lleva token.
+    const retry = retries.get(request)
+    if (response.status !== 401 || !retry) return response
+
+    // El token pudo vencer antes de lo que creía este equipo (su reloj no coincide con el de la API), o ser de antes
+    // de un cambio en la API: se renueva una vez y se repite el pedido. Si la renovación dice que la sesión ya no
+    // sirve, ella misma la cierra con el motivo.
+    if (await session.refresh()) {
+      retry.headers.set('Authorization', `Bearer ${session.token}`)
+      const again = await fetch(retry)
+      if (again.status !== 401) return again
+      response = again
+    } else if (session.token) {
+      // No se pudo renovar por la conexión o un error del servidor: la sesión sigue y el pedido se puede reintentar.
+      return response
     }
+
+    // La API ya no acepta al usuario (por ejemplo, lo desactivaron): se cierra la sesión y el router lleva al login, que
+    // muestra el motivo.
+    const body = (await response.clone().json().catch(() => null)) as { errors?: unknown } | null
+    session.end(Array.isArray(body?.errors) && body.errors.length > 0 ? String(body.errors[0]) : undefined)
     return response
   },
 }
