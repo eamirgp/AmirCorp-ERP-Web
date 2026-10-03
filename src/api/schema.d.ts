@@ -1009,6 +1009,7 @@ export interface paths {
                     SortDescending?: boolean;
                     SupplierId?: string;
                     OnlySupplierProducts?: boolean;
+                    LinkCode?: string;
                 };
                 header?: never;
                 path?: never;
@@ -3274,6 +3275,7 @@ export interface components {
             invoicePriceTypeDescription: string;
             supplierIdentityDocumentTypeDescription: string;
             fullNumber: string;
+            statusDescription: string;
         };
         GetUserResponseDto: {
             /** Format: uuid */
@@ -3341,6 +3343,7 @@ export interface components {
             isActive: boolean;
             /** Format: uint32 */
             rowVersion: number;
+            statusDescription: string;
         };
         ListCountriesResponseDto: {
             code: string;
@@ -3389,8 +3392,11 @@ export interface components {
             matchedSupplierId: null | string;
             /** Format: uint32 */
             rowVersion: number;
+            linkCode?: null | string;
             igvAffectationDescription: string;
             igvAffectationShortDescription: string;
+            statusDescription: string;
+            linkError: null | string;
             searchMatch: null | string;
         };
         ListPurchasesResponseDto: {
@@ -3416,6 +3422,7 @@ export interface components {
             taxDocumentTypeDescription: string;
             currencyDescription: string;
             fullNumber: string;
+            statusDescription: string;
         };
         ListSavedViewsResponseDto: {
             /** Format: uuid */
@@ -3445,6 +3452,7 @@ export interface components {
             /** Format: uint32 */
             rowVersion: number;
             roleDescription: string;
+            statusDescription: string;
         };
         LoginRequest: {
             email: null | string;
@@ -3507,6 +3515,7 @@ export interface components {
             inventoryQuantity: null | number;
             /** Format: double */
             inventoryUnitCost: null | number;
+            inventoryDescription: null | string;
             error: null | string;
         };
         /** @description Compra a medio llenar. No se valida: las líneas incompletas simplemente no se calculan. */
@@ -3676,6 +3685,7 @@ export interface components {
             /** Format: uint32 */
             rowVersion: number;
             conversionDescription: string;
+            statusDescription: string;
             productCountDescription: string;
         };
         /** @description Corrige los datos. Los roles no se cambian aquí: se agregan con PATCH api/partners/{id}/roles/{role}. */

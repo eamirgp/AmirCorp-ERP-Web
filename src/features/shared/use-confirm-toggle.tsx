@@ -24,15 +24,16 @@ export function useConfirmToggle<T extends { id: string; isActive: boolean }>(
 ) {
   const [confirming, setConfirming] = useState<T | null>(null)
 
-  const run = (row: T) =>
-    toggle.mutate(
-      { id: row.id, active: !row.isActive },
-      {
-        onSuccess: () => toast.ok(copy.done(row, !row.isActive)),
-        onError: (e) => toast.error(errorMessages(e)[0]),
-        onSettled: () => setConfirming(null),
-      },
-    )
+  // Con mutateAsync cada clic tiene su propio aviso: con mutate y sus callbacks, si se activan dos filas seguidas,
+  // solo avisa la última.
+  const run = (row: T) => {
+    const active = !row.isActive
+    toggle
+      .mutateAsync({ id: row.id, active })
+      .then(() => toast.ok(copy.done(row, active)))
+      .catch((e: unknown) => toast.error(errorMessages(e)[0]))
+      .finally(() => setConfirming(null))
+  }
 
   const request = (row: T) => (row.isActive ? setConfirming(row) : run(row))
   const busyId = toggle.isPending ? toggle.variables?.id : undefined

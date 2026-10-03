@@ -1,33 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, useBlocker, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Plus, Search, X } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowLeft, Search } from 'lucide-react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
-import {
-  currenciesQuery,
-  igvAffectationsQuery,
-  invoicePriceTypesQuery,
-  storedExchangeRateQuery,
-  taxDocumentTypesQuery,
-  unitsOfMeasureQuery,
-  useExchangeRate,
-  type ExchangeRate,
-} from '@/api/catalogs'
+import { currenciesQuery, igvAffectationsQuery, invoicePriceTypesQuery, taxDocumentTypesQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages, type Schemas } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
-import type { PartnerRow } from '@/api/partners'
-import type { ProductRow } from '@/api/products'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
 import { Field, Input, NumberInput, Select } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Card, ErrorList, PageHeader } from '@/components/ui/misc'
 import { toast } from '@/components/ui/toast'
-import type { NewProduct } from '@/features/purchases/new-product-cell'
-import { ProductCell } from '@/features/purchases/product-cell'
-import { SupplierField, type NewSupplier } from '@/features/purchases/supplier-field'
-import { Totals } from '@/features/purchases/totals'
-import { formatAmount, formatCost, formatDecimal, formatMoney, todayIso } from '@/lib/format'
+import { emptyLine, orNull, unitsPerFor, type PurchaseFormValues } from '@/features/purchases/purchase-form'
+import { PurchaseLinesTable } from '@/features/purchases/purchase-lines-table'
+import { SupplierField } from '@/features/purchases/supplier-field'
+import { useExchangeRateField } from '@/features/purchases/use-exchange-rate-field'
+import { useSupplierChange } from '@/features/purchases/use-supplier-change'
+import { todayIso } from '@/lib/format'
 import { parseNumberInput } from '@/lib/number-input'
 import { useDebounced } from '@/lib/use-debounced'
 
@@ -44,39 +34,11 @@ export const Route = createFileRoute('/_app/compras/nueva')({
   component: NewPurchasePage,
 })
 
-// El formulario guarda exactamente lo que se escribe. La API valida y calcula todo.
-interface LineValues {
-  product: ProductRow | null
-  /** Producto que todavía no existe: la API lo registra junto con la compra. Va en vez de `product`. */
-  newProduct: NewProduct | null
-  /** Con un producto existente: el código con que lo vende el proveedor de esta compra, para enlazarlo. */
-  supplierCode: string
-  invoiceIgvAffectation: string
-  invoiceUnitOfMeasure: string
-  invoiceQuantity: string
-  invoiceAmount: string
-  conversionFactor: string
-}
-
-interface Values {
-  companyId: string
-  supplier: PartnerRow | null
-  newSupplier: NewSupplier | null
-  taxDocumentType: string
-  serie: string
-  number: string
-  issueDate: string
-  currency: string
-  exchangeRate: string
-  invoicePriceType: string
-  lines: LineValues[]
-}
-
-const emptyLine: LineValues = { product: null, newProduct: null, supplierCode: '',invoiceIgvAffectation: '', invoiceUnitOfMeasure: '', invoiceQuantity: '', invoiceAmount: '', conversionFactor: '' }
-
-/** Texto → número para el contrato de la API; si no es un número, va null y la API responde con el mensaje. */
-const orNull = <T,>(value: string | undefined) => (value ? (value as T) : null)
-
+/**
+ * Registrar la factura o boleta de un proveedor, en el orden en que se lee: proveedor, comprobante y productos. Las
+ * partes con su propia lógica de pantalla están aparte: el tipo de cambio (`useExchangeRateField`), el cambio de
+ * proveedor (`useSupplierChange`) y las líneas (`PurchaseLinesTable`).
+ */
 function NewPurchasePage() {
   const navigate = useNavigate()
   const companies = useQuery(companiesQuery)
@@ -84,7 +46,6 @@ function NewPurchasePage() {
   const currencies = useQuery(currenciesQuery)
   const priceTypes = useQuery(invoicePriceTypesQuery)
   const units = useQuery(unitsOfMeasureQuery)
-  const igv = useQuery(igvAffectationsQuery)
   const create = useCreatePurchase()
 
   // Salir con la compra a medio cargar (enlace, Cancelar, Atrás o cerrar la pestaña) pide confirmación.
@@ -96,7 +57,7 @@ function NewPurchasePage() {
     withResolver: true,
   })
 
-  const form = useForm<Values>({
+  const form = useForm<PurchaseFormValues>({
     defaultValues: {
       companyId: '',
       supplier: null,
@@ -119,57 +80,15 @@ function NewPurchasePage() {
     if (!form.getValues('companyId') && active.length === 1) form.setValue('companyId', active[0].id)
   }, [companies.data, form])
 
-  /** Unidades fijas que trae la unidad, según el catálogo de la API (Unidad 1, Docena 12); null si las dice la factura (Caja). */
-  const fixedFactor = (unit: string) => units.data?.find((u) => u.code === unit)?.fixedConversionFactor ?? null
-  /** Las unidades por caja se piden solo si la unidad de la línea no las trae fijas. */
-  const asksUnitsPer = (unit: string | undefined) => !!unit && fixedFactor(unit) == null
-  // Al cambiar de unidad, lo escrito ya no corresponde. Con una fija (Unidad, Docena) no se envía nada: la cantidad
-  // la pone la API desde su catálogo. Con una variable (Caja) queda vacío para escribir lo que trae esta factura.
-  const applyUnit = (index: number, _unit: string) => form.setValue(`lines.${index}.conversionFactor`, '')
-  /**
-   * Elige un producto existente para la línea: se proponen su afectación y su unidad (si está activa; si no, el campo
-   * se vería vacío pero se enviaría), y el código del proveedor que se vaya a enlazar.
-   */
-  const chooseProduct = (index: number, p: ProductRow, supplierCode: string) => {
-    form.setValue(`lines.${index}.product`, p)
-    form.setValue(`lines.${index}.supplierCode`, supplierCode)
-    form.setValue(`lines.${index}.invoiceIgvAffectation`, p.igvAffectation ?? '')
-    const unit = units.data?.some((u) => u.code === p.unitOfMeasureCode) ? p.unitOfMeasureCode : ''
-    form.setValue(`lines.${index}.invoiceUnitOfMeasure`, unit)
-    applyUnit(index, unit)
-  }
-  const unitsPerFor = (l: { invoiceUnitOfMeasure?: string; conversionFactor?: string } | undefined) =>
-    asksUnitsPer(l?.invoiceUnitOfMeasure) ? parseNumberInput(l?.conversionFactor) : null
-
-  // Los productos de las líneas se buscan y se enlazan con los códigos de un proveedor. Si se cambia por otro, ya no
-  // corresponden: se pregunta antes y se quitan de las líneas (la unidad, las cantidades y los montos se quedan).
-  // "Cambiar" en un proveedor nuevo deja el campo vacío sin preguntar; se pregunta al elegir el siguiente.
-  const linesSupplier = useRef<{ key: string; name: string } | null>(null)
-  const [supplierChange, setSupplierChange] = useState<{ from: string; to: string; apply: () => void } | null>(null)
-  const changeSupplier = (key: string | null, name: string, apply: () => void) => {
-    const from = linesSupplier.current
-    const hasProducts = form.getValues('lines').some((l) => l.product || l.newProduct)
-    if (key && from && from.key !== key && hasProducts) {
-      setSupplierChange({
-        from: from.name,
-        to: name,
-        apply: () => {
-          apply()
-          form.getValues('lines').forEach((_, i) => {
-            form.setValue(`lines.${i}.product`, null)
-            form.setValue(`lines.${i}.newProduct`, null)
-            form.setValue(`lines.${i}.supplierCode`, '')
-          })
-          linesSupplier.current = { key, name }
-        },
-      })
-      return
-    }
-    apply()
-    if (key) linesSupplier.current = { key, name }
-  }
-  /** Identifica al proveedor de la compra: el registrado por su id, el nuevo por su RUC. */
-  const supplierKey = (s: PartnerRow | null, n: NewSupplier | null | undefined) => s?.id ?? (n ? `ruc:${n.ruc}` : 'ninguno')
+  const supplierChange = useSupplierChange({
+    hasProducts: () => form.getValues('lines').some((l) => l.product || l.newProduct),
+    clearProducts: () =>
+      form.getValues('lines').forEach((_, i) => {
+        form.setValue(`lines.${i}.product`, null)
+        form.setValue(`lines.${i}.newProduct`, null)
+        form.setValue(`lines.${i}.supplierCode`, '')
+      }),
+  })
 
   // Vista previa: la API calcula montos y totales mientras se llena el formulario.
   const watched = useWatch({ control: form.control })
@@ -183,58 +102,20 @@ function NewPurchasePage() {
         invoiceUnitOfMeasureCode: l?.invoiceUnitOfMeasure || null,
         invoiceQuantity: parseNumberInput(l?.invoiceQuantity),
         invoiceAmount: parseNumberInput(l?.invoiceAmount),
-        conversionFactor: unitsPerFor(l),
+        conversionFactor: unitsPerFor(units.data, l),
       })),
     }),
-    [watched],
+    [watched, units.data],
   )
   const preview = useQuery(purchasePreviewQuery(useDebounced(previewInput, 300)))
-  const money = (v: number) => formatMoney(v, watched.currency || 'PEN')
-  const showUnitsPer = (watched.lines ?? []).some((l) => asksUnitsPer(l?.invoiceUnitOfMeasure))
-  /** Número de la otra línea que ya tiene ese producto, o 0 si ninguna. */
-  const lineOf = (productId: string, except: number) => (watched.lines ?? []).findIndex((l, i) => i !== except && l?.product?.id === productId) + 1
-  const needsExchangeRate = currencies.data?.find((c) => c.currency === watched.currency)?.requiresExchangeRate ?? false
-  // Al volver a una moneda sin tipo de cambio, lo que se había escrito se borra para no enviarlo.
-  useEffect(() => {
-    if (!needsExchangeRate) form.setValue('exchangeRate', '')
-  }, [needsExchangeRate, form])
 
-  // Tipo de cambio de SUNAT para la fecha de emisión.
-  // - Si la API ya lo tiene guardado, se llena solo al elegir la moneda o la fecha (leer lo guardado no gasta consultas).
-  // - Si no, queda vacío y el usuario lo pide con el botón: esa consulta sí cuenta en el cupo del servicio.
-  // - Al cambiar la moneda o la fecha, el que vino de SUNAT ya no corresponde y se quita; el escrito a mano se
-  //   respeta, con un aviso para revisarlo.
-  const rate = useExchangeRate()
-  const canLookupRate = currencies.data?.find((c) => c.currency === watched.currency)?.supportsExchangeRateLookup ?? false
-  const storedRate = useQuery({ ...storedExchangeRateQuery(watched.currency, watched.issueDate), enabled: canLookupRate && !!watched.issueDate })
-  // Lo último que llenó SUNAT (valor y explicación), para saber si lo que hay en el campo sigue siendo eso.
-  const [sunatRate, setSunatRate] = useState<{ value: number; description: string } | null>(null)
-  const [reviewRate, setReviewRate] = useState(false)
-  const rateIsFromSunat = sunatRate != null && parseNumberInput(watched.exchangeRate) === sunatRate.value
-  const applyRate = (r: ExchangeRate) => {
-    form.setValue('exchangeRate', String(r.rate))
-    setSunatRate({ value: r.rate, description: r.description })
-    setReviewRate(false)
-  }
-  useEffect(() => {
-    rate.reset()
-    const current = form.getValues('exchangeRate')
-    if (sunatRate && parseNumberInput(current) === sunatRate.value) form.setValue('exchangeRate', '')
-    else if (current) setReviewRate(true)
-    setSunatRate(null)
-  }, [watched.currency, watched.issueDate]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (storedRate.data && !form.getValues('exchangeRate')) applyRate(storedRate.data)
-  }, [storedRate.data]) // eslint-disable-line react-hooks/exhaustive-deps
-  const fetchRate = () =>
-    rate.mutate({ currency: watched.currency as NonNullable<Schemas['Currency']>, date: watched.issueDate ?? '' }, { onSuccess: applyRate })
-  const rateHint = rateIsFromSunat
-    ? sunatRate.description
-    : reviewRate && watched.exchangeRate
-      ? 'Cambiaste la moneda o la fecha de emisión. Revisa que el tipo de cambio corresponda.'
-      : canLookupRate
-        ? 'Presiona SUNAT para traer el de la fecha de emisión.'
-        : undefined
+  const rate = useExchangeRateField({
+    currency: watched.currency ?? '',
+    issueDate: watched.issueDate ?? '',
+    value: watched.exchangeRate ?? '',
+    getValue: () => form.getValues('exchangeRate'),
+    setValue: (value) => form.setValue('exchangeRate', value),
+  })
   const amountLabel = priceTypes.data?.find((p) => p.invoicePriceType === watched.invoicePriceType)?.description ?? 'Monto unitario'
 
   const onSubmit = form.handleSubmit((v) =>
@@ -259,7 +140,7 @@ function NewPurchasePage() {
           invoiceUnitOfMeasureCode: l.invoiceUnitOfMeasure || null,
           invoiceQuantity: parseNumberInput(l.invoiceQuantity),
           invoiceAmount: parseNumberInput(l.invoiceAmount),
-          conversionFactor: unitsPerFor(l),
+          conversionFactor: unitsPerFor(units.data, l),
           supplierCode: !l.newProduct && l.product && l.supplierCode.trim() ? l.supplierCode.trim() : null,
         })),
       },
@@ -315,255 +196,107 @@ function NewPurchasePage() {
           newSupplier={newSupplier}
           // Uno u otro: el registrado o el nuevo, que la API registra junto con la compra.
           onSupplier={(s) =>
-            changeSupplier(s?.id ?? null, s?.name ?? '', () => {
+            supplierChange.change(s?.id ?? null, s?.name ?? '', () => {
               form.setValue('supplier', s)
               form.setValue('newSupplier', null)
             })
           }
           onNewSupplier={(s) =>
-            changeSupplier(s ? `ruc:${s.ruc}` : null, s ? s.name || `RUC ${s.ruc}` : '', () => {
+            supplierChange.change(s ? `ruc:${s.ruc}` : null, s ? s.name || `RUC ${s.ruc}` : '', () => {
               form.setValue('newSupplier', s)
               form.setValue('supplier', null)
             })
           }
         />
-        {supplierChange && (
-          <ConfirmDialog
-            open
-            title="¿Cambiar el proveedor?"
-            confirmLabel="Cambiar proveedor"
-            onConfirm={() => {
-              supplierChange.apply()
-              setSupplierChange(null)
-            }}
-            onCancel={() => setSupplierChange(null)}
-          >
-            Los productos de las líneas se buscaron con los códigos de {supplierChange.from}. Al cambiar a {supplierChange.to} se quitarán de las
-            líneas para que los busques de nuevo. La unidad, las cantidades y los montos se quedan.
-          </ConfirmDialog>
-        )}
+        {supplierChange.dialog}
       </Card>
 
       <Card title="Comprobante">
         <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Field label="Tipo de comprobante">
-          {(a) => (
-            <Select {...a} {...form.register('taxDocumentType')}>
-              <option value="">Elige…</option>
-              {taxDocs.data?.map((t) => (
-                <option key={t.taxDocumentType} value={t.taxDocumentType ?? ''}>
-                  {t.description}
-                </option>
-              ))}
-            </Select>
-          )}
-        </Field>
-        <Field label="Serie">{(a) => <Input {...a} className="font-mono" placeholder="F001" {...form.register('serie')} />}</Field>
-        <Field label="Número">{(a) => <Input {...a} className="font-mono" inputMode="numeric" {...form.register('number')} />}</Field>
-        <Field label="Fecha de emisión">{(a) => <Input {...a} type="date" {...form.register('issueDate')} />}</Field>
-
-        <Field label="Empresa que compra">
-          {(a) => (
-            <Select {...a} {...form.register('companyId')}>
-              <option value="">Elige…</option>
-              {companies.data
-                ?.filter((c) => c.isActive)
-                .map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
+          <Field label="Tipo de comprobante">
+            {(a) => (
+              <Select {...a} {...form.register('taxDocumentType')}>
+                <option value="">Elige…</option>
+                {taxDocs.data?.map((t) => (
+                  <option key={t.taxDocumentType} value={t.taxDocumentType ?? ''}>
+                    {t.description}
                   </option>
                 ))}
-            </Select>
-          )}
-        </Field>
-        <Field label="Moneda">
-          {(a) => (
-            <Select {...a} {...form.register('currency')}>
-              {currencies.data?.map((c) => (
-                <option key={c.currency} value={c.currency ?? ''}>
-                  {c.description}
-                </option>
-              ))}
-            </Select>
-          )}
-        </Field>
-        {/* Solo aplica a las monedas que lo piden (lo dice el catálogo de la API): en soles queda bloqueado y vacío. */}
-        <Field
-          label="Tipo de cambio"
-          error={rate.isError ? errorMessages(rate.error)[0] : undefined}
-          hint={rateHint}
-        >
-          {(a) => (
-            <div className="flex gap-2">
-              {/* El campo ocupa todo el ancho que deja el botón (o toda la celda, si no hay botón). */}
-              <div className="min-w-0 flex-1">
-                <NumberInput {...a} disabled={!needsExchangeRate} placeholder={needsExchangeRate ? '0.000' : 'No aplica'} {...form.register('exchangeRate', { onChange: () => setReviewRate(false) })} />
+              </Select>
+            )}
+          </Field>
+          <Field label="Serie">{(a) => <Input {...a} className="font-mono" placeholder="F001" {...form.register('serie')} />}</Field>
+          <Field label="Número">{(a) => <Input {...a} className="font-mono" inputMode="numeric" {...form.register('number')} />}</Field>
+          <Field label="Fecha de emisión">{(a) => <Input {...a} type="date" {...form.register('issueDate')} />}</Field>
+
+          <Field label="Empresa que compra">
+            {(a) => (
+              <Select {...a} {...form.register('companyId')}>
+                <option value="">Elige…</option>
+                {companies.data
+                  ?.filter((c) => c.isActive)
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+              </Select>
+            )}
+          </Field>
+          <Field label="Moneda">
+            {(a) => (
+              <Select {...a} {...form.register('currency')}>
+                {currencies.data?.map((c) => (
+                  <option key={c.currency} value={c.currency ?? ''}>
+                    {c.description}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
+          {/* Solo aplica a las monedas que lo piden (lo dice el catálogo de la API): en soles queda bloqueado y vacío. */}
+          <Field label="Tipo de cambio" error={rate.lookup.isError ? errorMessages(rate.lookup.error)[0] : undefined} hint={rate.hint}>
+            {(a) => (
+              <div className="flex gap-2">
+                {/* El campo ocupa todo el ancho que deja el botón (o toda la celda, si no hay botón). */}
+                <div className="min-w-0 flex-1">
+                  <NumberInput {...a} disabled={!rate.needed} placeholder={rate.needed ? '0.000' : 'No aplica'} {...form.register('exchangeRate', { onChange: rate.typed })} />
+                </div>
+                {/* La consulta es a pedido, como la de RUC: cada una cuenta en el cupo del servicio. */}
+                {rate.canLookup && (
+                  <Button onClick={rate.fetch} loading={rate.lookup.isPending} title="Trae el tipo de cambio venta de SUNAT para la fecha de emisión">
+                    <Search />
+                    SUNAT
+                  </Button>
+                )}
               </div>
-              {/* La consulta es a pedido, como la de RUC: cada una cuenta en el cupo del servicio. */}
-              {canLookupRate && (
-                <Button onClick={fetchRate} loading={rate.isPending} title="Trae el tipo de cambio venta de SUNAT para la fecha de emisión">
-                  <Search />
-                  SUNAT
-                </Button>
-              )}
-            </div>
-          )}
-        </Field>
-        <Field label="Montos de la factura en">
-          {(a) => (
-            <Select {...a} {...form.register('invoicePriceType')}>
-              <option value="">Elige…</option>
-              {priceTypes.data?.map((p) => (
-                <option key={p.invoicePriceType} value={p.invoicePriceType ?? ''}>
-                  {p.description}
-                </option>
-              ))}
-            </Select>
-          )}
-        </Field>
+            )}
+          </Field>
+          <Field label="Montos de la factura en">
+            {(a) => (
+              <Select {...a} {...form.register('invoicePriceType')}>
+                <option value="">Elige…</option>
+                {priceTypes.data?.map((p) => (
+                  <option key={p.invoicePriceType} value={p.invoicePriceType ?? ''}>
+                    {p.description}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Field>
         </div>
       </Card>
 
       <Card title="Productos">
-        <div className="overflow-x-auto">
-          {/* Ancho mínimo: los campos de cada línea no se encogen; en pantallas angostas la tabla se desplaza. */}
-          <table className="w-full min-w-[1060px] border-collapse text-base">
-            <thead>
-              <tr className="text-left text-xs text-faint">
-                <th className="w-[24%] border-b border-line py-2 pr-3 font-normal">Producto</th>
-                <th className="border-b border-line px-2 py-2 font-normal">Afectación</th>
-                <th className="border-b border-line px-2 py-2 font-normal">Unidad</th>
-                <th className="border-b border-line px-2 py-2 text-right font-normal">Cantidad</th>
-                <th className="border-b border-line px-2 py-2 text-right font-normal">{amountLabel}</th>
-                {/* La columna aparece solo si alguna línea se compra por caja (o por otra unidad sin cantidad fija). */}
-                {showUnitsPer && (
-                  <th className="border-b border-line px-2 py-2 text-right font-normal" title="Cuántas unidades trae cada caja de esta factura">
-                    Unidades por caja
-                  </th>
-                )}
-                <th className="border-b border-line px-2 py-2 text-right font-normal" title="Monto de la línea sin IGV">
-                  Subtotal
-                </th>
-                <th className="border-b border-line px-2 py-2 text-right font-normal">IGV</th>
-                <th className="border-b border-line px-2 py-2 text-right font-normal">Total</th>
-                <th className="w-8 border-b border-line" />
-              </tr>
-            </thead>
-            <tbody>
-              {lines.fields.map((field, i) => {
-                const result = preview.data?.lines[i]
-                const unit = watched.lines?.[i]?.invoiceUnitOfMeasure ?? ''
-                const unitName = units.data?.find((u) => u.code === unit)?.name.toLowerCase() ?? 'caja'
-                return (
-                  <tr key={field.id} className="border-b border-line align-top">
-                    <td className="py-2 pr-3">
-                      <ProductCell
-                        // Con otro proveedor la celda empieza de cero (también un enlace que se estaba buscando).
-                        key={supplierKey(supplier, newSupplier)}
-                        lineNumber={i + 1}
-                        supplierId={watched.supplier?.id}
-                        supplierName={watched.supplier?.name ?? watched.newSupplier?.name ?? null}
-                        product={(watched.lines?.[i]?.product as ProductRow | null | undefined) ?? null}
-                        newProduct={(watched.lines?.[i]?.newProduct as NewProduct | null | undefined) ?? null}
-                        linkCode={watched.lines?.[i]?.supplierCode ?? ''}
-                        otherLineOf={(id) => lineOf(id, i)}
-                        onChoose={(p, code) => chooseProduct(i, p, code)}
-                        onClear={() => {
-                          form.setValue(`lines.${i}.product`, null)
-                          form.setValue(`lines.${i}.supplierCode`, '')
-                        }}
-                        // Producto nuevo: la unidad y la afectación salen de la línea, y la API lo registra con la compra.
-                        onNewProduct={(v) => {
-                          form.setValue(`lines.${i}.newProduct`, v)
-                          if (v) {
-                            form.setValue(`lines.${i}.product`, null)
-                            form.setValue(`lines.${i}.supplierCode`, '')
-                          }
-                        }}
-                      />
-                      {result?.error && <p className="mt-1.5 text-sm text-bad">{result.error}</p>}
-                    </td>
-                    <td className="px-2 py-2">
-                      {/* Nombre corto en la tabla ("Gravado"); el completo de SUNAT aparece al pasar el mouse. */}
-                      <Select
-                        aria-label="Afectación al IGV"
-                        className="min-w-28"
-                        title={igv.data?.find((o) => o.igvAffectation === watched.lines?.[i]?.invoiceIgvAffectation)?.description}
-                        {...form.register(`lines.${i}.invoiceIgvAffectation`)}
-                      >
-                        <option value="">—</option>
-                        {igv.data?.map((o) => (
-                          <option key={o.igvAffectation} value={o.igvAffectation ?? ''}>
-                            {o.shortDescription}
-                          </option>
-                        ))}
-                      </Select>
-                    </td>
-                    <td className="px-2 py-2">
-                      <Select aria-label="Unidad de medida" className="min-w-24" {...form.register(`lines.${i}.invoiceUnitOfMeasure`, { onChange: (e) => applyUnit(i, e.target.value) })}>
-                        <option value="">—</option>
-                        {units.data?.map((u) => (
-                          <option key={u.code} value={u.code}>
-                            {u.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </td>
-                    <td className="px-2 py-2">
-                      <NumberInput aria-label="Cantidad" className="w-24 min-w-24 text-right" {...form.register(`lines.${i}.invoiceQuantity`)} />
-                    </td>
-                    <td className="px-2 py-2">
-                      <NumberInput aria-label={amountLabel} className="w-28 min-w-28 text-right" minDecimals={2} {...form.register(`lines.${i}.invoiceAmount`)} />
-                    </td>
-                    {showUnitsPer && (
-                      <td className="px-2 py-2">
-                        {asksUnitsPer(unit) && (
-                          <NumberInput
-                            aria-label={`Unidades por ${unitName}`}
-                            className="w-24 min-w-24 text-right"
-                            title={`¿Cuántas unidades trae cada ${unitName} de esta factura?`}
-                            {...form.register(`lines.${i}.conversionFactor`)}
-                          />
-                        )}
-                      </td>
-                    )}
-                    {/* Subtotal, IGV y total de la línea, como en la factura. Sin símbolo: la moneda está en el comprobante y en los totales. */}
-                    <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap text-muted">
-                      {result?.baseAmount != null ? formatAmount(result.baseAmount) : <span className="text-faint">—</span>}
-                    </td>
-                    <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap text-muted">
-                      {result?.igvAmount != null ? formatAmount(result.igvAmount) : <span className="text-faint">—</span>}
-                    </td>
-                    <td className="num px-2 py-2 pt-4 text-right whitespace-nowrap">
-                      {result?.total != null ? formatAmount(result.total) : <span className="text-faint">—</span>}
-                      {/* Lo que entra al inventario: unidades y costo de cada una. El IGV no es costo (es crédito fiscal). */}
-                      {result?.inventoryQuantity != null && result.inventoryUnitCost != null && (
-                        <span className="block text-xs text-faint">
-                          {formatDecimal(result.inventoryQuantity)} und. · costo {formatCost(result.inventoryUnitCost)} c/u
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2 pt-2.5 pl-1">
-                      {lines.fields.length > 1 && (
-                        <button type="button" onClick={() => lines.remove(i)} className="rounded p-1 text-faint hover:text-bad" aria-label={`Quitar línea ${i + 1}`}>
-                          <X className="size-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-        <Button size="sm" variant="ghost" className="w-fit" onClick={() => lines.append(emptyLine)}>
-          <Plus />
-          Agregar línea
-        </Button>
-        {/* Los totales cierran la tabla, abajo a la derecha, como en una factura. */}
-        <div className="border-t border-line pt-4">
-          <Totals base={money(preview.data?.totalBaseAmount ?? 0)} igv={money(preview.data?.totalIgvAmount ?? 0)} total={money(preview.data?.total ?? 0)} />
-        </div>
+        <PurchaseLinesTable
+          form={form}
+          lines={lines}
+          preview={preview}
+          currency={watched.currency ?? ''}
+          amountLabel={amountLabel}
+          supplier={supplier}
+          newSupplier={newSupplier}
+        />
       </Card>
 
       <div className="flex flex-wrap justify-end gap-2">

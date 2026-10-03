@@ -55,13 +55,13 @@ export function ProductCell({
           onChange={(p) => p && onPick(p)}
           queryKey="products"
           // Para enlazar se busca en todo el catálogo (la primera búsqueda era solo lo de este proveedor).
-          scope={`all:${supplierId ?? 'nuevo'}`}
-          fetchItems={(term) => searchProducts(term, supplierId)}
+          scope={`all:${supplierId ?? 'nuevo'}:${code}`}
+          fetchItems={(term) => searchProducts(term, supplierId, code)}
           itemKey={(p) => p.id}
           itemLabel={(p) => `${p.code} · ${p.name}`}
-          // No se puede elegir el que ya está en otra línea, ni el que ya tiene otro código de este proveedor (eso se
-          // corrige en Productos).
-          isItemDisabled={(p) => otherLineOf(p.id) > 0 || (!!p.supplierCode && p.supplierCode !== code)}
+          // No se puede elegir el que ya está en otra línea, ni el que ya tiene otro código de este proveedor (lo dice
+          // la API en linkError; eso se corrige en Productos).
+          isItemDisabled={(p) => otherLineOf(p.id) > 0 || !!p.linkError}
           renderItem={(p) => (
             <span>
               <span className="mr-2 font-mono text-xs text-faint">{p.code}</span>
@@ -69,12 +69,7 @@ export function ProductCell({
               {otherLineOf(p.id) > 0 ? (
                 <span className="block text-xs text-bad">Ya está en la línea {otherLineOf(p.id)}.</span>
               ) : (
-                p.supplierCode &&
-                p.supplierCode !== code && (
-                  <span className="block text-xs text-faint">
-                    Ya tiene el código <span className="font-mono">{p.supplierCode}</span> de este proveedor. Si cambió, corrígelo en Productos.
-                  </span>
-                )
+                p.linkError && <span className="block text-xs text-faint">{p.linkError}</span>
               )}
             </span>
           )}

@@ -50,7 +50,7 @@ export function ProductsTable({
         header: () => <span className="block text-right">Precio</span>,
         cell: (c) => <span className="num block text-right">{formatPen(Number(c.getValue()))}</span>,
       }),
-      col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activo</Pill> : <Pill tone="neutral">Inactivo</Pill>) }),
+      col.accessor('isActive', { header: 'Estado', cell: (c) => <Pill tone={c.getValue() ? 'ok' : 'neutral'}>{c.row.original.statusDescription}</Pill> }),
       col.display({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,

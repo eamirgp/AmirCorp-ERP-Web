@@ -97,7 +97,7 @@ function PurchasesPage() {
         header: () => <span className="block text-right">Total</span>,
         cell: (c) => <span className="num block text-right whitespace-nowrap">{formatMoney(c.getValue(), c.row.original.currency)}</span>,
       }),
-      col.accessor('isCancelled', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="bad">Anulada</Pill> : <Pill tone="ok">Registrada</Pill>) }),
+      col.accessor('isCancelled', { header: 'Estado', cell: (c) => <Pill tone={c.getValue() ? 'bad' : 'ok'}>{c.row.original.statusDescription}</Pill> }),
     ],
     [],
   )

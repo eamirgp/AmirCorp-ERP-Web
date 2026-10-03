@@ -43,7 +43,7 @@ function PurchaseDetailPage() {
           <p className="text-sm text-muted">{p.taxDocumentTypeDescription}</p>
           <h1 className="flex flex-wrap items-center gap-x-4 gap-y-1 font-display text-2xl font-semibold">
             <span className="font-mono tracking-tight">{p.fullNumber}</span>
-            {p.isCancelled ? <Pill tone="bad">Anulada</Pill> : <Pill tone="ok">Registrada</Pill>}
+            <Pill tone={p.isCancelled ? 'bad' : 'ok'}>{p.statusDescription}</Pill>
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">

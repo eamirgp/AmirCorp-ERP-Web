@@ -76,7 +76,7 @@ function CompaniesPage() {
     () => [
       col.accessor('ruc', { header: 'RUC', cell: (c) => <span className="font-mono text-xs text-muted">{c.getValue()}</span> }),
       col.accessor('name', { header: 'Razón social' }),
-      col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activa</Pill> : <Pill tone="neutral">Inactiva</Pill>) }),
+      col.accessor('isActive', { header: 'Estado', cell: (c) => <Pill tone={c.getValue() ? 'ok' : 'neutral'}>{c.row.original.statusDescription}</Pill> }),
       col.display({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,

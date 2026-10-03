@@ -80,7 +80,7 @@ function UnitsPage() {
       }),
       col.accessor('conversionDescription', { header: 'Trae', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
       col.accessor('productCountDescription', { header: 'Productos', meta: { hideOnMobile: true }, cell: (c) => <span className="num text-muted">{c.getValue()}</span> }),
-      col.accessor('isActive', { header: 'Estado', cell: (c) => (c.getValue() ? <Pill tone="ok">Activa</Pill> : <Pill tone="neutral">Inactiva</Pill>) }),
+      col.accessor('isActive', { header: 'Estado', cell: (c) => <Pill tone={c.getValue() ? 'ok' : 'neutral'}>{c.row.original.statusDescription}</Pill> }),
       col.display({
         id: 'actions',
         header: () => <span className="sr-only">Acciones</span>,

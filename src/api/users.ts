@@ -1,4 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { meQuery } from './account'
 import { api, unwrap, type Schemas } from './client'
 import { useToggleActive } from './mutations'
 
@@ -14,9 +15,13 @@ export const usersQuery = queryOptions({
   queryFn: () => unwrap(api.GET('/api/users')),
 })
 
+// También se recarga "mi cuenta": si el usuario editado es quien está usando el sistema, el menú muestra su nombre nuevo.
 function useUserMutation<V>(fn: (v: V) => Promise<unknown>) {
   const qc = useQueryClient()
-  return useMutation({ mutationFn: fn, onSuccess: () => qc.invalidateQueries({ queryKey: userKeys.all }) })
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: userKeys.all }), qc.invalidateQueries({ queryKey: meQuery.queryKey })]),
+  })
 }
 
 export const useCreateUser = () =>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
 import { findProductByCode } from '@/api/products'
 import { Input } from '@/components/ui/field'
+import { useDebounced } from '@/lib/use-debounced'
 
 /** Producto que todavía no existe: la API lo registra junto con la compra. */
 export interface NewProduct {
@@ -28,11 +28,7 @@ export function NewProductCell({
   onCancel: () => void
 }) {
   // Se revisa un momento después de dejar de escribir el código.
-  const [code, setCode] = useState(value.code.trim())
-  useEffect(() => {
-    const t = setTimeout(() => setCode(value.code.trim()), 400)
-    return () => clearTimeout(t)
-  }, [value.code])
+  const code = useDebounced(value.code.trim(), 400)
   const owner = useQuery({
     queryKey: ['products', 'by-code', code.toUpperCase()],
     queryFn: () => findProductByCode(code),

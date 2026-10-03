@@ -1,5 +1,5 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react'
-import { COMMA_MESSAGE, formatNumberInput, hasComma } from '@/lib/number-input'
+import { COMMA_MESSAGE, formatNumberInput, hasComma, numberInputProblem } from '@/lib/number-input'
 
 const control =
   'h-10 w-full min-w-0 rounded-md border border-line-strong bg-surface px-3 text-base text-ink placeholder:text-faint transition-colors focus:border-ink focus:outline-none aria-[invalid=true]:border-bad disabled:opacity-60'
@@ -25,13 +25,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 /**
  * Campo para números escritos a mano (precios, cantidades, tipo de cambio).
  * - Si se escribe una coma, avisa en el momento: "Usa punto para los decimales. No uses comas."
+ * - Si al salir del campo lo escrito no es un número ("12a"), avisa: "Escribe solo números…". Si no, la API recibiría
+ *   el campo vacío y diría "es requerido".
  * - Al salir del campo reordena el número para leerlo fácil: "1500.5" → "1 500.50" (nunca redondea).
  */
 export const NumberInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { minDecimals?: number }>(function NumberInput(
   { className = '', minDecimals = 0, onChange, onBlur, ...props },
   ref,
 ) {
-  const [comma, setComma] = useState(false)
+  const [problem, setProblem] = useState<string | null>(null)
 
   return (
     <span className="flex min-w-0 flex-col gap-1">
@@ -41,9 +43,10 @@ export const NumberInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTML
         autoComplete="off"
         className={`${control} num ${className}`}
         {...props}
-        aria-invalid={comma || props['aria-invalid']}
+        aria-invalid={!!problem || props['aria-invalid']}
         onChange={(e) => {
-          setComma(hasComma(e.target.value))
+          // Mientras se escribe solo se avisa la coma; lo demás, al salir (para no avisar a medio escribir).
+          setProblem(hasComma(e.target.value) ? COMMA_MESSAGE : null)
           onChange?.(e)
         }}
         onBlur={(e) => {
@@ -53,12 +56,13 @@ export const NumberInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTML
             Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(e.target, formatted)
             e.target.dispatchEvent(new Event('input', { bubbles: true }))
           }
+          setProblem(numberInputProblem(e.target.value))
           onBlur?.(e)
         }}
       />
-      {comma && (
+      {problem && (
         <span role="alert" className="text-sm text-bad">
-          {COMMA_MESSAGE}
+          {problem}
         </span>
       )}
     </span>

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Search, TriangleAlert } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { identityDocumentTypesQuery } from '@/api/catalogs'
 import { ApiError, errorMessages } from '@/api/client'
 import { fetchPartnerRow, findPartnerByDocument, searchSuppliers, useLookupDocument, type PartnerRow } from '@/api/partners'
@@ -45,13 +45,19 @@ export function SupplierField({
   // Ya existe como cliente: se usa ese registro (la API le agrega el rol de proveedor) y su nombre no se edita aquí.
   const [existingNote, setExistingNote] = useState<string | null>(null)
 
+  // Cada elección o consulta nueva cambia este número: la respuesta de una consulta que llega tarde (SUNAT tardó y
+  // mientras tanto se eligió otro proveedor de la lista) se descarta en vez de reemplazar lo elegido.
+  const attempt = useRef(0)
+
   const choose = (row: PartnerRow | null) => {
+    attempt.current++
     setTerm('')
     setErrors([])
     onSupplier(row)
   }
 
   const clearNew = () => {
+    attempt.current++
     // El buscador vuelve vacío: el botón SUNAT no debe quedar con el RUC anterior.
     setTerm('')
     lookup.reset()
@@ -63,6 +69,8 @@ export function SupplierField({
   const takeRuc = async (text: string) => {
     const ruc = text.replace(/\s/g, '')
     if (!ruc || busy) return
+    const mine = ++attempt.current
+    const stale = () => attempt.current !== mine
     setErrors([])
     setExistingNote(null)
     lookup.reset()
@@ -70,8 +78,10 @@ export function SupplierField({
     try {
       // Primero la base propia (gratis): si ya está registrado no se consulta SUNAT.
       const existing = await findPartnerByDocument('Ruc', ruc)
+      if (stale()) return
       if (existing?.isSupplier) {
         const row = await fetchPartnerRow(existing.id, ruc, 'proveedores')
+        if (stale()) return
         if (!row) setErrors(['No se pudo abrir el proveedor. Búscalo en la lista.'])
         else if (row.isPurchasingBlocked) setErrors([`${row.name}: ${blockedText(row)}`])
         else choose(row)
@@ -87,8 +97,10 @@ export function SupplierField({
         return
       }
       const found = await lookup.mutateAsync({ identityDocumentType: 'Ruc', documentNumber: ruc })
+      if (stale()) return
       onNewSupplier({ ruc: found.documentNumber, name: found.name })
     } catch (e) {
+      if (stale()) return
       setErrors(errorMessages(e))
       // SUNAT no responde: se sigue a mano, con la razón social escrita por el usuario.
       if (e instanceof ApiError && e.status === 503) onNewSupplier({ ruc, name: '' })

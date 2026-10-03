@@ -50,9 +50,12 @@ export const productListQuery = (p: ProductListParams) =>
  * Productos activos que coinciden con el texto (para elegir uno en una línea de compra). Con el proveedor de la
  * compra, cada producto trae el código de ese proveedor.
  */
-export const searchProducts = (term: string, supplierId?: string) =>
+/** @param linkCode En una compra, el código de la factura que se quiere enlazar: cada producto trae `linkError` si no se puede. */
+export const searchProducts = (term: string, supplierId?: string, linkCode?: string) =>
   unwrap(
-    api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SupplierId: supplierId } } }),
+    api.GET('/api/products', {
+      params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SupplierId: supplierId, LinkCode: linkCode } },
+    }),
   ).then((r) => r.items)
 
 /**

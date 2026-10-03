@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useDebounced } from '@/lib/use-debounced'
 import { Input } from './field'
 
 /** Alto máximo de la lista de resultados (px), el de max-h-72. */
@@ -101,13 +102,8 @@ export function SearchSelect<T>({
   const listId = useId()
   const [open, setOpen] = useState(false)
   const [term, setTerm] = useState('')
-  const [debounced, setDebounced] = useState('')
+  const debounced = useDebounced(term.trim(), 200)
   const [active, setActive] = useState(0)
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(term.trim()), 200)
-    return () => clearTimeout(t)
-  }, [term])
 
   const results = useQuery({
     queryKey: [queryKey, 'search', scope ?? '', debounced],

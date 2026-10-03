@@ -11,8 +11,17 @@ export const COMMA_MESSAGE = 'Usa punto para los decimales. No uses comas.'
 
 const clean = (value: string | undefined) => (value ?? '').replace(/S\//gi, '').replace(/[\s   ]/g, '')
 
+export const NOT_A_NUMBER_MESSAGE = 'Escribe solo números, con punto para los decimales.'
+
 /** Si lo escrito tiene una coma (se muestra el aviso en el campo). */
 export const hasComma = (value: string | undefined) => (value ?? '').includes(',')
+
+/**
+ * Por qué lo escrito no se puede leer como número, o null si se puede (o si está vacío). Sin este aviso, un texto como
+ * "12a" viajaría vacío y la API respondería "es requerido", que confunde.
+ */
+export const numberInputProblem = (value: string | undefined): string | null =>
+  hasComma(value) ? COMMA_MESSAGE : clean(value) !== '' && parseNumberInput(value) === null ? NOT_A_NUMBER_MESSAGE : null
 
 /** El número escrito, o null si está vacío, tiene coma o no es un número (la API responde el mensaje). */
 export function parseNumberInput(value: string | undefined): number | null {

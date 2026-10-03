@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from '
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { formatInt } from '@/lib/format'
 import { useHotkey } from '@/lib/hotkeys'
+import { useDebounced } from '@/lib/use-debounced'
 import { Button } from './button'
 import { Input, Select } from './field'
 
@@ -23,18 +24,23 @@ export function SearchBox({
 }) {
   const [term, setTerm] = useState(value ?? '')
   const inputRef = useRef<HTMLInputElement>(null)
+  // Lo último que este campo envió. Cuando la lista lo recibe, no se toca el campo: el usuario pudo seguir escribiendo
+  // mientras tanto, y reemplazarlo le borraría letras.
+  const sent = useRef(value)
 
-  // Si la búsqueda cambia desde afuera (por ejemplo "Limpiar filtros"), el campo se actualiza.
+  // Si la búsqueda cambia desde afuera (por ejemplo "Limpiar filtros" o una vista guardada), el campo se actualiza.
   useEffect(() => {
-    setTerm((current) => (current.trim() === (value ?? '') ? current : (value ?? '')))
+    if (value === sent.current) return
+    sent.current = value
+    setTerm(value ?? '')
   }, [value])
 
+  const debounced = useDebounced(term.trim() || undefined, 250)
   useEffect(() => {
-    const next = term.trim() || undefined
-    if (next === value) return
-    const t = setTimeout(() => onSearch(next), 250)
-    return () => clearTimeout(t)
-  }, [term, value, onSearch])
+    if (debounced === sent.current) return
+    sent.current = debounced
+    onSearch(debounced)
+  }, [debounced, onSearch])
 
   useHotkey('/', () => inputRef.current?.focus())
 
