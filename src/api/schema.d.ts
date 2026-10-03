@@ -1008,6 +1008,7 @@ export interface paths {
                     SortBy?: components["schemas"]["ProductSortBy"];
                     SortDescending?: boolean;
                     SupplierId?: string;
+                    OnlySupplierProducts?: boolean;
                 };
                 header?: never;
                 path?: never;

@@ -158,8 +158,20 @@ export function ProductCell({
       {product && linkCode && (
         <p className="text-xs text-faint">
           El código <span className="font-mono text-muted">{linkCode}</span> de {supplierName} se enlazará a este producto al registrar la compra.{' '}
+          {/* Cambiar producto: se vuelve a elegir a cuál enlazar el mismo código, sin escribirlo otra vez. */}
+          <button
+            type="button"
+            onClick={() => {
+              onClear()
+              setLinking(linkCode)
+            }}
+            className="text-muted underline hover:text-ink"
+          >
+            Cambiar producto
+          </button>
+          {' · '}
           <button type="button" onClick={onClear} className="text-muted underline hover:text-ink">
-            Cambiar
+            Quitar enlace
           </button>
         </p>
       )}
