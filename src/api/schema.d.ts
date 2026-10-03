@@ -3078,7 +3078,7 @@ export interface components {
             id: string;
             /** Format: uuid */
             companyId: string;
-            companyName: null | string;
+            companyName: string;
             taxDocumentType: components["schemas"]["TaxDocumentType"];
             serie: string;
             number: string;
@@ -3222,18 +3222,20 @@ export interface components {
             isActive: boolean;
             supplierCodes: components["schemas"]["ProductSupplierCodeResponseDto"][];
             supplierCode: null | string;
-            searchMatch: null | string;
+            /** Format: uuid */
+            matchedSupplierId: null | string;
             /** Format: uint32 */
             rowVersion: number;
             igvAffectationDescription: string;
             igvAffectationShortDescription: string;
+            searchMatch: null | string;
         };
         ListPurchasesResponseDto: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             companyId: string;
-            companyName: null | string;
+            companyName: string;
             taxDocumentType: components["schemas"]["TaxDocumentType"];
             serie: string;
             number: string;
