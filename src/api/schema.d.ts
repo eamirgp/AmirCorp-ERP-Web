@@ -3292,6 +3292,7 @@ export interface components {
             supplierIdentityDocumentTypeDescription: string;
             fullNumber: string;
             statusDescription: string;
+            cancelError?: null | string;
         };
         GetUserResponseDto: {
             /** Format: uuid */
@@ -3379,8 +3380,6 @@ export interface components {
             supportsLookup: boolean;
             lookupSource: null | string;
             requiresCountry: boolean;
-            /** Format: int32 */
-            exactLength: null | number;
             canBeSupplier: boolean;
             canBeClient: boolean;
         };
@@ -3474,6 +3473,7 @@ export interface components {
             rowVersion: number;
             roleDescription: string;
             statusDescription: string;
+            canManage?: boolean;
         };
         LoginRequest: {
             email: null | string;

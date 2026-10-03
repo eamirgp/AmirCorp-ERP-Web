@@ -51,7 +51,8 @@ function PurchaseDetailPage() {
             <HistoryIcon />
             Historial
           </Button>
-          {!p.isCancelled && (
+          {/* La API dice si se puede anular (cancelError: ya anulada, o su mercadería tuvo salidas). */}
+          {p.cancelError === null && (
             <Button variant="danger" onClick={() => setCancelling(true)}>
               <Ban />
               Anular compra
@@ -60,10 +61,13 @@ function PurchaseDetailPage() {
         </div>
       </header>
 
-      {p.isCancelled && (
+      {p.isCancelled ? (
         <p className="border-l-2 border-bad bg-bad-soft px-3.5 py-2.5 text-base text-bad">
           Anulada. Motivo: {p.cancellationReason}
         </p>
+      ) : (
+        // Registrada pero ya no se puede anular: se dice por qué, en vez de esconder el botón sin explicación.
+        p.cancelError && <p className="border-l-2 border-line-strong bg-surface-2 px-3.5 py-2.5 text-base text-muted">{p.cancelError}</p>
       )}
 
       <dl className="grid gap-x-8 gap-y-4 border-y border-line py-5 text-base sm:grid-cols-2 lg:grid-cols-4">

@@ -1,6 +1,11 @@
 import { z } from 'zod'
-import type { Option } from '@/components/ui/filters'
 import { formatInt } from './format'
+
+/** Una opción de un filtro: el valor que va en la URL y el texto que se ve. */
+export interface Option<T extends string> {
+  value: T
+  label: string
+}
 
 export type ActiveFilter = 'activos' | 'inactivos'
 

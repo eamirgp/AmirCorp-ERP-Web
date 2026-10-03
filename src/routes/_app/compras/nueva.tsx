@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { currenciesQuery, igvAffectationsQuery, invoicePriceTypesQuery, taxDocumentTypesQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { errorMessages, errorText, type Schemas } from '@/api/client'
-import { companiesQuery } from '@/api/companies'
+import { activeCompaniesQuery } from '@/api/companies'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
 import { Field, Input, NumberInput, Select } from '@/components/ui/field'
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/_app/compras/nueva')({
     void qc.prefetchQuery(invoicePriceTypesQuery)
     void qc.prefetchQuery(unitsOfMeasureQuery)
     void qc.prefetchQuery(igvAffectationsQuery)
-    return qc.ensureQueryData(companiesQuery)
+    return qc.ensureQueryData(activeCompaniesQuery)
   },
   component: NewPurchasePage,
 })
@@ -41,7 +41,7 @@ export const Route = createFileRoute('/_app/compras/nueva')({
  */
 function NewPurchasePage() {
   const navigate = useNavigate()
-  const companies = useQuery(companiesQuery)
+  const companies = useQuery(activeCompaniesQuery)
   const taxDocs = useQuery(taxDocumentTypesQuery)
   const currencies = useQuery(currenciesQuery)
   const priceTypes = useQuery(invoicePriceTypesQuery)
@@ -76,7 +76,7 @@ function NewPurchasePage() {
 
   // Si hay una sola empresa activa, se elige sola.
   useEffect(() => {
-    const active = companies.data?.filter((c) => c.isActive) ?? []
+    const active = companies.data ?? []
     if (!form.getValues('companyId') && active.length === 1) form.setValue('companyId', active[0].id)
   }, [companies.data, form])
 
@@ -235,9 +235,7 @@ function NewPurchasePage() {
             {(a) => (
               <Select {...a} {...form.register('companyId')}>
                 <option value="">Elige…</option>
-                {companies.data
-                  ?.filter((c) => c.isActive)
-                  .map((c) => (
+                {companies.data?.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>

@@ -9,7 +9,7 @@ import { usersListQuery, useToggleUser, type UserRow } from '@/api/users'
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar } from '@/components/ui/filters'
-import { EmptyState, Loading, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { ListBody, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
@@ -90,14 +90,24 @@ function UsersPage() {
             <RowMenu
               label={u.name}
               busy={activation.busyId === u.id}
+              // La API dice si quien mira puede gestionar a este usuario (canManage): si no, solo ve su historial, en
+              // vez de opciones que terminarían en "No tienes permisos".
               items={[
-                { label: 'Editar nombre y correo', icon: <Pencil />, onSelect: () => setAction({ mode: 'profile', user: u }) },
-                { label: 'Cambiar rol', icon: <ShieldCheck />, onSelect: () => setAction({ mode: 'role', user: u }) },
-                { label: 'Restablecer contraseña', icon: <KeyRound />, onSelect: () => setAction({ mode: 'password', user: u }) },
+                ...(u.canManage
+                  ? [
+                      { label: 'Editar nombre y correo', icon: <Pencil />, onSelect: () => setAction({ mode: 'profile', user: u }) },
+                      { label: 'Cambiar rol', icon: <ShieldCheck />, onSelect: () => setAction({ mode: 'role', user: u }) },
+                      { label: 'Restablecer contraseña', icon: <KeyRound />, onSelect: () => setAction({ mode: 'password', user: u }) },
+                    ]
+                  : []),
                 { label: 'Ver historial', icon: <HistoryIcon />, onSelect: () => setHistory({ entityType: 'User', entityId: u.id, label: `${u.name} · ${u.email}` }) },
-                u.isActive
-                  ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(u), danger: true }
-                  : { label: 'Activar', icon: <Power />, onSelect: () => onToggle(u) },
+                ...(u.canManage
+                  ? [
+                      u.isActive
+                        ? { label: 'Desactivar', icon: <Power />, onSelect: () => onToggle(u), danger: true }
+                        : { label: 'Activar', icon: <Power />, onSelect: () => onToggle(u) },
+                    ]
+                  : []),
               ]}
             />
           )
@@ -140,15 +150,18 @@ function UsersPage() {
           count={list.data ? countLabel(rows.length, 'usuario', 'usuarios') : undefined}
         />
 
-        {list.isError ? (
-          <ListError error={list.error} onRetry={() => void list.refetch()} />
-        ) : !list.data ? (
-          <Loading text="Cargando usuarios…" />
-        ) : rows.length > 0 ? (
-          <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={(u) => setAction({ mode: 'profile', user: u })} isMuted={(r) => !r.isActive} />
-        ) : (
-          <EmptyState icon={<UserRound strokeWidth={1.5} />} text="Ningún usuario coincide con la búsqueda o el filtro." action={<Button onClick={() => navigate({ search: {} })}>Limpiar filtros</Button>} />
-        )}
+        <ListBody
+          query={list}
+          rows={list.data}
+          loading="Cargando usuarios…"
+          icon={<UserRound strokeWidth={1.5} />}
+          noMatch="Ningún usuario coincide con la búsqueda o el filtro."
+          onClear={() => navigate({ search: {} })}
+        >
+          {(items) => (
+            <DataTable data={items} columns={columns} getRowId={(r) => r.id} onOpen={(u) => (u.canManage ? setAction({ mode: 'profile', user: u }) : setHistory({ entityType: 'User', entityId: u.id, label: `${u.name} · ${u.email}` }))} isMuted={(r) => !r.isActive} />
+          )}
+        </ListBody>
       </ListPanel>
 
       <UserDialog mode={search.nuevo ? 'create' : (action?.mode ?? null)} user={action?.user ?? null} onClose={closeDialog} />

@@ -80,8 +80,9 @@ export function PurchaseLinesTable({
               <th className="border-b border-line px-2 py-2 text-right font-normal">{amountLabel}</th>
               {/* La columna aparece solo si alguna línea se compra por caja (o por otra unidad sin cantidad fija). */}
               {showUnitsPer && (
-                <th className="border-b border-line px-2 py-2 text-right font-normal" title="Cuántas unidades trae cada caja de esta factura">
-                  Unidades por caja
+                <th className="border-b border-line px-2 py-2 text-right font-normal" title="Cuántas unidades trae cada caja o paquete de esta factura">
+                  {/* Sirve para caja, paquete o rollo: cada línea dice su unidad ("por paquete"). */}
+                  Unidades por empaque
                 </th>
               )}
               <th className="border-b border-line px-2 py-2 text-right font-normal" title="Monto de la línea sin IGV">

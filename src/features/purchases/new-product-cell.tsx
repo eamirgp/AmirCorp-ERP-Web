@@ -30,7 +30,7 @@ export function NewProductCell({
   // Se revisa un momento después de dejar de escribir el código.
   const code = useDebounced(value.code.trim(), 400)
   const owner = useQuery({
-    queryKey: ['products', 'by-code', code.toUpperCase()],
+    queryKey: ['products', 'by-code', code],
     queryFn: () => findProductByCode(code),
     enabled: code.length > 0,
   })
@@ -52,9 +52,10 @@ export function NewProductCell({
         <Input
           id={`new-product-code-${lineNumber}`}
           aria-invalid={!!taken}
-          className="h-8 min-w-0 flex-1 font-mono text-sm"
+          // Se ve en mayúsculas porque así lo guarda la API (Product.NormalizeCode); el texto se envía tal cual.
+          className="h-8 min-w-0 flex-1 font-mono text-sm uppercase"
           value={value.code}
-          onChange={(e) => onChange({ ...value, code: e.target.value.toUpperCase() })}
+          onChange={(e) => onChange({ ...value, code: e.target.value })}
         />
         <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-text">Nuevo</span>
       </div>
@@ -64,7 +65,7 @@ export function NewProductCell({
         </p>
       )}
       <p className="text-xs text-faint">
-        Código del proveedor: <span className="font-mono text-muted">{value.supplierCode}</span>. Se registrará al guardar la compra.{' '}
+        Código del proveedor: <span className="font-mono text-muted uppercase">{value.supplierCode}</span>. Se registrará al guardar la compra.{' '}
         <button type="button" onClick={onCancel} className="text-muted underline hover:text-ink">
           Buscar otro producto
         </button>

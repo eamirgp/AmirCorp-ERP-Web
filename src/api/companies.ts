@@ -11,12 +11,11 @@ export const companyKeys = {
   lists: () => [...companyKeys.all, 'list'] as const,
 }
 
-/** Todas las empresas, para elegir una (compras). */
+/** Todas las empresas, también las desactivadas (el filtro de la lista de compras). */
 export const companiesQuery = queryOptions({
   queryKey: companyKeys.lists(),
   queryFn: () => unwrap(api.GET('/api/companies')),
 })
-
 /** La pantalla de empresas: la API busca y filtra. Mientras llega la respuesta se sigue viendo la lista anterior. */
 export const companiesListQuery = (filter: ListFilter) =>
   queryOptions({
@@ -24,6 +23,9 @@ export const companiesListQuery = (filter: ListFilter) =>
     queryFn: () => unwrap(api.GET('/api/companies', { params: { query: toListFilterQuery(filter) } })),
     placeholderData: keepPreviousData,
   })
+
+/** Las empresas con que se puede registrar algo hoy: las activas. Las filtra la API, no la pantalla. */
+export const activeCompaniesQuery = companiesListQuery({ estado: 'activos' })
 
 export function useSaveCompany() {
   const qc = useQueryClient()

@@ -173,3 +173,42 @@ export function ListError({ error, onRetry }: { error: unknown; onRetry: () => v
 export function Loading({ text }: { text: string }) {
   return <div className="py-16 text-center text-base text-faint">{text}</div>
 }
+
+/**
+ * Cuerpo de una lista, en el orden de siempre: el error con "Reintentar", "Cargando…", las filas o el mensaje de
+ * lista vacía. Si no hay filas y hay filtros (o la lista no tiene un estado inicial propio, como Usuarios), ofrece
+ * "Limpiar filtros"; si no, muestra el estado inicial con su acción (por ejemplo, crear el primero).
+ */
+export function ListBody<T>({
+  query,
+  rows,
+  loading,
+  icon,
+  filtered = false,
+  noMatch,
+  onClear,
+  empty,
+  children,
+}: {
+  /** La consulta de la lista: si falló, su error y cómo reintentar. */
+  query: { isError: boolean; error: unknown; refetch: () => unknown }
+  /** Las filas que llegaron; `undefined` mientras la lista carga. */
+  rows: T[] | undefined
+  /** Texto mientras carga ("Cargando productos…"). */
+  loading: string
+  icon: ReactNode
+  /** Si hay búsqueda o filtros aplicados. */
+  filtered?: boolean
+  /** Texto cuando nada coincide con la búsqueda o los filtros. */
+  noMatch: string
+  onClear: () => void
+  /** Estado inicial, cuando todavía no hay registros. Sin él, una lista vacía siempre ofrece "Limpiar filtros". */
+  empty?: { title: string; text: string; action?: ReactNode }
+  children: (rows: T[]) => ReactNode
+}) {
+  if (query.isError) return <ListError error={query.error} onRetry={() => void query.refetch()} />
+  if (!rows) return <Loading text={loading} />
+  if (rows.length > 0) return children(rows)
+  if (filtered || !empty) return <EmptyState icon={icon} text={noMatch} action={<Button onClick={onClear}>Limpiar filtros</Button>} />
+  return <EmptyState icon={icon} title={empty.title} text={empty.text} action={empty.action} />
+}

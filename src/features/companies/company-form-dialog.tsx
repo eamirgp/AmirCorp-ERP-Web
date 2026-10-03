@@ -1,6 +1,8 @@
+import { useQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { identityDocumentTypesQuery } from '@/api/catalogs'
 import { errorMessages } from '@/api/client'
 import { useLookupCompanyRuc, useSaveCompany, type CompanyRow } from '@/api/companies'
 import { Button } from '@/components/ui/button'
@@ -28,6 +30,10 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
   }, [open, company])
 
   // Buscar el RUC en SUNAT: lo pide el usuario con el botón o con Enter, nunca solo (cada consulta cuenta en el cupo).
+  // Si la consulta no está configurada, la API no da fuente para el RUC: el botón no aparece y la razón social se
+  // escribe a mano (como en clientes y proveedores).
+  const docTypes = useQuery(identityDocumentTypesQuery)
+  const source = docTypes.data?.find((d) => d.identityDocumentType === 'Ruc')?.lookupSource ?? null
   const lookup = useLookupCompanyRuc()
   const ruc = form.watch('ruc')
   const name = useLookedUpName({
@@ -72,7 +78,7 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
     >
       <form id="company-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <ErrorList messages={save.isError ? errorMessages(save.error) : []} />
-        <Field label="RUC" hint={`Presiona SUNAT o Enter para ${company ? 'actualizar' : 'traer'} la razón social.`}>
+        <Field label="RUC" hint={source ? `Presiona ${source} o Enter para ${company ? 'actualizar' : 'traer'} la razón social.` : undefined}>
           {(a) => (
             <div className="flex gap-2">
               <Input
@@ -81,12 +87,14 @@ export function CompanyFormDialog({ open, company, onClose }: { open: boolean; c
                 inputMode="numeric"
                 autoFocus
                 {...form.register('ruc')}
-                onKeyDown={lookupOnEnter(() => !lookup.isPending && !!compactDocument(ruc), searchSunat)}
+                onKeyDown={source ? lookupOnEnter(() => !lookup.isPending && !!compactDocument(ruc), searchSunat) : undefined}
               />
-              <Button onClick={searchSunat} loading={lookup.isPending} disabled={!compactDocument(ruc)} title="Trae la razón social desde SUNAT">
-                <Search />
-                SUNAT
-              </Button>
+              {source && (
+                <Button onClick={searchSunat} loading={lookup.isPending} disabled={!compactDocument(ruc)} title={`Trae la razón social desde ${source}`}>
+                  <Search />
+                  {source}
+                </Button>
+              )}
             </div>
           )}
         </Field>

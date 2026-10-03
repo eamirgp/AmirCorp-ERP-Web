@@ -7,7 +7,7 @@ import { igvAffectationsQuery, unitsOfMeasureQuery } from '@/api/catalogs'
 import { productListQuery, useToggleProduct, type ProductRow, type ProductSortBy } from '@/api/products'
 import { Button } from '@/components/ui/button'
 import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { ListBody, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { PageHeader } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ProductExportDialog, useProductExport } from '@/features/products/product-export-dialog'
@@ -145,33 +145,35 @@ function ProductsPage() {
           }
         />
 
-        {list.isError ? (
-          <ListError error={list.error} onRetry={() => void list.refetch()} />
-        ) : !data ? (
-          <Loading text="Cargando productos…" />
-        ) : data.items.length > 0 ? (
-          <ProductsTable
-            rows={data.items}
-            onEdit={setEditing}
-            onToggle={activation.request}
-            busyId={activation.busyId}
-            onHistory={(p) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` })}
-          />
-        ) : hasFilters ? (
-          <EmptyState icon={<PackagePlus strokeWidth={1.5} />} text="Ningún producto coincide con la búsqueda o el filtro." action={<Button onClick={clearFilters}>Limpiar filtros</Button>} />
-        ) : (
-          <EmptyState
-            icon={<PackagePlus strokeWidth={1.5} />}
-            title="Todavía no hay productos"
-            text="Crea el primero. Luego podrás usarlo en compras, importaciones y ventas de cualquiera de tus empresas."
-            action={
+        <ListBody
+          query={list}
+          rows={data?.items}
+          loading="Cargando productos…"
+          icon={<PackagePlus strokeWidth={1.5} />}
+          filtered={hasFilters}
+          noMatch="Ningún producto coincide con la búsqueda o el filtro."
+          onClear={clearFilters}
+          empty={{
+            title: 'Todavía no hay productos',
+            text: 'Crea el primero. Luego podrás usarlo en compras, importaciones y ventas de cualquiera de tus empresas.',
+            action: (
               <Button variant="primary" onClick={openNew}>
                 <Plus />
                 Crear producto
               </Button>
-            }
-          />
-        )}
+            ),
+          }}
+        >
+          {(rows) => (
+            <ProductsTable
+              rows={rows}
+              onEdit={setEditing}
+              onToggle={activation.request}
+              busyId={activation.busyId}
+              onHistory={(p) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` })}
+            />
+          )}
+        </ListBody>
 
         <Pagination
           info={data}

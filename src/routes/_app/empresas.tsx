@@ -8,7 +8,7 @@ import { companiesListQuery, useToggleCompany, type CompanyRow } from '@/api/com
 import { Button } from '@/components/ui/button'
 import { DataTable, RowMenu } from '@/components/ui/data-table'
 import { FilterBar } from '@/components/ui/filters'
-import { EmptyState, Loading, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { ListBody, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { PageHeader, Pill } from '@/components/ui/misc'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { CompanyFormDialog } from '@/features/companies/company-form-dialog'
@@ -126,27 +126,27 @@ function CompaniesPage() {
           count={list.data ? countLabel(rows.length, 'empresa', 'empresas') : undefined}
         />
 
-        {list.isError ? (
-          <ListError error={list.error} onRetry={() => void list.refetch()} />
-        ) : !list.data ? (
-          <Loading text="Cargando empresas…" />
-        ) : rows.length > 0 ? (
-          <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />
-        ) : filtered ? (
-          <EmptyState icon={<Building2 strokeWidth={1.5} />} text="Ninguna empresa coincide con la búsqueda o el filtro." action={<Button onClick={() => navigate({ search: {} })}>Limpiar filtros</Button>} />
-        ) : (
-          <EmptyState
-            icon={<Building2 strokeWidth={1.5} />}
-            title="Todavía no hay empresas"
-            text="Registra cada RUC con el que compras y vendes."
-            action={
+        <ListBody
+          query={list}
+          rows={list.data}
+          loading="Cargando empresas…"
+          icon={<Building2 strokeWidth={1.5} />}
+          filtered={filtered}
+          noMatch="Ninguna empresa coincide con la búsqueda o el filtro."
+          onClear={() => navigate({ search: {} })}
+          empty={{
+            title: 'Todavía no hay empresas',
+            text: 'Registra cada RUC con el que compras y vendes.',
+            action: (
               <Button variant="primary" onClick={openNew}>
                 <Plus />
                 Crear empresa
               </Button>
-            }
-          />
-        )}
+            ),
+          }}
+        >
+          {(items) => <DataTable data={items}columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />}
+        </ListBody>
       </ListPanel>
 
       <CompanyFormDialog open={!!search.nuevo || editing !== null} company={editing} onClose={closeForm} />

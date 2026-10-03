@@ -91,8 +91,6 @@ export function useAddPartnerRole() {
   })
 }
 
-export type DocumentLookup = Schemas['LookupDocumentResponseDto']
-
 /** Busca el RUC en SUNAT o el DNI en RENIEC (a través de la API) para llenar el nombre o la razón social. */
 export const useLookupDocument = () =>
   useMutation({

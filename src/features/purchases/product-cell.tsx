@@ -86,7 +86,7 @@ export function ProductCell({
           onChoose(p, linking)
         })}
         <p className="text-xs text-faint">
-          Se enlazará el código <span className="font-mono text-muted">{linking}</span> de {supplierName}.{' '}
+          Se enlazará el código <span className="font-mono text-muted uppercase">{linking}</span> de {supplierName}.{' '}
           <button type="button" onClick={() => setLinking(null)} className="text-muted underline hover:text-ink">
             Cancelar
           </button>
@@ -101,7 +101,7 @@ export function ProductCell({
       <div className="flex flex-col gap-1.5">
         {linkSearch(linkCode, product, (p) => onChoose(p, linkCode))}
         <p className="text-xs text-faint">
-          El código <span className="font-mono text-muted">{linkCode}</span> de {supplierName} se enlazará a este producto al registrar la compra.{' '}
+          El código <span className="font-mono text-muted uppercase">{linkCode}</span> de {supplierName} se enlazará a este producto al registrar la compra.{' '}
           <button type="button" onClick={onClear} className="text-muted underline hover:text-ink">
             Quitar enlace
           </button>
@@ -142,7 +142,8 @@ export function ProductCell({
         // Si lo escrito no es el código de un producto de este proveedor, se pregunta qué es: uno que ya está
         // registrado (se enlaza el código) o uno nuevo.
         extraOptions={(term, items) => {
-          const code = term.toUpperCase()
+          // Tal cual se escribió: la API lo guarda en mayúsculas y aquí solo se muestra así (clase uppercase).
+          const code = term.trim()
           // La API dice si lo buscado es justo el código del proveedor de alguno (normalizado como lo guarda).
           if (items.some((p) => p.isSupplierCodeMatch)) return []
           return [
@@ -150,7 +151,7 @@ export function ProductCell({
               key: 'link',
               label: (
                 <>
-                  Enlazar <span className="font-mono">{code}</span> a un producto que ya tengo
+                  Enlazar <span className="font-mono uppercase">{code}</span> a un producto que ya tengo
                 </>
               ),
               onSelect: () => setLinking(code),
@@ -159,7 +160,7 @@ export function ProductCell({
               key: 'new',
               label: (
                 <>
-                  Crear producto nuevo con código <span className="font-mono">{code}</span>
+                  Crear producto nuevo con código <span className="font-mono uppercase">{code}</span>
                 </>
               ),
               onSelect: () => onNewProduct({ code, name: '', supplierCode: code }),

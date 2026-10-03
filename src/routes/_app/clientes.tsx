@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { countriesQuery, identityDocumentTypesQuery } from '@/api/catalogs'
 import { partnerListQuery } from '@/api/partners'
-import { PartnersPage, partnerListParams, partnerRoles, partnerSearchSchema } from '@/features/partners/partners-page'
+import { partnerListParams, partnerRoles, partnerSearchSchema } from '@/features/partners/partner-roles'
+import { PartnersPage } from '@/features/partners/partners-page'
 import { applyDefaultView } from '@/features/saved-views/view-filters'
 
 const config = partnerRoles.clients

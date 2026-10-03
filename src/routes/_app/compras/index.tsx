@@ -9,7 +9,7 @@ import { purchaseListQuery, type PurchaseRow, type PurchaseSortBy } from '@/api/
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
-import { EmptyState, Loading, Pagination, SearchBox, ListPanel, ListError } from '@/components/ui/list-controls'
+import { ListBody, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { PageHeader, Pill } from '@/components/ui/misc'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
@@ -145,27 +145,27 @@ function PurchasesPage() {
           }
         />
 
-        {list.isError ? (
-          <ListError error={list.error} onRetry={() => void list.refetch()} />
-        ) : !data ? (
-          <Loading text="Cargando compras…" />
-        ) : data.items.length > 0 ? (
-          <DataTable data={data.items} columns={columns} getRowId={(r) => r.id} onOpen={open} isMuted={(r) => r.isCancelled} />
-        ) : hasFilters ? (
-          <EmptyState icon={<ShoppingCart strokeWidth={1.5} />} text="Ninguna compra coincide con la búsqueda o el filtro." action={<Button onClick={() => navigate({ search: {} })}>Limpiar filtros</Button>} />
-        ) : (
-          <EmptyState
-            icon={<ShoppingCart strokeWidth={1.5} />}
-            title="Todavía no hay compras"
-            text="Registra la factura de un proveedor y la mercadería entrará al stock."
-            action={
+        <ListBody
+          query={list}
+          rows={data?.items}
+          loading="Cargando compras…"
+          icon={<ShoppingCart strokeWidth={1.5} />}
+          filtered={hasFilters}
+          noMatch="Ninguna compra coincide con la búsqueda o el filtro."
+          onClear={() => navigate({ search: {} })}
+          empty={{
+            title: 'Todavía no hay compras',
+            text: 'Registra la factura de un proveedor y la mercadería entrará al stock.',
+            action: (
               <Button variant="primary" onClick={openNew}>
                 <Plus />
                 Registrar compra
               </Button>
-            }
-          />
-        )}
+            ),
+          }}
+        >
+          {(rows) => <DataTable data={rows} columns={columns} getRowId={(r) => r.id} onOpen={open} isMuted={(r) => r.isCancelled} />}
+        </ListBody>
 
         <Pagination
           info={data}

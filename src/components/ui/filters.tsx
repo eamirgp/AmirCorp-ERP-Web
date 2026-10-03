@@ -1,15 +1,13 @@
 import * as Menu from '@radix-ui/react-dropdown-menu'
 import { ArrowDownWideNarrow, ArrowUpNarrowWide, Check, ChevronDown, PlusCircle, SlidersHorizontal, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
+import type { Option } from '@/lib/filters'
 import { formatDate } from '@/lib/format'
 import { Button } from './button'
 import { Input } from './field'
 import { Sheet } from './sheet'
 
-export interface Option<T extends string> {
-  value: T
-  label: string
-}
+export type { Option }
 
 const menuClass = 'z-50 min-w-48 rounded-lg border border-line bg-surface p-1 shadow-float'
 const itemClass =
