@@ -17,7 +17,7 @@ import { ProductsTable } from '@/features/products/products-table'
 import { useActivation } from '@/features/shared/use-activation'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
-import { directionSchema, pageSchema, pageSizeSchema, statusOptions, statusSchema } from '@/lib/filters'
+import { directionSchema, pageSchema, pageSizeSchema, nextSort, shownSort, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 // El estado de la pantalla vive en la URL: se puede compartir, recargar y usar el botón Atrás.
@@ -83,9 +83,13 @@ function ProductsPage() {
   const clearFilters = () => navigate({ search: {} })
 
   const data = list.data
+  const sort = shownSort(search.orden, search.dir, data)
   // Ordenar con el menú o con un clic en el título de una columna: el orden va a la URL y lo aplica la API.
   const changeSort = (orden: string, desc: boolean) =>
     navigate({ search: (prev) => ({ ...prev, orden: orden as Search['orden'], dir: desc ? 'desc' : 'asc', page: undefined }) })
+  // Clic en el título de una columna: invierte si ya ordena por ella (calculado sobre la última URL pedida).
+  const sortByColumn = (by: string, descendingFirst: boolean) =>
+    navigate({ search: (prev) => ({ ...prev, ...nextSort(prev, by as NonNullable<Search['orden']>, descendingFirst, data), page: undefined }) })
 
   return (
     <>
@@ -128,11 +132,11 @@ function ProductsPage() {
           onClear={isCustomized(search) ? clearFilters : undefined}
           sort={
             // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).
-            data && (
+            sort && (
               <SortMenu
                 options={sortOptions}
-                value={data.sortBy}
-                descending={data.sortDescending}
+                value={sort.by}
+                descending={sort.descending}
                 onChange={changeSort}
               />
             )
@@ -164,7 +168,7 @@ function ProductsPage() {
               onEdit={setEditing}
               onToggle={activation.request}
               busyId={activation.busyId}
-              sort={data && { by: data.sortBy, descending: data.sortDescending, onChange: changeSort }}
+              sort={sort && { ...sort, onSort: sortByColumn }}
               onHistory={(p) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` })}
             />
           )}

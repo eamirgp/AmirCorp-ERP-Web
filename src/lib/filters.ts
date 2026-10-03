@@ -17,6 +17,28 @@ export const statusOptions: Option<ActiveFilter>[] = [
 
 export const statusSchema = z.enum(['activos', 'inactivos']).optional().catch(undefined)
 export const directionSchema = z.enum(['asc', 'desc']).optional().catch(undefined)
+
+/** El orden que muestran la tabla y el menú "Ordenar": el elegido (en la URL) o, si no se eligió ninguno, el que aplicó la API. */
+export function shownSort<T extends string>(orden: T | undefined, dir: 'asc' | 'desc' | undefined, applied: { sortBy: T; sortDescending: boolean } | undefined) {
+  if (orden) return { by: orden, descending: dir === 'desc' }
+  return applied && { by: applied.sortBy, descending: applied.sortDescending }
+}
+
+/**
+ * Clic en el título de una columna (como en la Mac): si la lista ya está ordenada por ella, invierte el orden; si no,
+ * la ordena por ella, de menor a mayor (o de mayor a menor en fechas y montos). Se calcula sobre la última URL pedida
+ * (`prev` de navigate), no sobre la pantalla: así dos clics seguidos invierten aunque la lista nueva no haya llegado.
+ */
+export function nextSort<T extends string>(
+  prev: { orden?: T; dir?: 'asc' | 'desc' },
+  by: T,
+  descendingFirst: boolean,
+  applied: { sortBy: T; sortDescending: boolean } | undefined,
+) {
+  const current = shownSort(prev.orden, prev.dir, applied)
+  const descending = current?.by === by ? !current.descending : descendingFirst
+  return { orden: by, dir: descending ? ('desc' as const) : ('asc' as const) }
+}
 export const pageSchema = z.coerce.number().int().min(1).optional().catch(undefined)
 /** Filas por página elegidas en la pantalla. Sin valor, la API usa su tamaño por defecto y ajusta los que no acepta. */
 export const pageSizeSchema = z.coerce.number().int().min(1).optional().catch(undefined)

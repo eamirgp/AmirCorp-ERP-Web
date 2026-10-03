@@ -17,6 +17,7 @@ import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
 import { partnerListParams, type PartnerSearch, type RoleConfig } from '@/features/partners/partner-roles'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { isCustomized } from '@/features/saved-views/view-filters'
+import { nextSort, shownSort } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 const sortOptions: Option<PartnerSortBy>[] = [
@@ -101,9 +102,13 @@ export function PartnersPage({
   })
 
   const data = list.data
+  const sort = shownSort(search.orden, search.dir, data)
   // Ordenar con el menú o con un clic en el título de una columna: el orden va a la URL y lo aplica la API.
   const changeSort = (orden: string, desc: boolean) =>
     setSearch((prev) => ({ ...prev, orden: orden as PartnerSearch['orden'], dir: desc ? 'desc' : 'asc', page: undefined }))
+  // Clic en el título de una columna: invierte si ya ordena por ella (calculado sobre la última URL pedida).
+  const sortByColumn = (by: string, descendingFirst: boolean) =>
+    setSearch((prev) => ({ ...prev, ...nextSort(prev, by as NonNullable<PartnerSearch['orden']>, descendingFirst, data), page: undefined }))
 
   return (
     <>
@@ -151,11 +156,11 @@ export function PartnersPage({
           onClear={isCustomized(search) ? clearFilters : undefined}
           sort={
             // El orden que se muestra es el que aplicó la API (el suyo por defecto si no se eligió ninguno).
-            data && (
+            sort && (
               <SortMenu
                 options={sortOptions}
-                value={data.sortBy}
-                descending={data.sortDescending}
+                value={sort.by}
+                descending={sort.descending}
                 onChange={changeSort}
               />
             )
@@ -188,7 +193,7 @@ export function PartnersPage({
               getRowId={(r) => r.id}
               onOpen={setEditing}
               isMuted={config.isBlocked}
-              sort={data && { by: data.sortBy, descending: data.sortDescending, onChange: changeSort }}
+              sort={sort && { ...sort, onSort: sortByColumn }}
             />
           )}
         </ListBody>

@@ -18,11 +18,11 @@ declare module '@tanstack/react-table' {
   }
 }
 
-/** Orden actual de la lista (el que aplicó la API) y cómo cambiarlo. */
+/** Orden que se ve en la lista y qué hacer al hacer clic en el título de una columna (la página decide, con `nextSort`). */
 export interface TableSort {
   by: string
   descending: boolean
-  onChange: (by: string, descending: boolean) => void
+  onSort: (by: string, descendingFirst: boolean) => void
 }
 
 /**
@@ -83,7 +83,7 @@ export function DataTable<T>({
                     {sortable ? (
                       <button
                         type="button"
-                        onClick={() => sort!.onChange(meta!.sortBy!, active ? !sort!.descending : !!meta!.sortDescendingFirst)}
+                        onClick={() => sort!.onSort(meta!.sortBy!, !!meta!.sortDescendingFirst)}
                         className={`group/sort inline-flex h-8 items-center gap-1 rounded-lg px-2 transition-colors hover:bg-hover hover:text-fg ${meta?.alignRight ? 'flex-row-reverse' : ''} ${active ? 'text-fg' : ''}`}
                       >
                         {flexRender(h.column.columnDef.header, h.getContext())}
