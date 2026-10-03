@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute, useBlocker, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Plus, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import {
   currenciesQuery,
   igvAffectationsQuery,
@@ -16,15 +16,15 @@ import {
 import { errorMessages, type Schemas } from '@/api/client'
 import { companiesQuery } from '@/api/companies'
 import type { PartnerRow } from '@/api/partners'
-import { searchProducts, type ProductRow } from '@/api/products'
+import type { ProductRow } from '@/api/products'
 import { purchasePreviewQuery, useCreatePurchase } from '@/api/purchases'
 import { Button } from '@/components/ui/button'
 import { Field, Input, NumberInput, Select } from '@/components/ui/field'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Card, ErrorList, PageHeader } from '@/components/ui/misc'
-import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
-import { NewProductCell, type NewProduct } from '@/features/purchases/new-product-cell'
+import type { NewProduct } from '@/features/purchases/new-product-cell'
+import { ProductCell } from '@/features/purchases/product-cell'
 import { SupplierField, type NewSupplier } from '@/features/purchases/supplier-field'
 import { Totals } from '@/features/purchases/totals'
 import { formatAmount, formatDecimal, formatMoney, todayIso } from '@/lib/format'
@@ -408,84 +408,28 @@ function NewPurchasePage() {
                 return (
                   <tr key={field.id} className="border-b border-line align-top">
                     <td className="py-2 pr-3">
-                      {/* Producto nuevo: solo se escribe el nombre (el código ya vino de lo buscado). La unidad y la
-                          afectación salen de la línea, y la API lo registra junto con la compra. */}
-                      {watched.lines?.[i]?.newProduct ? (
-                        <NewProductCell
-                          lineNumber={i + 1}
-                          supplierId={watched.supplier?.id}
-                          value={watched.lines[i]!.newProduct as NewProduct}
-                          onChange={(v) => form.setValue(`lines.${i}.newProduct`, v)}
-                          onCancel={() => form.setValue(`lines.${i}.newProduct`, null)}
-                          // "Es este": la línea usa el producto existente y le enlaza el código de esta factura.
-                          onPickExisting={(p) => {
-                            const typed = watched.lines?.[i]?.newProduct?.supplierCode ?? ''
-                            form.setValue(`lines.${i}.newProduct`, null)
-                            chooseProduct(i, p, p.supplierCode ? '' : typed)
-                          }}
-                          isInOtherLine={(id) => lineOf(id, i) > 0}
-                        />
-                      ) : (
-                      <>
-                      <Controller
-                        control={form.control}
-                        name={`lines.${i}.product`}
-                        render={({ field: f }) => (
-                          <SearchSelect
-                            createOption={{
-                              label: (term) => `Crear producto nuevo con código ${term.toUpperCase()}`,
-                              onSelect: (term) => {
-                                f.onChange(null)
-                                form.setValue(`lines.${i}.newProduct`, { code: term.toUpperCase(), name: '', supplierCode: term.toUpperCase() })
-                              },
-                            }}
-                            value={f.value}
-                            onChange={(p) => (p ? chooseProduct(i, p, '') : f.onChange(null))}
-                            queryKey="products"
-                            // Con el proveedor elegido, cada producto trae el código de ese proveedor (el de su factura).
-                            scope={watched.supplier?.id}
-                            fetchItems={(term) => searchProducts(term, watched.supplier?.id)}
-                            itemKey={(p) => p.id}
-                            itemLabel={(p) => `${p.code} · ${p.name}`}
-                            // Un producto va en una sola línea (la API también lo exige): el que ya está en otra se ve, pero no se elige.
-                            isItemDisabled={(p) => lineOf(p.id, i) > 0}
-                            renderItem={(p) => (
-                              <span>
-                                <span className="mr-2 font-mono text-xs text-faint">{p.code}</span>
-                                {p.name}
-                                {lineOf(p.id, i) > 0 ? (
-                                  <span className="block text-xs text-bad">Ya está en la línea {lineOf(p.id, i)}. Cambia ahí la cantidad.</span>
-                                ) : p.supplierCode ? (
-                                  <span className="block text-xs text-faint">
-                                    Código del proveedor: <span className="font-mono">{p.supplierCode}</span>
-                                  </span>
-                                ) : (
-                                  p.searchMatch && <span className="block text-xs text-faint">{p.searchMatch}</span>
-                                )}
-                              </span>
-                            )}
-                            placeholder="Busca el producto"
-                            aria-label={`Producto de la línea ${i + 1}`}
-                          />
-                        )}
+                      <ProductCell
+                        lineNumber={i + 1}
+                        supplierId={watched.supplier?.id}
+                        supplierName={watched.supplier?.name ?? watched.newSupplier?.name ?? null}
+                        product={(watched.lines?.[i]?.product as ProductRow | null | undefined) ?? null}
+                        newProduct={(watched.lines?.[i]?.newProduct as NewProduct | null | undefined) ?? null}
+                        linkCode={watched.lines?.[i]?.supplierCode ?? ''}
+                        otherLineOf={(id) => lineOf(id, i)}
+                        onChoose={(p, code) => chooseProduct(i, p, code)}
+                        onClear={() => {
+                          form.setValue(`lines.${i}.product`, null)
+                          form.setValue(`lines.${i}.supplierCode`, '')
+                        }}
+                        // Producto nuevo: la unidad y la afectación salen de la línea, y la API lo registra con la compra.
+                        onNewProduct={(v) => {
+                          form.setValue(`lines.${i}.newProduct`, v)
+                          if (v) {
+                            form.setValue(`lines.${i}.product`, null)
+                            form.setValue(`lines.${i}.supplierCode`, '')
+                          }
+                        }}
                       />
-                      {/* Producto existente sin código de este proveedor: se puede enlazar el de la factura, y la próxima
-                          compra a este proveedor lo encuentra escribiendo ese código. */}
-                      {watched.lines?.[i]?.product && !watched.lines[i]?.product?.supplierCode && (watched.supplier || watched.newSupplier) && (
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <label className="shrink-0 text-xs text-muted" htmlFor={`line-supplier-code-${i}`}>
-                            Código de este proveedor
-                          </label>
-                          <Input
-                            id={`line-supplier-code-${i}`}
-                            className="h-8 min-w-0 flex-1 font-mono text-sm"
-                            placeholder="Opcional"
-                            {...form.register(`lines.${i}.supplierCode`, { setValueAs: (v: string) => v.toUpperCase() })}
-                          />
-                        </div>
-                      )}
-                      </>
-                      )}
                       {result?.error && <p className="mt-1.5 text-sm text-bad">{result.error}</p>}
                     </td>
                     <td className="px-2 py-2">

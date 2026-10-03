@@ -61,9 +61,10 @@ export function SearchSelect<T>({
   emptyText,
   onTermChange,
   onSubmitTerm,
-  createOption,
+  extraOptions,
   placeholder,
   autoFocus,
+  disabled,
   ...aria
 }: {
   id?: string
@@ -86,13 +87,14 @@ export function SearchSelect<T>({
   /** Enter cuando no hay ningún resultado para elegir: qué hacer con lo escrito. */
   onSubmitTerm?: (term: string) => void
   /**
-   * Última opción de la lista para crear un registro nuevo con lo escrito ("Crear producto nuevo con código X").
-   * Aparece siempre que hay texto, también con resultados: lo escrito puede parecerse a otros sin ser ninguno.
-   * Con Enter se elige si no hay ningún resultado.
+   * Opciones al final de la lista que actúan sobre lo escrito ("Crear producto nuevo con código X"). Se calculan con
+   * lo escrito y los resultados (una lista vacía las oculta), y se alcanzan con las flechas como un resultado más.
+   * Con Enter se elige la primera si no hay ningún resultado.
    */
-  createOption?: { label: (term: string) => ReactNode; onSelect: (term: string) => void }
+  extraOptions?: (term: string, items: T[]) => { key: string; label: ReactNode; onSelect: (term: string) => void }[]
   placeholder?: string
   autoFocus?: boolean
+  disabled?: boolean
   'aria-invalid'?: boolean
   'aria-describedby'?: string
 }) {
@@ -117,9 +119,9 @@ export function SearchSelect<T>({
   const items = results.data ?? []
   // Mientras llega la búsqueda de lo último escrito, la lista muestra la anterior: Enter no debe elegir de ahí.
   const upToDate = debounced === term.trim() && !results.isFetching && !results.isPlaceholderData
-  // La opción de crear va al final y se alcanza con las flechas, como un resultado más.
-  const canCreate = !!createOption && !!term.trim() && upToDate
-  const lastIndex = items.length - 1 + (canCreate ? 1 : 0)
+  // Las opciones extra van al final y se alcanzan con las flechas, como un resultado más.
+  const extras = extraOptions && term.trim() && upToDate ? extraOptions(term.trim(), items) : []
+  const lastIndex = items.length - 1 + extras.length
 
   useEffect(() => setActive(0), [debounced])
 
@@ -151,12 +153,11 @@ export function SearchSelect<T>({
     writeTerm('')
   }
 
-  const create = () => {
+  const runExtra = (option: (typeof extras)[number]) => {
     const text = term.trim()
-    if (!text || !createOption) return
     setOpen(false)
     writeTerm('')
-    createOption.onSelect(text)
+    option.onSelect(text)
   }
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -168,7 +169,7 @@ export function SearchSelect<T>({
       if (!upToDate) {
         // Todavía no llegan los resultados de lo escrito: no se elige nada (Enter tampoco envía el formulario).
       } else if (items[active]) choose(items[active])
-      else if (canCreate) create()
+      else if (extras[active - items.length]) runExtra(extras[active - items.length])
       else if (term.trim()) onSubmitTerm?.(term.trim())
     } else if (e.key === 'Escape' && open) setOpen(false)
     else return
@@ -186,6 +187,7 @@ export function SearchSelect<T>({
         aria-autocomplete="list"
         autoComplete="off"
         autoFocus={autoFocus}
+        disabled={disabled}
         placeholder={placeholder ?? 'Buscar…'}
         value={open ? term : value ? itemLabel(value) : ''}
         onChange={(e) => {
@@ -230,20 +232,21 @@ export function SearchSelect<T>({
               </li>
             ))
           )}
-          {canCreate && (
+          {extras.map((option, k) => (
             <li
+              key={option.key}
               role="option"
-              aria-selected={active === items.length}
+              aria-selected={active === items.length + k}
               onMouseDown={(e) => {
                 e.preventDefault()
-                create()
+                runExtra(option)
               }}
-              onMouseEnter={() => setActive(items.length)}
-              className="mt-1 cursor-pointer rounded border-t border-line px-2.5 py-2 text-sm font-medium aria-selected:bg-surface-2"
+              onMouseEnter={() => setActive(items.length + k)}
+              className={`cursor-pointer rounded px-2.5 py-2 text-sm font-medium aria-selected:bg-surface-2 ${k === 0 ? 'mt-1 border-t border-line' : ''}`}
             >
-              {createOption!.label(term.trim())}
+              {option.label}
             </li>
-          )}
+          ))}
         </ul>
       )}
     </div>

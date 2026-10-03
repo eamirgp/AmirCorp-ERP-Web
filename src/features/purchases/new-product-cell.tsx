@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { findProductByCode, searchProducts, type ProductRow } from '@/api/products'
+import { findProductByCode } from '@/api/products'
 import { Input } from '@/components/ui/field'
 
 /** Producto que todavía no existe: la API lo registra junto con la compra. */
@@ -18,38 +18,15 @@ export interface NewProduct {
  */
 export function NewProductCell({
   lineNumber,
-  supplierId,
   value,
   onChange,
   onCancel,
-  onPickExisting,
-  isInOtherLine,
 }: {
   lineNumber: number
-  /** Proveedor de la compra, para mostrar si un parecido ya tiene un código de ese proveedor. */
-  supplierId?: string
   value: NewProduct
   onChange: (value: NewProduct) => void
   onCancel: () => void
-  /** "Es este": usar un producto existente en vez de crear uno nuevo. */
-  onPickExisting: (product: ProductRow) => void
-  /** Si ese producto ya está en otra línea de la compra (no se puede elegir dos veces). */
-  isInOtherLine: (productId: string) => boolean
 }) {
-  // ¿Es alguno de estos? Mientras se escribe el nombre se buscan productos parecidos, para no crear un duplicado de
-  // uno que ya existe con el código de otro proveedor.
-  const [name, setName] = useState(value.name.trim())
-  useEffect(() => {
-    const t = setTimeout(() => setName(value.name.trim()), 400)
-    return () => clearTimeout(t)
-  }, [value.name])
-  const similar = useQuery({
-    queryKey: ['products', 'similar', supplierId ?? '', name],
-    queryFn: () => searchProducts(name, supplierId),
-    enabled: name.length >= 3,
-  })
-  const candidates = (similar.data ?? []).slice(0, 5)
-
   // Se revisa un momento después de dejar de escribir el código.
   const [code, setCode] = useState(value.code.trim())
   useEffect(() => {
@@ -72,26 +49,6 @@ export function NewProductCell({
         value={value.name}
         onChange={(e) => onChange({ ...value, name: e.target.value })}
       />
-      {candidates.length > 0 && (
-        <div className="flex flex-col gap-1 rounded-md border border-line bg-surface-2 px-2.5 py-2">
-          <p className="text-xs font-medium">¿Es alguno de estos? Así no se crea un producto repetido.</p>
-          {candidates.map((p) => (
-            <div key={p.id} className="flex items-center justify-between gap-2 text-sm">
-              <span className="min-w-0">
-                <span className="mr-1.5 font-mono text-xs text-faint">{p.code}</span>
-                {p.name}
-              </span>
-              {isInOtherLine(p.id) ? (
-                <span className="shrink-0 text-xs text-faint">Ya está en otra línea</span>
-              ) : (
-                <button type="button" onClick={() => onPickExisting(p)} className="shrink-0 rounded border border-line-strong px-2 py-0.5 text-xs font-medium hover:bg-surface">
-                  Es este
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
       <div className="flex items-center gap-2">
         <label className="shrink-0 text-xs text-muted" htmlFor={`new-product-code-${lineNumber}`}>
           Código interno
