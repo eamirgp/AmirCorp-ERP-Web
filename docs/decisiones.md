@@ -28,7 +28,7 @@ Radix UI aporta el comportamiento accesible (diálogos, menús) sin imponer esti
 
 La API emite solo un JWT de 60 minutos, sin refresh token. El frontend lo guarda en `localStorage` para sobrevivir a una recarga y cierra la sesión cuando vence.
 
-**Pendiente antes de producción:** que la API emita un refresh token en una cookie `httpOnly` y que el JWT viva solo en memoria. Guardarlo en `localStorage` lo expone si alguna vez hubiera un ataque XSS.
+**Pendiente antes de producción:** que la API emita un refresh token en una cookie `httpOnly` y que el JWT viva solo en memoria. Guardarlo en `localStorage` lo expone si alguna vez hubiera un ataque XSS. *(Hecho: ver la decisión 9.)*
 
 ### 6. Frontend "tonto": la API es la única fuente de verdad
 **Fecha:** setiembre 2026
@@ -57,3 +57,18 @@ El frontend no decide nada del negocio. Muestra lo que la API devuelve, envía l
 
 ### 8. Pendientes conocidos
 - **Selector de empresa:** cuando existan pantallas por empresa (compras, stock, ventas), irá en la barra superior.
+
+### 9. Token solo en memoria (reemplaza la decisión 5)
+**Fecha:** octubre 2026
+
+Lo pendiente de la decisión 5 ya se hizo (decisiones 24 y 28 de la API): el token de acceso vive solo en memoria y la sesión se recupera con un refresh token en una cookie httpOnly. Ver "Sesión" en [arquitectura.md](arquitectura.md#sesión). Lo que quedaba en `localStorage` de la versión anterior se borra al abrir la página.
+
+### 10. Tercera revisión de octubre: lo que cambió en la pantalla
+**Fecha:** octubre 2026
+
+El detalle y el motivo de cada cambio están en las decisiones 32, 33 y 34 de la API. En la pantalla:
+
+- **Datos que no se pierden ni se guardan mal (32):** un 409 vuelve a pedir los datos; las ventanas no se cierran con un clic fuera, con Esc si hay algo escrito ni mientras guardan; "S/. 1500" se lee como 1500 y más de 15 cifras se avisa; sin conexión al abrir se muestra "Reintentar" en vez del login; si otro usuario inició sesión en otra pestaña, la pantalla se limpia.
+- **Legible para personas mayores (33):** contraste medido (rojo de errores, gris tenue y borde propio de los campos), errores del mismo tamaño, avisos con todos los mensajes, "Reintentar" en las listas y montos con el símbolo de moneda que envía la API.
+- **La pantalla deja de decidir (34):** si se puede anular una compra (`cancelError`) y qué acciones hay sobre cada usuario (`canManage`) lo dice la API; las empresas activas las filtra la API; los códigos se ven en mayúsculas solo con CSS. Las 7 listas usan `ListBody`.
+- **Pendiente:** algunas explicaciones fijas siguen escritas aquí (bloqueo de compras o ventas, etiquetas de orden, resumen de la importación). ESLint no está instalado aunque el código tiene comentarios para él.

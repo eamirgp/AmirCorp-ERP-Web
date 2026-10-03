@@ -13,17 +13,17 @@ src/
     login.tsx            /login
     _app.tsx             Layout con sesión obligatoria (menú + barra superior)
     _app/index.tsx       /
-    _app/productos.tsx   /productos
+    _app/productos.tsx   /productos (y clientes, proveedores, compras, empresas, usuarios, unidades, auditoría)
   api/                   Todo lo que habla con la API
     schema.d.ts          Tipos generados desde OpenAPI (npm run api:generate)
     client.ts            Cliente HTTP, token, manejo de errores
-    account.ts, catalogs.ts, products.ts   Consultas y mutaciones por recurso
-  features/              Componentes propios de un módulo
-    products/            Tabla y formulario de productos
+    products.ts, purchases.ts, …   Consultas y mutaciones por recurso
+  features/              Componentes propios de un módulo (products, purchases, partners, companies, users, units,
+                         audit, saved-views) y shared/ para lo que usan varios
   components/
-    ui/                  Piezas reutilizables: botón, campos, diálogo, avisos
-    layout/              Menú, barra superior, pantalla de error
-  lib/                   Utilidades sin UI: sesión, formatos, atajos, tema
+    ui/                  Piezas reutilizables: botón, campos, diálogo, avisos, piezas de las listas
+    layout/              Menú, barra superior, pantallas de error
+  lib/                   Utilidades sin UI: sesión, formatos, números escritos, filtros, atajos, tema
 ```
 
 ## Flujo de datos
@@ -31,7 +31,8 @@ src/
 1. **La ruta declara qué datos necesita** en su `loader`. Como el router precarga al pasar el mouse sobre un link (`defaultPreload: 'intent'`), los datos suelen estar listos antes del clic.
 2. **TanStack Query guarda los datos en caché** (`queryOptions` en `src/api/*.ts`). La misma consulta la usan el `loader` y el componente, y no se pide dos veces.
 3. **Las mutaciones invalidan la caché** al terminar, y la tabla se actualiza sola.
-4. **Activar o desactivar es optimista**: la fila cambia al instante y se revierte si la API responde error.
+4. **Un 409 vuelve a pedir los datos** (`MutationCache` en `main.tsx`): si otra persona cambió el registro, al reabrir el formulario ya trae la versión nueva en vez de repetir el 409 (decisión 32 de la API).
+5. **Activar o desactivar es optimista**: la fila cambia al instante y se revierte si la API responde error.
 
 ## Estado en la URL
 
@@ -45,13 +46,28 @@ const data = await unwrap(api.GET('/api/products', { params: { query: { Page: 1 
 
 - `api` es el cliente de `openapi-fetch`, tipado con `schema.d.ts`: rutas, parámetros y respuestas se validan al compilar.
 - `unwrap` devuelve los datos o lanza `ApiError` con los mensajes que envió la API (`{ errors: [...] }`), listos para mostrar.
-- Un **401** cierra la sesión y lleva al login, conservando la pantalla a la que se quería ir.
-- Si una pantalla no se puede cargar (API apagada, error del servidor), `RouteError` muestra el mensaje en español con "Reintentar" (`defaultErrorComponent` en `main.tsx`).
-- **Números, sin comas:** se muestran con punto decimal y un espacio para los miles ("S/ 1 234.50", `lib/format.ts`), igual que los textos que arma la API. Se escriben con `NumberInput`: solo dígitos y punto; si hay una coma avisa "Usa punto para los decimales. No uses comas." y no la adivina; al salir del campo reordena el número ("1500.5" → "1 500.50", sin redondear). `parseNumberInput` lo lee para enviarlo; si no es un número envía `null` y la API responde el mensaje.
+- Un **401** renueva el token una vez y repite el pedido; si la sesión ya no sirve, la cierra y lleva al login, conservando la pantalla a la que se quería ir.
+- Si una pantalla no se puede cargar (API apagada, error del servidor), `RouteError` muestra el mensaje en español con "Reintentar" (`defaultErrorComponent` en `main.tsx`). Una lista que no carga hace lo mismo dentro de su tarjeta (`ListError`, dentro de `ListBody`).
+- Los avisos flotantes muestran todos los mensajes de la API (`errorText`), no solo el primero.
+- **Números, sin comas:** se muestran con punto decimal y un espacio para los miles (`lib/format.ts`), igual que los textos que arma la API. Los montos llevan el símbolo que envía la API con la moneda ("S/", "US$": `formatMoney(valor, símbolo)`), siempre con céntimos y sin esconder decimales de más. Se escriben con `NumberInput` (`lib/number-input.ts`):
+  - Solo dígitos y punto. Si hay una coma avisa "Usa punto para los decimales. No uses comas." y no la adivina.
+  - El símbolo de soles se acepta solo al inicio, con o sin su punto: "S/. 1500" es 1500. "S/ .50" no se adivina.
+  - Más de 15 cifras se avisa: un número de JavaScript las redondearía al enviarlo.
+  - Al salir del campo reordena el número trabajando sobre el texto ("1500.5" → "1 500.50", nunca redondea).
+  - `parseNumberInput` lo lee para enviarlo; si no es un número envía `null` y la API responde el mensaje.
 
 ## Sesión
 
-`lib/session.ts` guarda el token JWT y avisa cuando cambia. `main.tsx` escucha ese aviso: al cerrar sesión limpia la caché y navega al login. La sesión también se cierra sola cuando vence el token.
+Decisión 24 de la API: el token de acceso dura 15 minutos y vive **solo en memoria** (`lib/session.ts`); el refresh token va en una cookie httpOnly que JavaScript no puede leer.
+
+- **Al abrir la página** `restore()` recupera la sesión con la cookie. Si la API no responde (sin conexión, reiniciándose), `main.tsx` muestra "No se pudo abrir el sistema" con "Reintentar" (`ConnectionError`) en vez del login: la sesión puede seguir abierta.
+- **Renovación:** una sola a la vez, también entre pestañas (`navigator.locks`). Solo un 401 de la renovación cierra la sesión; un error de red no.
+- **Cerrar sesión** en una pestaña la cierra en las demás (`BroadcastChannel`). `main.tsx` limpia la caché y navega al login.
+- **Otro usuario en otra pestaña:** la cookie es una por navegador. Si la renovación trae el token de otro usuario, el pedido no se envía con esa cuenta y la pantalla se limpia y vuelve al inicio.
+
+## Ventanas (formularios)
+
+`Dialog` protege lo escrito, sin que cada formulario tenga que hacerlo: un clic fuera no la cierra, Esc no la cierra si ya se escribió algo (se cierra con Cancelar o la X), y mientras un botón está guardando (`loading`) no se cierra de ninguna forma.
 
 ## Cálculos en pantalla
 
@@ -80,11 +96,11 @@ El frontend no calcula montos. Cuando una pantalla necesita mostrar un resultado
 
 ## Cómo agregar una pantalla de lista
 
-Ejemplo: `/ventas`. Usa `src/routes/_app/socios.tsx` como modelo.
+Ejemplo: `/ventas`. Usa `src/routes/_app/productos.tsx` (paginada) o `empresas.tsx` (lista corta) como modelo.
 
 1. **API:** crea `src/api/sales.ts` con sus `queryOptions` (listado paginado con filtros y orden) y mutaciones. Para activar/desactivar usa `useToggleActive`.
 2. **Ruta:** crea `src/routes/_app/ventas/index.tsx` con su `validateSearch` (búsqueda, página, filtros y orden en la URL), `loader` y componente. El plugin actualiza `routeTree.gen.ts` solo.
-3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `DataTable` y `Pagination info={data}`. El orden va en `?orden=` y `?dir=` solo cuando el usuario elige uno; si no, no se envía y `SortMenu` muestra el que devuelve la API (`data.sortBy`, `data.sortDescending`). La página va en `?page=` y las filas por página en `?filas=`; los rangos, el total de páginas y las opciones de filas salen de la respuesta. La tabla muestra solo lo que se usa para trabajar: la auditoría no va como columna ni en los formularios. Agrega `<ViewTabs>` antes del `FilterBar` y `beforeLoad: applyDefaultView('<Pantalla>')` (la pantalla debe existir en `SavedViewScreen` de la API).
+3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `ListBody` (error con "Reintentar", cargando, nada coincide con "Limpiar filtros", estado inicial) con el `DataTable` adentro, y `Pagination info={data}`. Las acciones que dependen de permisos o del estado del registro las decide la API (como `canManage` en usuarios o `cancelError` en compras). El orden va en `?orden=` y `?dir=` solo cuando el usuario elige uno; si no, no se envía y `SortMenu` muestra el que devuelve la API (`data.sortBy`, `data.sortDescending`). La página va en `?page=` y las filas por página en `?filas=`; los rangos, el total de páginas y las opciones de filas salen de la respuesta. La tabla muestra solo lo que se usa para trabajar: la auditoría no va como columna ni en los formularios. Agrega `<ViewTabs>` antes del `FilterBar` y `beforeLoad: applyDefaultView('<Pantalla>')` (la pantalla debe existir en `SavedViewScreen` de la API).
 4. **Formularios y detalle:** en `src/features/sales/`. Agrega la acción "Historial" en cada fila, que abre `HistorySheet` con el tipo de registro de la API (`AuditEntityType`) y su ID.
 5. **Menú:** agrega `to: '/ventas'` en `src/components/layout/nav.ts` (y a `NavPath`).
 6. Conecta el atajo `N` con `useHotkey('n', ...)`.

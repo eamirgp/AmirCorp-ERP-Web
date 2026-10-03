@@ -21,7 +21,7 @@ Las pantallas no nombran la marca directamente: usan `brand` y `<Logo />`. Para 
 |---|---|---|
 | Negro (base) | `#000000` (`#0A0A0A` en pantalla) | Texto principal y **acción principal**: botón negro, blanco en modo oscuro |
 | Verde jade (secundario) | `#5AAF76` | Acento puntual: ícono de la pantalla activa, foco de las filas, estado "Activo", marca de selección |
-| Gris (acento) | `#737373` | Texto de apoyo (lo más tenue permitido). Cumple el contraste mínimo sobre blanco |
+| Gris (acento) | `#737373` | Referencia de marca. Como texto se oscurece a `#6B6B6B`: el del manual no llegaba al contraste mínimo sobre el gris de la página (4.31:1) |
 
 Decisiones de uso:
 - **El jade no se usa en bloques grandes.** Aparece en detalles: la marca se reconoce sin cargar la pantalla.
@@ -34,11 +34,12 @@ Tokens en `src/styles.css`, usados como utilidades de Tailwind:
 | Token | Uso |
 |---|---|
 | `bg`, `surface`, `surface-2` | Fondo, paneles y fondo suave del ítem o fila activa |
-| `line`, `line-strong` | Bordes finos; `line-strong` en controles |
-| `ink`, `muted`, `faint` | Texto principal, secundario (`#525252`, 7.8:1) y de apoyo (el gris del manual `#737373`, 4.7:1). Todo texto cumple el contraste AA: los dueños son personas mayores |
+| `line`, `line-strong` | Bordes finos y decorativos (tarjetas, separadores, botones) |
+| `control` | Borde de campos y listas desplegables (`#8A8A87`, en oscuro `#6E6E6E`): 3:1 o más sobre la página y las tarjetas, para que se vea dónde escribir (WCAG 1.4.11) |
+| `ink`, `muted`, `faint` | Texto principal, secundario (`#525252`, 7.8:1) y de apoyo (`#6B6B6B`, 4.8:1 sobre la página). Todo texto cumple el contraste AA, medido con la fórmula de WCAG y no a ojo: los dueños son personas mayores |
 | `primary`, `primary-ink` | Botón principal: negro con texto blanco, invertido en modo oscuro |
 | `accent`, `accent-soft`, `accent-text` | Jade: acento, fondo suave y jade legible como texto |
-| `ok`, `warn`, `bad` | Color del punto de estado: activo o aceptado, pendiente, anulado o error |
+| `ok`, `warn`, `bad` | Color del punto de estado: activo o aceptado, pendiente, anulado o error. El rojo (`#C0392F`) da 4.9:1 sobre su fondo rosado (`bad-soft`) |
 
 El tema sigue al sistema operativo y el usuario puede fijarlo en claro u oscuro desde su menú.
 
@@ -88,10 +89,11 @@ Las fuentes están instaladas en el proyecto (`@fontsource-variable`), sin depen
 - **Confirmar lo que quita algo:** desactivar pide confirmación con `ConfirmDialog` (`useConfirmToggle`), explicando qué pasa; activar no. El botón queda bloqueado mientras se guarda.
 - **Avisos:** los de éxito se van solos a los 5 s; los de error se quedan hasta que el usuario los cierra.
 - **Filtros al estilo de Shopify:** la barra tiene el buscador, un botón **"Filtros"** con el número de filtros aplicados y, a su lado, **"Ordenar"** con el mismo aspecto (el orden no va dentro del panel: decide en qué orden se ven, no qué se ve, y se usa a un clic). El conteo de resultados queda a la derecha. El botón abre un panel lateral con todos los filtros, que se aplican al instante. Debajo de la barra aparecen **solo los filtros aplicados**, como chips `Estado: Activos ✕`, y "Limpiar filtros". Así la barra se ve igual con 1 filtro o con 10. Cada pantalla describe sus filtros (`FilterDef`) y `FilterBar` los dibuja. Por defecto no hay filtros: se ve todo y lo inactivo aparece atenuado.
-- **Estados como punto de color + texto** (`Pill`), sin fondo.
 - **Atajos discretos:** se enseñan en Inicio y como ayuda al pasar el mouse. No hay cajitas de teclas en cada botón.
 - **Todo se puede hacer con teclado:** `/` para buscar, `N` para crear, flechas y Enter.
-- **Los mensajes hablan como el usuario** y vienen de la API.
+- **Los mensajes hablan como el usuario** y vienen de la API. Los errores de los formularios van todos en `text-sm`; la ayuda de un campo, en `text-xs`.
+- **Las ventanas no pierden lo escrito:** un clic fuera no las cierra, Esc tampoco si ya se escribió algo, y mientras guardan no se cierran.
+- **Un botón que no se puede usar se explica:** si la API dice que algo no se puede (anular una compra con salidas), se muestra el motivo en vez de esconder el botón sin decir nada.
 - **Nada de emojis, degradados ni íconos decorativos.**
 - **Movimiento mínimo:** solo la aparición de diálogos y avisos, desactivado con `prefers-reduced-motion`.
 
@@ -103,8 +105,12 @@ En `src/components/ui/`:
 |---|---|
 | `Button`, `Input`, `Select`, `Field` | Controles de formulario; `Field` enlaza etiqueta, control y ayuda |
 | `Dialog`, `ConfirmDialog`, `toast` | Ventanas modales, confirmaciones y avisos |
-| `DataTable`, `RowActions` | Tabla estándar con navegación por teclado y acciones por fila |
+| `DataTable`, `RowMenu` | Tabla estándar con navegación por teclado y el menú "⋯" de cada fila |
 | `FilterBar`, `FilterChip`, `SortMenu` | Barra de filtros, chips y menú de orden |
-| `SearchBox`, `Pagination`, `EmptyState`, `Loading` | Piezas de las listas |
+| `ListPanel`, `SearchBox`, `Pagination` | Tarjeta de la lista, buscador y pie de paginación |
+| `ListBody` (`ListError`, `EmptyState`, `Loading`) | Los estados de una lista: error con "Reintentar", cargando, filas, nada coincide con "Limpiar filtros" y estado inicial |
 | `SearchSelect` | Elegir un registro buscándolo en la API (proveedor, producto) |
-| `Pill`, `Kbd`, `PageHeader`, `ErrorList`, `Panel` | Estado, tecla, título de pantalla, errores de la API |
+| `LookupResult` | Lo que respondió SUNAT o RENIEC, con el resumen y los avisos de la API |
+| `Pill`, `Kbd`, `PageHeader`, `ErrorList` | Estado, tecla, título de pantalla, errores de la API |
+
+En `src/components/layout/`: el menú, la barra superior, `RouteError` (una pantalla que no cargó) y `ConnectionError` (al abrir la página sin conexión con la API).
