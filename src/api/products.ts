@@ -55,6 +55,15 @@ export const searchProducts = (term: string, supplierId?: string) =>
     api.GET('/api/products', { params: { query: { Page: 1, PageSize: 10, SearchTerm: term || undefined, IsActive: true, SupplierId: supplierId } } }),
   ).then((r) => r.items)
 
+export type FoundProduct = Schemas['FoundProductDto']
+
+/** El producto que ya usa ese código interno, o null si está libre (la API responde 404). */
+export async function findProductByCode(code: string): Promise<FoundProduct | null> {
+  const r = await api.GET('/api/products/by-code', { params: { query: { code } } })
+  if (r.response.status === 404) return null
+  return unwrap(Promise.resolve(r))
+}
+
 export function useSaveProduct() {
   const qc = useQueryClient()
   return useMutation({

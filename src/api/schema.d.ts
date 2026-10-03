@@ -1251,6 +1251,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/products/by-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quién tiene ya ese código interno (404 si nadie). Sirve para avisar antes de guardar un producto nuevo. */
+        get: {
+            parameters: {
+                query?: {
+                    code?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["FoundProductDto"];
+                        "application/json": components["schemas"]["FoundProductDto"];
+                        "text/json": components["schemas"]["FoundProductDto"];
+                    };
+                };
+                /** @description Error. El cuerpo trae la lista de mensajes para el usuario. */
+                default: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/products/import/template": {
         parameters: {
             query?: never;
@@ -2911,6 +2960,13 @@ export interface components {
             canAddClientRole: boolean;
             canAddSupplierRole: boolean;
             roleDescription: string;
+        };
+        FoundProductDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            isActive: boolean;
         };
         GetBusinessPartnerResponseDto: {
             /** Format: uuid */

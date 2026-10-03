@@ -24,6 +24,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Card, ErrorList, PageHeader } from '@/components/ui/misc'
 import { SearchSelect } from '@/components/ui/search-select'
 import { toast } from '@/components/ui/toast'
+import { NewProductCell, type NewProduct } from '@/features/purchases/new-product-cell'
 import { SupplierField, type NewSupplier } from '@/features/purchases/supplier-field'
 import { Totals } from '@/features/purchases/totals'
 import { formatAmount, formatDecimal, formatMoney, todayIso } from '@/lib/format'
@@ -47,7 +48,7 @@ export const Route = createFileRoute('/_app/compras/nueva')({
 interface LineValues {
   product: ProductRow | null
   /** Producto que todavía no existe: la API lo registra junto con la compra. Va en vez de `product`. */
-  newProduct: { code: string; name: string; supplierCode: string } | null
+  newProduct: NewProduct | null
   invoiceIgvAffectation: string
   invoiceUnitOfMeasure: string
   invoiceQuantity: string
@@ -395,28 +396,12 @@ function NewPurchasePage() {
                       {/* Producto nuevo: solo se escribe el nombre (el código ya vino de lo buscado). La unidad y la
                           afectación salen de la línea, y la API lo registra junto con la compra. */}
                       {watched.lines?.[i]?.newProduct ? (
-                        <div className="flex flex-col gap-1.5">
-                          <Input autoFocus aria-label={`Nombre del producto nuevo de la línea ${i + 1}`} placeholder="Nombre del producto nuevo" {...form.register(`lines.${i}.newProduct.name`)} />
-                          <div className="flex items-center gap-2">
-                            <Input
-                              aria-label="Código interno del producto nuevo"
-                              title="Código interno. Por defecto, el mismo de la factura; cámbialo si usas otro."
-                              className="h-8 min-w-0 flex-1 font-mono text-sm"
-                              {...form.register(`lines.${i}.newProduct.code`)}
-                            />
-                            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-text">Nuevo</span>
-                            <button
-                              type="button"
-                              onClick={() => form.setValue(`lines.${i}.newProduct`, null)}
-                              className="shrink-0 text-xs text-muted underline hover:text-ink"
-                            >
-                              Buscar otro
-                            </button>
-                          </div>
-                          <p className="text-xs text-faint">
-                            Se registrará al guardar la compra, con el código {watched.lines?.[i]?.newProduct?.supplierCode} de la factura para este proveedor.
-                          </p>
-                        </div>
+                        <NewProductCell
+                          lineNumber={i + 1}
+                          value={watched.lines[i]!.newProduct as NewProduct}
+                          onChange={(v) => form.setValue(`lines.${i}.newProduct`, v)}
+                          onCancel={() => form.setValue(`lines.${i}.newProduct`, null)}
+                        />
                       ) : (
                       <Controller
                         control={form.control}
