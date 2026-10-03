@@ -11,7 +11,7 @@ Consume la API de [AmirCorp-ERP](https://github.com/eamirgp/AmirCorp-ERP) y gene
 | Pantalla | Estado |
 |---|---|
 | Inicio de sesión | ✅ |
-| Layout, menú, tema claro/oscuro | ✅ |
+| Marco al estilo Apple: menú lateral por área, barra superior, menú del usuario (todo claro; el modo oscuro vuelve después) | ✅ |
 | Productos | ✅ Buscar, filtrar, ordenar, crear, editar, activar/desactivar, importar y exportar con Excel |
 | Clientes y proveedores | ✅ Filtros por rol, tipo de documento y estado |
 | Empresas | ✅ |

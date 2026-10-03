@@ -20,7 +20,8 @@ Todas las pantallas se rediseñan, una por una, con el mismo estilo Apple que se
 | Movimiento | Suave, nunca tosco ni con rebotes. Al aparecer, cada bloque sube 14 px y se vuelve visible en 900 ms con la curva `cubic-bezier(0.16, 1, 0.3, 1)`, escalonados de 60 a 80 ms. Cambios de estado en 150 a 200 ms. El ícono de la marca llega creciendo un poco y queda quieto; solo el brillo de atrás respira, en un ciclo lento de 7 s. Todo se apaga con "reducir movimiento" (`prefers-reduced-motion`). |
 | Tipografía de Apple | SF Pro no se puede usar en una web: se usan las fuentes del manual con proporciones de Apple. |
 | Pantallas grandes | Como Apple: los tamaños suben por escalones (1536, 1920 y 2400 px de ancho), no de forma continua. Títulos grandes, logo e ilustraciones crecen bastante (`grow-on-large`: 15 %, 30 % y 45 %); formularios y texto que se lee crecen poco (`grow-on-large-subtle`: 5 %, 10 % y 15 %) y quedan en una columna de ancho máximo. |
-| Tema | El inicio de sesión es blanco siempre (`always-light`), aunque el sistema esté en modo oscuro. |
+| Tema | Por ahora todo es claro, aunque el sistema operativo esté en modo oscuro: `index.html` fija `data-theme="light"` (decisión 13). El modo oscuro se rediseña al final. El inicio de sesión además usa `always-light`. |
+| Marco de la aplicación | `AppShell` (`components/layout/app-shell.tsx`), según la guía de Apple ("Sidebars" y "Toolbars"). **Menú lateral** flotante: panel de vidrio `sidebar` (gris `#F5F5F7` al 82 % con desenfoque), 264 px de ancho, a 10 px de los bordes, esquinas de 22 px, sombra suave. Se oculta con el botón redondo de vidrio (`GlassButton`, símbolo del panel lateral) y entra o sale en 420 ms con la curva `ease-panel`. Opciones de 36 px de alto en píldora, texto de 15 px, íconos de 18 px en jade (`link`); la pantalla actual en píldora `selected` (`#2A7445`, texto blanco 5.7:1); al pasar el mouse, `hover`; los módulos "Pronto" en `disabled`. Títulos de grupo de 13.5 px en gris (`fg-muted`, 4.7:1 sobre el vidrio), sin mayúsculas. El grupo Configuración se despliega con una flecha que gira (`animate-unfold`). **Barra superior** de 64 px, transparente; al bajar 40 px se vuelve vidrio `glass` con una línea fina (`hairline`) y aparece el nombre del módulo. **Menú del usuario:** iniciales en un círculo gris degradado (`monogram-top` a `monogram-bottom`, blanco 5.4:1 al centro) y un menú de vidrio (`glass-menu`, `shadow-menu`) que crece desde la esquina en 180 ms (`animate-menu-open`). En pantallas angostas el menú lateral se abre encima con un velo (`veil`) y entra desde la izquierda (`animate-panel-in`). |
 
 Basado en el **Manual de Identidad Visual de H&P Pizarro Accesorios E.I.R.L.** (Lorena Salcedo): negro como base, verde jade como secundario y gris como acento. Títulos en League Spartan y textos en Source Sans.
 
@@ -63,7 +64,7 @@ Tokens en `src/styles.css`, usados como utilidades de Tailwind:
 | `accent`, `accent-soft`, `accent-text` | Jade: acento, fondo suave y jade legible como texto |
 | `ok`, `warn`, `bad` | Color del punto de estado: activo o aceptado, pendiente, anulado o error. El rojo (`#C0392F`) da 4.9:1 sobre su fondo rosado (`bad-soft`) |
 
-El tema sigue al sistema operativo y el usuario puede fijarlo en claro u oscuro desde su menú.
+Hasta octubre de 2026 el tema seguía al sistema operativo y el usuario podía fijarlo en claro u oscuro desde su menú. Desde la decisión 13 todo es claro mientras se rediseña; los valores del modo oscuro siguen en `styles.css` para cuando se haga.
 
 ## Tipografía
 

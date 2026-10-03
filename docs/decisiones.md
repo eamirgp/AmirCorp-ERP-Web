@@ -82,3 +82,15 @@ Hasta ahora el diseño se pensó para personas mayores (letra y campos grandes, 
 **Fecha:** octubre 2026
 
 Primero se aprobó y programó una pantalla dividida (panel negro de la marca y formulario). Al revisar las páginas reales de Apple (Cuenta de Apple e iCloud) se vio que Apple no divide la pantalla: centra todo en una columna con un emblema arriba. Se cambió a eso: el ícono de la "P" como ícono de app (quieto, con un brillo jade que respira detrás), el título "Inicia sesión" con "Portal de gestión de Pizarro Accesorios." debajo (como la ventana de inicio de sesión de Apple: el título es la acción), y los efectos de Apple al interactuar (la etiqueta del campo sube al escribir, el botón se hunde al presionarlo). Todo se volvió regla en `diseno.md`, con los componentes `FloatingField`, `PillButton`, `Notice` y `AppIcon` para las próximas pantallas.
+
+### 13. Marco de la aplicación al estilo Apple, menú por área y todo claro
+**Fecha:** octubre 2026
+
+La segunda pieza rediseñada, aprobada en el lienzo de diseño antes de programarla. Sigue la guía de Apple (HIG, "Sidebars" y "Toolbars"):
+
+- **Menú lateral flotante:** un panel de vidrio gris claro con esquinas redondeadas, separado del borde, como los menús laterales de macOS e iPadOS que flotan sobre el contenido. Se puede ocultar (Apple pide que se pueda, pero que se vea al entrar) y la elección se recuerda en esa computadora. En el celular se abre encima, con un velo detrás, y se cierra al elegir una pantalla.
+- **Íconos en jade y la pantalla actual en una píldora jade** con texto blanco, como en las imágenes de la guía: los íconos del menú lateral van en el color de acento.
+- **Barra superior transparente** que al bajar la página se vuelve vidrio con una línea fina y muestra el nombre del módulo en chico (como el título grande del iPhone que pasa a la barra). El menú del usuario (sus iniciales en un círculo gris, como Contactos) va arriba a la derecha: Apple aconseja no poner lo importante abajo del menú lateral.
+- **Menú por área, como Odoo:** Comercial (Ventas, Clientes), Abastecimiento (Compras, Proveedores, Importaciones), Almacén (Productos, Inventario) y Configuración (Empresas, Unidades de medida, Usuarios, Auditoría). Se quitó "Maestros", que es palabra de SAP y escondía Productos. Los títulos no repiten el nombre de una opción. Configuración se abre y se cierra con una flecha (Apple: agrupar con controles de despliegue) y se abre sola si la pantalla actual está adentro. Los módulos que aún no existen siguen visibles con "Pronto", a pedido del dueño.
+- **Todo claro por ahora:** el dueño pidió hacer primero todo el sistema en claro y ver el modo oscuro después. `index.html` fija `data-theme="light"`, se quitó la opción de tema del menú del usuario (y `lib/theme.ts`), y los colores del modo oscuro quedan en `styles.css` sin usarse hasta rediseñarlo.
+- **Pendiente:** las pantallas de adentro siguen con el estilo anterior hasta rediseñarlas una por una; mientras tanto se ven sobre fondo blanco en vez del gris de antes.

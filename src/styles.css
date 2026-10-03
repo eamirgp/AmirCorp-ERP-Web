@@ -11,7 +11,9 @@
   Estilo minimalista: fondo blanco, neutros puros, bordes finos y sin sombras en la página.
   El negro es la acción principal y el jade se usa solo como acento puntual.
 
-  Los colores viven como variables en :root y se redefinen para modo oscuro.
+  Los colores viven como variables en :root y se redefinen para modo oscuro. Por ahora todo el sistema es claro mientras
+  se rediseña al estilo Apple (decisión 13 de docs/decisiones.md): index.html fija data-theme="light", así que las
+  reglas del modo oscuro de abajo no se aplican hasta que se haga el modo oscuro nuevo.
   Tailwind los expone como utilidades: bg-surface, text-ink, border-line, bg-accent, etc.
 */
 
@@ -59,6 +61,22 @@
   --pill-ink: #ffffff;
   --pill-hover: #2c2c2e;
   --link: #2a7445; /* acción secundaria en jade oscuro: 5.7:1 */
+
+  /* Marco de la aplicación (menú lateral flotante y barra superior de vidrio, HIG "Sidebars" y "Toolbars"). */
+  --sidebar: rgb(245 245 247 / 0.82); /* vidrio gris claro: #6E6E73 encima da 4.7:1, #1D1D1F 15.5:1, el jade 5.2:1 */
+  --glass: rgb(255 255 255 / 0.75); /* barra superior al desplazar y botones redondos */
+  --glass-menu: rgb(255 255 255 / 0.88); /* menú de usuario */
+  --glass-line: rgb(0 0 0 / 0.06);
+  --hairline: rgb(0 0 0 / 0.08);
+  --hover: rgb(0 0 0 / 0.045);
+  --selected: #2a7445; /* pantalla elegida: píldora jade con texto blanco, 5.7:1 */
+  --selected-ink: #ffffff;
+  --disabled: #86868b; /* módulos "pronto" (no se pueden usar: WCAG no pide contraste) */
+  --monogram-top: #7c7c80; /* círculo con las iniciales, como el de Contactos: blanco al centro del degradado, 5.4:1 */
+  --monogram-bottom: #58585c;
+  --veil: rgb(29 29 31 / 0.18); /* detrás del menú lateral abierto en el celular */
+  --shadow-glass: 0 10px 30px rgb(29 29 31 / 0.08), 0 1px 3px rgb(29 29 31 / 0.05);
+  --shadow-menu: 0 0 0 1px rgb(0 0 0 / 0.07), 0 16px 40px rgb(29 29 31 / 0.14);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -158,6 +176,8 @@
   --text-label--line-height: 1.2;
   /* La curva de frenado suave de Apple, para entradas y cambios de estado. */
   --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+  /* La curva de los paneles que entran y salen (el menú lateral): arranca rápido y se asienta sin rebotar. */
+  --ease-panel: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @theme inline {
@@ -192,7 +212,21 @@
   --color-pill-ink: var(--pill-ink);
   --color-pill-hover: var(--pill-hover);
   --color-link: var(--link);
+  --color-sidebar: var(--sidebar);
+  --color-glass: var(--glass);
+  --color-glass-menu: var(--glass-menu);
+  --color-glass-line: var(--glass-line);
+  --color-hairline: var(--hairline);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
+  --color-selected-ink: var(--selected-ink);
+  --color-disabled: var(--disabled);
+  --color-monogram-top: var(--monogram-top);
+  --color-monogram-bottom: var(--monogram-bottom);
+  --color-veil: var(--veil);
   --shadow-float: var(--shadow-lg);
+  --shadow-glass: var(--shadow-glass);
+  --shadow-menu: var(--shadow-menu);
   --font-display: "League Spartan Variable", "Arial Black", system-ui, sans-serif;
   --font-sans: "Source Sans 3 Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Source Code Pro Variable", ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -365,6 +399,42 @@
     opacity: 0.3;
     transform: scale(1.04);
   }
+}
+
+/* Un grupo del menú que se abre: sus opciones bajan un poco y aparecen. */
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* Un menú que se abre desde su botón: crece apenas desde la esquina y aparece. */
+@keyframes menu-open {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* El menú lateral del celular: entra desde la izquierda. */
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-100% - 24px));
+  }
+}
+
+@utility animate-panel-in {
+  animation: panel-in 420ms var(--ease-panel) both;
+}
+
+@utility animate-unfold {
+  animation: unfold 280ms var(--ease-apple) both;
+}
+
+@utility animate-menu-open {
+  animation: menu-open 180ms var(--ease-apple) both;
 }
 
 @utility animate-enter {

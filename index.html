@@ -1,19 +1,13 @@
 <!doctype html>
-<html lang="es">
+<!-- Siempre claro mientras se rediseña al estilo Apple; el modo oscuro vuelve después (decisión 13 de docs/decisiones.md). -->
+<html lang="es" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Pizarro Accesorios</title>
-    <script>
-      // Aplica el tema guardado antes de pintar, para evitar un parpadeo.
-      try {
-        var t = localStorage.getItem('erp.theme')
-        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
-      } catch (e) {}
-    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -22,8 +22,8 @@ src/
                          audit, saved-views) y shared/ para lo que usan varios
   components/
     ui/                  Piezas reutilizables: botón, campos, diálogo, avisos, piezas de las listas
-    layout/              Menú, barra superior, pantallas de error
-  lib/                   Utilidades sin UI: sesión, formatos, números escritos, filtros, atajos, tema
+    layout/              Marco (menú lateral, barra superior, menú del usuario), lista de módulos (nav.ts), errores
+  lib/                   Utilidades sin UI: sesión, formatos, números escritos, filtros, atajos, movimiento
 ```
 
 ## Flujo de datos
@@ -102,5 +102,5 @@ Ejemplo: `/ventas`. Usa `src/routes/_app/productos.tsx` (paginada) o `empresas.t
 2. **Ruta:** crea `src/routes/_app/ventas/index.tsx` con su `validateSearch` (búsqueda, página, filtros y orden en la URL), `loader` y componente. El plugin actualiza `routeTree.gen.ts` solo.
 3. **Lista:** `FilterBar` con `SearchBox`, un `FilterChip` por cada filtro que soporte la API y `SortMenu` con sus campos de orden; luego `ListBody` (error con "Reintentar", cargando, nada coincide con "Limpiar filtros", estado inicial) con el `DataTable` adentro, y `Pagination info={data}`. Las acciones que dependen de permisos o del estado del registro las decide la API (como `canManage` en usuarios o `cancelError` en compras). El orden va en `?orden=` y `?dir=` solo cuando el usuario elige uno; si no, no se envía y `SortMenu` muestra el que devuelve la API (`data.sortBy`, `data.sortDescending`). La página va en `?page=` y las filas por página en `?filas=`; los rangos, el total de páginas y las opciones de filas salen de la respuesta. La tabla muestra solo lo que se usa para trabajar: la auditoría no va como columna ni en los formularios. Agrega `<ViewTabs>` antes del `FilterBar` y `beforeLoad: applyDefaultView('<Pantalla>')` (la pantalla debe existir en `SavedViewScreen` de la API).
 4. **Formularios y detalle:** en `src/features/sales/`. Agrega la acción "Historial" en cada fila, que abre `HistorySheet` con el tipo de registro de la API (`AuditEntityType`) y su ID.
-5. **Menú:** agrega `to: '/ventas'` en `src/components/layout/nav.ts` (y a `NavPath`).
+5. **Menú:** agrega `to: '/ventas'` a su opción en `src/components/layout/nav.ts` (y a `NavPath`); deja de verse como "Pronto". Las opciones van agrupadas por área (decisión 13); el nombre chico de la barra superior sale de ahí (`moduleTitle`).
 6. Conecta el atajo `N` con `useHotkey('n', ...)`.

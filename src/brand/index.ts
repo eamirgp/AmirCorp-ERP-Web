@@ -6,5 +6,7 @@
  */
 export const brand = {
   name: 'Pizarro Accesorios',
+  /** Nombre corto, junto al ícono en el menú lateral. */
+  shortName: 'Pizarro',
   legalName: 'H&P Pizarro Accesorios E.I.R.L.',
 } as const

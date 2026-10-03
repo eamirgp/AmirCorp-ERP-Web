@@ -9,9 +9,16 @@ export interface NavItem {
   to?: NavPath
 }
 
-// Clientes y proveedores son el mismo registro por dentro, pero cada uno aparece donde se usa:
-// clientes junto a Ventas y proveedores junto a Compras.
-export const navGroups: { label?: string; items: NavItem[] }[] = [
+export interface NavGroup {
+  label?: string
+  items: NavItem[]
+  /** Grupo que se abre y se cierra (lo que no se usa a diario). Se abre solo si la pantalla actual está adentro. */
+  collapsible?: boolean
+}
+
+// Por área, como Odoo: cada área junta sus registros (clientes junto a ventas, proveedores junto a compras, productos
+// junto al inventario). Los títulos no repiten el nombre de una opción. La configuración va al final, cerrada.
+export const navGroups: NavGroup[] = [
   { items: [{ label: 'Inicio', icon: House, to: '/' }] },
   {
     label: 'Comercial',
@@ -26,22 +33,30 @@ export const navGroups: { label?: string; items: NavItem[] }[] = [
       { label: 'Compras', icon: ShoppingCart, to: '/compras' },
       { label: 'Proveedores', icon: Truck, to: '/proveedores' },
       { label: 'Importaciones', icon: Ship },
+    ],
+  },
+  {
+    label: 'Almacén',
+    items: [
+      { label: 'Productos', icon: Package, to: '/productos' },
       { label: 'Inventario', icon: Boxes },
     ],
   },
   {
-    label: 'Maestros',
+    label: 'Configuración',
+    collapsible: true,
     items: [
-      { label: 'Productos', icon: Package, to: '/productos' },
       { label: 'Empresas', icon: Building2, to: '/empresas' },
-    ],
-  },
-  {
-    label: 'Administración',
-    items: [
-      { label: 'Usuarios', icon: ShieldCheck, to: '/usuarios' },
       { label: 'Unidades de medida', icon: Ruler, to: '/unidades-medida' },
+      { label: 'Usuarios', icon: ShieldCheck, to: '/usuarios' },
       { label: 'Auditoría', icon: HistoryIcon, to: '/auditoria' },
     ],
   },
 ]
+
+/** Nombre del módulo de una ruta ("/compras/12" → "Compras"), para el título chico de la barra superior. */
+export function moduleTitle(pathname: string) {
+  const items = navGroups.flatMap((g) => g.items)
+  const match = items.find((i) => i.to && i.to !== '/' && (pathname === i.to || pathname.startsWith(`${i.to}/`)))
+  return match?.label ?? (pathname === '/' ? 'Inicio' : '')
+}
