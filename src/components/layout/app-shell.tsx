@@ -12,10 +12,18 @@ import { getTheme, setTheme, type ThemeChoice } from '@/lib/theme'
 import { navGroups } from './nav'
 
 export function AppShell({ children }: { children: ReactNode }) {
-  // Cierra la sesión justo cuando vence el token, sin esperar a que falle una petición.
+  // Cierra la sesión justo cuando vence por falta de uso, sin esperar a que falle una petición. Cada renovación (al
+  // usar el sistema) vuelve a programar el plazo.
   useEffect(() => {
-    const t = setTimeout(() => session.end(), session.msUntilExpiry)
-    return () => clearTimeout(t)
+    let t = setTimeout(() => session.end(), session.msUntilExpiry)
+    const unsubscribe = session.subscribe(() => {
+      clearTimeout(t)
+      if (session.isAuthenticated) t = setTimeout(() => session.end(), session.msUntilExpiry)
+    })
+    return () => {
+      clearTimeout(t)
+      unsubscribe()
+    }
   }, [])
 
   return (
@@ -156,7 +164,7 @@ function UserMenu() {
             </Menu.Item>
           ))}
           <Menu.Separator className="my-1 h-px bg-line" />
-          <Menu.Item className={itemClass} onSelect={() => session.end()}>
+          <Menu.Item className={itemClass} onSelect={() => void session.logout()}>
             <LogOut />
             Cerrar sesión
           </Menu.Item>

@@ -46,6 +46,10 @@ session.subscribe(() => {
   if (pathname !== '/login') router.navigate({ to: '/login', search: { redirect: href } })
 })
 
+// El token de acceso solo vive en memoria: al abrir o recargar la página, la sesión se recupera con la cookie del
+// refresh token antes de decidir si mostrar el sistema o el inicio de sesión.
+await session.restore()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

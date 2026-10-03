@@ -1,23 +1,29 @@
 import createClient, { type Middleware } from 'openapi-fetch'
 import { session } from '@/lib/session'
+import { apiBaseUrl } from './base-url'
 import type { components, paths } from './schema'
 
 /** Tipos de los DTOs de la API, generados desde su contrato OpenAPI (npm run api:generate). */
 export type Schemas = components['schemas']
 
 export const api = createClient<paths>({
-  baseUrl: import.meta.env.VITE_API_URL ?? 'http://localhost:5117',
+  baseUrl: apiBaseUrl,
+  // El inicio de sesión recibe la cookie del refresh token. La cookie solo va a /api/auth: los demás pedidos no la llevan.
+  credentials: 'include',
 })
 
 const auth: Middleware = {
-  onRequest({ request }) {
+  async onRequest({ request }) {
+    // El token de acceso dura 15 minutos: si está por vencer, se renueva antes de enviar el pedido. Así la sesión se
+    // renueva solo cuando se usa el sistema y una pestaña abierta sin usar vence igual.
+    if (session.needsRefresh) await session.refresh()
     const token = session.token
     if (token) request.headers.set('Authorization', `Bearer ${token}`)
     return request
   },
   async onResponse({ request, response }) {
-    // Token vencido, o la API ya no acepta al usuario (por ejemplo, lo desactivaron): se cierra la sesión y el router
-    // lleva al login, que muestra el motivo si la API lo envió. Un 401 del propio inicio de sesión no lleva token.
+    // La API ya no acepta al usuario (por ejemplo, lo desactivaron): se cierra la sesión y el router lleva al login, que
+    // muestra el motivo. Un 401 del propio inicio de sesión no lleva token.
     if (response.status === 401 && request.headers.has('Authorization')) {
       const body = (await response.clone().json().catch(() => null)) as { errors?: unknown } | null
       session.end(Array.isArray(body?.errors) && body.errors.length > 0 ? String(body.errors[0]) : undefined)

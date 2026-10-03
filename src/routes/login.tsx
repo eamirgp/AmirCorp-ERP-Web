@@ -38,8 +38,8 @@ function LoginPage() {
 
   const mutation = useMutation({
     mutationFn: (v: FormValues) => login(v.email, v.password),
-    onSuccess: ({ token }) => {
-      session.start(token)
+    onSuccess: (response) => {
+      session.start(response)
       router.history.push(safeRedirect(target))
     },
   })
