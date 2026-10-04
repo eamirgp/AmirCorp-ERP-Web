@@ -17,7 +17,7 @@ import { PartnerFormDialog } from '@/features/partners/partner-form-dialog'
 import { partnerListParams, type PartnerSearch, type RoleConfig } from '@/features/partners/partner-roles'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { isCustomized } from '@/features/saved-views/view-filters'
-import { nextSort, shownSort } from '@/lib/filters'
+import { nextSort, shownSort, sortSearch } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 const sortOptions: Option<PartnerSortBy>[] = [
@@ -105,7 +105,7 @@ export function PartnersPage({
   const sort = shownSort(search.orden, search.dir, data)
   // Ordenar con el menú o con un clic en el título de una columna: el orden va a la URL y lo aplica la API.
   const changeSort = (orden: string, desc: boolean) =>
-    setSearch((prev) => ({ ...prev, orden: orden as PartnerSearch['orden'], dir: desc ? 'desc' : 'asc', page: undefined }))
+    setSearch((prev) => ({ ...prev, ...sortSearch(orden as NonNullable<PartnerSearch['orden']>, desc, data), page: undefined }))
   // Clic en el título de una columna: invierte si ya ordena por ella (calculado sobre la última URL pedida).
   const sortByColumn = (by: string, descendingFirst: boolean) =>
     setSearch((prev) => ({ ...prev, ...nextSort(prev, by as NonNullable<PartnerSearch['orden']>, descendingFirst, data), page: undefined }))

@@ -144,3 +144,12 @@ Radix abre sus menús apenas se presiona el botón del mouse (la Mac hace lo mis
 - **Al presionar no pasa nada; el clic completo abre o cierra el menú.** Un clic afuera lo cierra; un clic en su propio botón también (no cuenta como "afuera").
 - **Los menús dejaron de ser "modales":** con el menú abierto, Radix bloqueaba los clics en el resto de la página y, según el momento, el clic en el botón le llegaba o no, así que a veces el menú no se cerraba. Ahora el clic siempre llega al botón y se comporta igual cada vez.
 - **El teclado no cambia:** Enter, espacio o flecha abajo abren el menú y Esc lo cierra (lo maneja Radix).
+
+### 19. Volver a lo de por defecto no deja rastro en la URL
+**Fecha:** octubre 2026
+
+Error que encontró el dueño: en la vista "Activos", cambiar las filas por página y volver a 10 dejaba la vista sin marcar, porque la URL quedaba con `filas=10` y la vista guardada no lo tiene. Ahora la API dice cuál es su tamaño de página y su orden por defecto (decisión 36 de la API) y la pantalla los quita de la URL cuando se vuelve a ellos:
+
+- `Pagination` avisa `undefined` al elegir el tamaño por defecto (`defaultPageSize`).
+- Ordenar (con el menú o con un clic en una columna) pasa por `sortSearch` (`lib/filters.ts`): si el orden elegido es el de por defecto (`defaultSortBy`, `defaultSortDescending`), no va a la URL.
+- Así la lista se reconoce igual a la que abre normalmente (se marca "Todos") o a su vista guardada.

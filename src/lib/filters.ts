@@ -29,14 +29,26 @@ export function shownSort<T extends string>(orden: T | undefined, dir: 'asc' | '
  * la ordena por ella, de menor a mayor (o de mayor a menor en fechas y montos). Se calcula sobre la última URL pedida
  * (`prev` de navigate), no sobre la pantalla: así dos clics seguidos invierten aunque la lista nueva no haya llegado.
  */
-export function nextSort<T extends string>(
-  prev: { orden?: T; dir?: 'asc' | 'desc' },
-  by: T,
-  descendingFirst: boolean,
-  applied: { sortBy: T; sortDescending: boolean } | undefined,
-) {
+export function nextSort<T extends string>(prev: { orden?: T; dir?: 'asc' | 'desc' }, by: T, descendingFirst: boolean, applied: AppliedSort<T> | undefined) {
   const current = shownSort(prev.orden, prev.dir, applied)
   const descending = current?.by === by ? !current.descending : descendingFirst
+  return sortSearch(by, descending, applied)
+}
+
+/** El orden que aplicó la API y el suyo por defecto (vienen en cada lista ordenable). */
+interface AppliedSort<T extends string> {
+  sortBy: T
+  sortDescending: boolean
+  defaultSortBy: T
+  defaultSortDescending: boolean
+}
+
+/**
+ * Cómo queda el orden en la URL. Si es el orden por defecto de la API, no se guarda: así la lista se reconoce igual a
+ * la que abre normalmente (o a una vista guardada sin orden) aunque se haya llegado ordenando a mano.
+ */
+export function sortSearch<T extends string>(by: T, descending: boolean, applied: AppliedSort<T> | undefined) {
+  if (applied && by === applied.defaultSortBy && descending === applied.defaultSortDescending) return { orden: undefined, dir: undefined }
   return { orden: by, dir: descending ? ('desc' as const) : ('asc' as const) }
 }
 export const pageSchema = z.coerce.number().int().min(1).optional().catch(undefined)

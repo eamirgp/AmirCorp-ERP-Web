@@ -3511,6 +3511,8 @@ export interface components {
             /** Format: int32 */
             to: number;
             pageSizeOptions: number[];
+            /** Format: int32 */
+            defaultPageSize: number;
         };
         /** @enum {unknown} */
         PartnerRoleFilter: "Client" | "Supplier" | null;
@@ -3619,6 +3621,8 @@ export interface components {
         SortedPagedResultOfListBusinessPartnersResponseDtoAndBusinessPartnerSortBy: {
             sortBy: components["schemas"]["BusinessPartnerSortBy"];
             sortDescending: boolean;
+            defaultSortBy: components["schemas"]["BusinessPartnerSortBy"];
+            defaultSortDescending: boolean;
             items: components["schemas"]["ListBusinessPartnersResponseDto"][];
             /** Format: int32 */
             page: number;
@@ -3635,10 +3639,14 @@ export interface components {
             /** Format: int32 */
             to: number;
             pageSizeOptions: number[];
+            /** Format: int32 */
+            defaultPageSize: number;
         };
         SortedPagedResultOfListProductsResponseDtoAndProductSortBy: {
             sortBy: components["schemas"]["ProductSortBy"];
             sortDescending: boolean;
+            defaultSortBy: components["schemas"]["ProductSortBy"];
+            defaultSortDescending: boolean;
             items: components["schemas"]["ListProductsResponseDto"][];
             /** Format: int32 */
             page: number;
@@ -3655,10 +3663,14 @@ export interface components {
             /** Format: int32 */
             to: number;
             pageSizeOptions: number[];
+            /** Format: int32 */
+            defaultPageSize: number;
         };
         SortedPagedResultOfListPurchasesResponseDtoAndPurchaseSortBy: {
             sortBy: components["schemas"]["PurchaseSortBy"];
             sortDescending: boolean;
+            defaultSortBy: components["schemas"]["PurchaseSortBy"];
+            defaultSortDescending: boolean;
             items: components["schemas"]["ListPurchasesResponseDto"][];
             /** Format: int32 */
             page: number;
@@ -3675,6 +3687,8 @@ export interface components {
             /** Format: int32 */
             to: number;
             pageSizeOptions: number[];
+            /** Format: int32 */
+            defaultPageSize: number;
         };
         /** Format: binary */
         Stream: string;

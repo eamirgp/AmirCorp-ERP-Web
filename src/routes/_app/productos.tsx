@@ -17,7 +17,7 @@ import { ProductsTable } from '@/features/products/products-table'
 import { useActivation } from '@/features/shared/use-activation'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
-import { directionSchema, pageSchema, pageSizeSchema, nextSort, shownSort, statusOptions, statusSchema } from '@/lib/filters'
+import { directionSchema, pageSchema, pageSizeSchema, nextSort, shownSort, sortSearch, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
 
 // El estado de la pantalla vive en la URL: se puede compartir, recargar y usar el botón Atrás.
@@ -86,7 +86,7 @@ function ProductsPage() {
   const sort = shownSort(search.orden, search.dir, data)
   // Ordenar con el menú o con un clic en el título de una columna: el orden va a la URL y lo aplica la API.
   const changeSort = (orden: string, desc: boolean) =>
-    navigate({ search: (prev) => ({ ...prev, orden: orden as Search['orden'], dir: desc ? 'desc' : 'asc', page: undefined }) })
+    navigate({ search: (prev) => ({ ...prev, ...sortSearch(orden as NonNullable<Search['orden']>, desc, data), page: undefined }) })
   // Clic en el título de una columna: invierte si ya ordena por ella (calculado sobre la última URL pedida).
   const sortByColumn = (by: string, descendingFirst: boolean) =>
     navigate({ search: (prev) => ({ ...prev, ...nextSort(prev, by as NonNullable<Search['orden']>, descendingFirst, data), page: undefined }) })

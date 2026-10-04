@@ -85,14 +85,26 @@ export interface PageInfo {
   from: number
   to: number
   pageSizeOptions: number[]
+  /** Filas por página cuando no se elige otra cantidad (lo dice la API). */
+  defaultPageSize: number
 }
 
 /**
  * Pie de una lista paginada: "1–20 de 57", filas por página y botones redondos para ir a la primera, anterior,
  * siguiente y última página.
  * Todo sale de la respuesta de la API: la pantalla no calcula páginas ni rangos.
+ * Volver a la cantidad por defecto avisa `undefined`: así no queda "filas=10" en la URL y la lista se reconoce igual a
+ * la que abre normalmente o a su vista guardada.
  */
-export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | undefined; onPage: (page: number) => void; onPageSize: (size: number) => void }) {
+export function Pagination({
+  info,
+  onPage,
+  onPageSize,
+}: {
+  info: PageInfo | undefined
+  onPage: (page: number) => void
+  onPageSize: (size: number | undefined) => void
+}) {
   if (!info || info.totalCount === 0) return null
   return (
     <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-1 pl-4 text-sm text-fg-muted">
@@ -102,7 +114,10 @@ export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | unde
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="flex items-center gap-2 whitespace-nowrap">
           <span aria-hidden>Filas por página</span>
-          <Select popup aria-label="Filas por página" className="num" value={info.pageSize} onChange={(e) => onPageSize(Number(e.target.value))}>
+          <Select popup aria-label="Filas por página" className="num" value={info.pageSize} onChange={(e) => {
+              const size = Number(e.target.value)
+              onPageSize(size === info.defaultPageSize ? undefined : size)
+            }}>
             {info.pageSizeOptions.map((size) => (
               <option key={size} value={size}>
                 {size}
