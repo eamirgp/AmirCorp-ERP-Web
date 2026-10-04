@@ -164,7 +164,6 @@ function PurchasesPage() {
           icon={<ShoppingCart strokeWidth={1.5} />}
           filtered={hasFilters}
           noMatch="Ninguna compra coincide con la búsqueda o el filtro."
-          onClear={() => navigate({ search: {} })}
           empty={{
             title: 'Todavía no hay compras',
             text: 'Registra la factura de un proveedor y la mercadería entrará al stock.',

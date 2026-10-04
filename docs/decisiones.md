@@ -169,3 +169,16 @@ El dueño pidió los colores originales de Apple. Se le mostraron lado a lado en
 - **El jade de la marca** queda en el logo y en el brillo detrás del ícono del inicio de sesión (token `brand`). El botón "Continuar" del inicio de sesión también pasa a azul.
 - **Sin cambio:** los grises (ya eran los de apple.com) y los colores de estado de Apple (verde, naranja y rojo, decisión 16).
 - **Por qué cambia:** Apple recomienda el color de la marca como acento en apps de una empresa (por eso la decisión 16 eligió jade), pero el azul es lo que más hace sentir una app de Apple, y eso es lo que pidió el dueño.
+
+### 22. Revisión de Productos: detalles que no eran del estilo Apple
+**Fecha:** octubre 2026
+
+El dueño notó cosas que "no encajaban" y se revisó todo el módulo de Productos (código y cada ventana, en computadora y celular). Se arreglaron cinco detalles:
+
+- **Fondo al cargar:** la página se veía gris (el fondo del estilo anterior) un instante antes de aparecer; ahora el `body` es blanco desde el inicio.
+- **"Limpiar filtros" repetido:** salía en la barra y otra vez en el mensaje de "nada coincide". Queda solo en la barra (`ListBody` ya no lo ofrece).
+- **Ícono de "nada coincide":** era el del estado inicial (por ejemplo, una caja con "+", que sugiere crear). Ahora es una lupa tachada (`SearchX`), como Apple cuando una búsqueda no encuentra nada.
+- **Administrar vistas:** el botón tenía barritas, igual que "Filtros" a su lado. Ahora es "⋯", el símbolo de Apple para "más opciones".
+- **Guardar vista:** "Abrir siempre con esta vista" era una casilla cuadrada del navegador; ahora es el interruptor de Apple (`SwitchRow`).
+
+Quedan para una maqueta: la ventana "Administrar vistas" (recargada, "Eliminar" en azul) y la lista en el celular. Y, con un cambio en la API, los errores de cada campo debajo del campo.

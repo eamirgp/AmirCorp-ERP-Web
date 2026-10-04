@@ -147,7 +147,6 @@ function UsersPage() {
           loading="Cargando usuarios…"
           icon={<UserRound strokeWidth={1.5} />}
           noMatch="Ningún usuario coincide con la búsqueda o el filtro."
-          onClear={() => navigate({ search: {} })}
         >
           {(items) => (
             <DataTable data={items} columns={columns} getRowId={(r) => r.id} onOpen={(u) => (u.canManage ? setAction({ mode: 'profile', user: u }) : setHistory({ entityType: 'User', entityId: u.id, label: `${u.name} · ${u.email}` }))} isMuted={(r) => !r.isActive} />

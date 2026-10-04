@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCw, Search, TriangleAlert } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCw, Search, SearchX, TriangleAlert } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { errorMessages } from '@/api/client'
 import { formatInt } from '@/lib/format'
@@ -205,8 +205,9 @@ export function Loading({ text }: { text: string }) {
 
 /**
  * Cuerpo de una lista, en el orden de siempre: el error con "Reintentar", "Cargando…", las filas o el mensaje de
- * lista vacía. Si no hay filas y hay filtros (o la lista no tiene un estado inicial propio, como Usuarios), ofrece
- * "Limpiar filtros"; si no, muestra el estado inicial con su acción (por ejemplo, crear el primero).
+ * lista vacía. Si no hay filas y hay filtros (o la lista no tiene un estado inicial propio, como Usuarios), dice que
+ * nada coincide, con una lupa; "Limpiar filtros" ya está en la barra de filtros y no se repite. Si no, muestra el
+ * estado inicial con su ícono y su acción (por ejemplo, crear el primero).
  */
 export function ListBody<T>({
   query,
@@ -215,7 +216,6 @@ export function ListBody<T>({
   icon,
   filtered = false,
   noMatch,
-  onClear,
   empty,
   children,
 }: {
@@ -230,25 +230,13 @@ export function ListBody<T>({
   filtered?: boolean
   /** Texto cuando nada coincide con la búsqueda o los filtros. */
   noMatch: string
-  onClear: () => void
-  /** Estado inicial, cuando todavía no hay registros. Sin él, una lista vacía siempre ofrece "Limpiar filtros". */
+  /** Estado inicial, cuando todavía no hay registros. Sin él, una lista vacía siempre dice que nada coincide. */
   empty?: { title: string; text: string; action?: ReactNode }
   children: (rows: T[]) => ReactNode
 }) {
   if (query.isError) return <ListError error={query.error} onRetry={() => void query.refetch()} />
   if (!rows) return <Loading text={loading} />
   if (rows.length > 0) return children(rows)
-  if (filtered || !empty)
-    return (
-      <EmptyState
-        icon={icon}
-        text={noMatch}
-        action={
-          <Button size="sm" variant="ghost" onClick={onClear}>
-            Limpiar filtros
-          </Button>
-        }
-      />
-    )
+  if (filtered || !empty) return <EmptyState icon={<SearchX strokeWidth={1.75} />} text={noMatch} />
   return <EmptyState icon={icon} title={empty.title} text={empty.text} action={empty.action} />
 }

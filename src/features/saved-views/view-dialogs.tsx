@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
+import { SwitchRow } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 
 /** Guarda la búsqueda, filtros, orden y filas por página actuales como una vista nueva. */
@@ -56,13 +57,12 @@ export function SaveViewDialog({ screen, filters, onClose }: { screen: SavedView
       >
         <ErrorList messages={create.isError ? errorMessages(create.error) : []} />
         <Field label="Nombre">{(a) => <Input {...a} autoFocus placeholder="Recién creados" value={name} onChange={(e) => setName(e.target.value)} />}</Field>
-        <label className="flex items-start gap-2.5 text-base">
-          <input type="checkbox" className="mt-1 size-4 [accent-color:var(--ink)]" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} />
-          <span>
-            Abrir siempre con esta vista
-            <span className="block text-sm text-muted">Al entrar a esta pantalla se aplicará sola. Puedes cambiarla cuando quieras.</span>
-          </span>
-        </label>
+        <SwitchRow
+          label="Abrir siempre con esta vista"
+          description="Al entrar a esta pantalla se aplicará sola. Puedes cambiarla cuando quieras."
+          checked={isDefault}
+          onChange={setIsDefault}
+        />
       </form>
     </Dialog>
   )

@@ -139,7 +139,6 @@ function AuditPage() {
           icon={<HistoryIcon strokeWidth={1.5} />}
           filtered={hasFilters}
           noMatch="Ningún evento coincide con la búsqueda o los filtros."
-          onClear={() => navigate({ search: {} })}
           empty={{
             title: 'Todavía no hay eventos',
             text: 'Aquí aparecerá cada creación, modificación, activación o anulación, con quién la hizo y cuándo.',

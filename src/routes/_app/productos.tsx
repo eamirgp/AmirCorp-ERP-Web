@@ -150,7 +150,6 @@ function ProductsPage() {
           icon={<PackagePlus strokeWidth={1.5} />}
           filtered={hasFilters}
           noMatch="Ningún producto coincide con la búsqueda o el filtro."
-          onClear={clearFilters}
           empty={{
             title: 'Todavía no hay productos',
             text: 'Crea el primero. Luego podrás usarlo en compras, importaciones y ventas de cualquiera de tus empresas.',

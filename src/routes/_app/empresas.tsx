@@ -123,7 +123,6 @@ function CompaniesPage() {
           icon={<Building2 strokeWidth={1.5} />}
           filtered={filtered}
           noMatch="Ninguna empresa coincide con la búsqueda o el filtro."
-          onClear={() => navigate({ search: {} })}
           empty={{
             title: 'Todavía no hay empresas',
             text: 'Registra cada RUC con el que compras y vendes.',

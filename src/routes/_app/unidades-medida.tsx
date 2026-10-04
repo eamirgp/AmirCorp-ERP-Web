@@ -125,7 +125,6 @@ function UnitsPage() {
           loading="Cargando unidades…"
           icon={<Ruler strokeWidth={1.5} />}
           noMatch="Ninguna unidad coincide con la búsqueda o el filtro."
-          onClear={() => navigate({ search: {} })}
         >
           {(items) => <DataTable data={items} columns={columns} getRowId={(r) => r.id} onOpen={setEditing} isMuted={(r) => !r.isActive} />}
         </ListBody>

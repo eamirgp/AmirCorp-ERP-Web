@@ -174,7 +174,6 @@ export function PartnersPage({
           icon={config.icon}
           filtered={hasFilters}
           noMatch="Nadie coincide con la búsqueda o los filtros."
-          onClear={clearFilters}
           empty={{
             title: config.emptyTitle,
             text: config.emptyText,

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { BookmarkPlus, Settings2, Star } from 'lucide-react'
+import { BookmarkPlus, Ellipsis, Star } from 'lucide-react'
 import { useState, type ButtonHTMLAttributes } from 'react'
 import { savedViewsQuery, type SavedViewScreen } from '@/api/saved-views'
 import { Button } from '@/components/ui/button'
@@ -52,8 +52,9 @@ export function ViewTabs({
           </Button>
         )}
         {list.length > 0 && (
+          // "⋯" como en Apple para "más opciones": no se confunde con el botón "Filtros", que tiene barritas.
           <Button size="icon" variant="ghost" onClick={() => setDialog('manage')} aria-label="Administrar vistas" title="Administrar vistas">
-            <Settings2 />
+            <Ellipsis />
           </Button>
         )}
       </div>
