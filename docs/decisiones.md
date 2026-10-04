@@ -236,3 +236,8 @@ El dueño no quería la lista de errores arriba del formulario de producto (con 
 - El botón "Crear producto" no se apaga mientras falten datos (la guía de Apple lo sugiere para formularios cortos): con cuatro campos obligatorios, un botón apagado no dice qué falta.
 
 Solo el formulario de Productos usa esto por ahora; los demás siguen mostrando la lista arriba hasta que se rediseñen (necesitan también el cambio en su parte de la API).
+
+### 27. Código interno ocupado, en una línea
+**Fecha:** octubre 2026
+
+Debajo del campo, "El código interno MT2005 ya es de «Moto de amir 2005». Usa otro código interno." ocupaba tres líneas. Ahora la API dice "El código interno MT2005 ya existe." (o "… ya existe en un producto desactivado.", para que se sepa por qué no aparece en la lista). La pantalla no cambia: muestra el texto de la API (decisión 38 de la API).
