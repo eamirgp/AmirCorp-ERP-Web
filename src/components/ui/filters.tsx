@@ -25,7 +25,7 @@ function Token({ label, value, onOpen, onRemove }: { label: string; value: React
       <button
         type="button"
         onClick={onRemove}
-        className="press mr-1 flex size-[22px] items-center justify-center rounded-full text-link hover:bg-link-tint"
+        className="press mr-1 flex size-[22px] items-center justify-center rounded-full text-link hover:opacity-70"
         aria-label={`Quitar filtro ${label}`}
         title={`Quitar filtro ${label}`}
       >

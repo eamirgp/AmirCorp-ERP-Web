@@ -8,7 +8,8 @@ type Size = 'sm' | 'md' | 'icon'
  * principales por vista.
  * - primary: píldora azul de Apple (decisión 21), la acción más probable.
  * - secondary: píldora gris.
- * - ghost: solo texto en azul (acción simple, como "Limpiar filtros"); con un ícono solo, un círculo sin fondo.
+ * - ghost: solo texto en azul (acción simple, como "Limpiar filtros"); con un ícono solo, un círculo sin fondo. Sin
+ *   fondo al pasar el mouse: se subraya, como los enlaces de Cuenta de Apple (`a:hover { text-decoration: underline }`).
  * - danger: texto rojo sobre gris, para lo que quita algo.
  * - glass: botón redondo de vidrio de las barras (HIG "Toolbars"), como el del menú lateral; en el celular, el "⋯" del
  *   encabezado.
@@ -17,7 +18,7 @@ export const glassButtonClass = 'bg-glass text-fg shadow-[0_0_0_1px_var(--glass-
 const variants: Record<Variant, string> = {
   primary: 'bg-pill text-pill-ink hover:bg-pill-hover',
   secondary: 'bg-fill text-fg hover:bg-fill-hover',
-  ghost: 'bg-transparent text-link hover:bg-link-tint',
+  ghost: 'bg-transparent text-link underline-offset-2 hover:underline',
   danger: 'bg-fill text-bad hover:bg-fill-hover',
   glass: glassButtonClass,
 }

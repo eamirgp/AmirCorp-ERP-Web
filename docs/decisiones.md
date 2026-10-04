@@ -203,3 +203,17 @@ Las dos maquetas que quedaron de la decisión 22 (`VistasAdministrar` y `Product
 - **Pie compacto:** "1–10 de 214" y "‹ 1 / 22 ›". Las filas por página y los saltos a la primera y última página quedan para la computadora.
 
 Las demás listas (Clientes, Proveedores, Compras, Usuarios, Empresas, Auditoría) todavía ponen sus vistas fuera de `FilterBar` y usan la tabla en el celular; pasan a este diseño cuando se rediseñe cada una.
+
+
+### 24. Foco y error de los campos, y botones de solo texto, como Cuenta de Apple
+**Fecha:** octubre 2026
+
+El dueño preguntó si Apple sombrea de azul "Agregar código de proveedor" al pasar el mouse y si pone un halo azul en los campos. Se revisó la hoja de estilos del inicio de sesión de Cuenta de Apple (account.apple.com, servida desde `appleid.cdn-apple.com`): no hace ninguna de las dos cosas.
+
+- **Botones de solo texto** (`Button variant="ghost"`: "Agregar código de proveedor", "Limpiar filtros", "Guardar vista"): sin fondo celeste al pasar el mouse; se subrayan, como los enlaces de Apple (`a:hover { text-decoration: underline }`). Siguen hundiéndose al presionarlos. La ✕ de una ficha de filtro se aclara en vez de pintar un círculo celeste.
+- **Campo enfocado con el mouse:** solo el borde se pone azul `#0071E3` (Apple: `border-color:#0071e3; outline:none`), sin halo y sin el borde negro de antes. Vale para los campos de formulario, los compactos, las listas desplegables, el buscador y el inicio de sesión.
+- **Foco con teclado:** al llegar con Tab, el anillo de Apple: 2 px azules separados 3 px del campo (`box-shadow: 0 0 0 3px #fff, 0 0 0 5px #0071e3`). Apple lo muestra solo con teclado (`data-focus-method=key`); aquí `lib/keyboard-focus.ts` marca `<html data-keyboard>` al presionar Tab y lo quita al hacer clic, y la variante `kbd:` de `styles.css` lo usa. `:focus-visible` no sirve en los campos de texto porque el navegador lo activa también con el clic. Los botones y el resto usan el mismo anillo (contorno de 2 px a 3 px de distancia), que el navegador ya muestra solo con teclado.
+- **Campo con error:** como Apple, borde rojo, fondo rosado (`field-bad`, `#FFF2F4`) y etiqueta roja mientras no tenga el foco; al enfocarlo para corregir vuelve a verse normal, con su borde azul. Contrastes medidos: texto 15.4:1, etiqueta roja 5.1:1 y gris 4.7:1 sobre el rosado. Se usa el rojo de la decisión 16 (`#D10F25`), no el `#E30000` de Apple.
+- **De dónde venía el halo:** de la Mac (sus campos muestran un resplandor azul al enfocarlos). La referencia de esta pantalla es la web de Apple, que no lo usa.
+
+Reemplaza en esto a la decisión 21, que hablaba del "halo del campo enfocado". Se quitaron los tokens `link-tint` y `error-ring` (`shadow-error`).

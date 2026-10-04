@@ -6,8 +6,10 @@ import { createContext, useContext } from 'react'
  */
 export const FieldContext = createContext(false)
 
+// Como Cuenta de Apple: enfocado, borde azul (y el anillo solo con teclado, `kbd:`); con error y sin foco, borde rojo
+// y fondo rosado. Al enfocarlo para corregir vuelve a verse como un campo normal.
 const base =
-  'w-full min-w-0 border border-field-line bg-field text-fg outline-none transition-[border-color,box-shadow] duration-200 ease-apple focus:border-fg focus:shadow-focus aria-[invalid=true]:border-bad aria-[invalid=true]:focus:shadow-error disabled:border-rule disabled:bg-muted-fill disabled:text-fg-muted'
+  'w-full min-w-0 border border-field-line bg-field text-fg outline-none transition-[border-color,box-shadow,background-color] duration-200 ease-apple focus:border-accent kbd:focus:shadow-focus aria-[invalid=true]:not-focus:border-bad aria-[invalid=true]:not-focus:bg-field-bad aria-[invalid=true]:not-focus:[--autofill-fill:var(--field-bad)] disabled:border-rule disabled:bg-muted-fill disabled:text-fg-muted'
 const floating = 'h-14 rounded-xl pt-[22px] pb-1.5 px-4 text-apple'
 const compact = 'h-9 rounded-[10px] px-3 text-sm placeholder:text-fg-muted'
 

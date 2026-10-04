@@ -6,9 +6,12 @@ import { ApiError } from '@/api/client'
 import { ConnectionError } from '@/components/layout/connection-error'
 import { RouteError } from '@/components/layout/route-error'
 import { Toaster } from '@/components/ui/toast'
+import { trackKeyboardFocus } from '@/lib/keyboard-focus'
 import { session } from '@/lib/session'
 import { routeTree } from './routeTree.gen'
 import './styles.css'
+
+trackKeyboardFocus()
 
 const queryClient: QueryClient = new QueryClient({
   defaultOptions: {

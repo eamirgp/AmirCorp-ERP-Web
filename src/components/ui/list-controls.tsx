@@ -49,7 +49,7 @@ export function SearchBox({
   return (
     // En celular ocupa toda la fila; en pantallas grandes, un ancho fijo junto a los filtros.
     <label
-      className="flex h-9 w-full min-w-0 items-center gap-2 rounded-full bg-muted-fill px-3 text-fg-muted transition-[background-color,box-shadow] duration-200 ease-apple focus-within:bg-field focus-within:shadow-[0_0_0_1px_var(--fg),var(--focus-ring)] sm:w-72 sm:flex-none"
+      className="flex h-9 w-full min-w-0 items-center gap-2 rounded-full bg-muted-fill px-3 text-fg-muted transition-[background-color,box-shadow] duration-200 ease-apple focus-within:bg-field focus-within:shadow-[0_0_0_1px_var(--accent)] kbd:focus-within:shadow-[0_0_0_1px_var(--accent),0_0_0_4px_var(--page),0_0_0_6px_var(--accent)] sm:w-72 sm:flex-none"
       title={hint ? `${hint}. Atajo: /` : 'Atajo: /'}
     >
       <Search className="size-4 shrink-0" aria-hidden />

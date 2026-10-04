@@ -4,7 +4,7 @@
 
 ```
 src/
-  main.tsx               Arranque: router, caché de datos, cierre de sesión global
+  main.tsx               Arranque: router, caché de datos, cierre de sesión global, foco con teclado
   styles.css             Sistema de diseño (colores, fuentes, utilidades)
   routeTree.gen.ts       Generado por el plugin de rutas. No se edita a mano.
   brand/                 Marca de la instalación: nombre, textos, logo y tapa de rueda
@@ -23,7 +23,7 @@ src/
   components/
     ui/                  Piezas reutilizables: botón, campos, diálogo, avisos, piezas de las listas
     layout/              Marco (menú lateral, barra superior, menú del usuario), lista de módulos (nav.ts), errores
-  lib/                   Utilidades sin UI: sesión, formatos, números escritos, filtros, atajos, movimiento
+  lib/                   Utilidades sin UI: sesión, formatos, números escritos, filtros, atajos, movimiento, foco con teclado
 ```
 
 ## Flujo de datos

@@ -43,7 +43,6 @@
   --accent: #0071e3; /* contorno del foco con teclado */
   --accent-soft: #e8f1fb; /* fichas de filtro y fondos celestes: azul #0066CC encima, 4.9:1 */
   --accent-text: #0066cc; /* azul para texto sobre fondo claro: 5.6:1 sobre blanco */
-  --link-tint: rgb(0 102 204 / 0.08); /* fondo de un botón de solo texto al pasar el mouse */
   /* Estados con los colores de Apple (decisión 16): verde, naranja y rojo del sistema en su versión de alto contraste
      (#008932, #C55300, #E9152D), apenas más oscuros para que el texto pase 4.5:1 también sobre su fondo suave y sobre el
      gris de los botones. Medidos: sobre blanco 5.5:1, sobre su fondo 4.9:1, sobre #E8E8ED 4.5:1. */
@@ -92,8 +91,12 @@
   --rule: #d2d2d7; /* línea bajo la cabecera de la tabla, borde de un campo bloqueado */
   --switch-off: #8e8e93; /* interruptor apagado: 3:1 sobre la fila gris (WCAG 1.4.11); encendido, `selected` (4.3:1) */
   --dim: rgb(29 29 31 / 0.22); /* pantalla atenuada detrás de una ventana */
-  --focus-ring: 0 0 0 4px rgb(0 113 227 / 0.25); /* halo azul del campo enfocado */
-  --error-ring: 0 0 0 4px rgb(209 15 37 / 0.16);
+  /* Foco con teclado (decisión 24): anillo azul de 2 px separado 3 px por el color de la página, el de Cuenta de Apple
+     (`box-shadow: 0 0 0 3px #fff, 0 0 0 5px #0071e3`). Con el mouse no hay anillo: el campo solo pone su borde azul. */
+  --focus-ring: 0 0 0 3px var(--page), 0 0 0 5px var(--accent);
+  /* Campo con error y sin foco: fondo rosado de Cuenta de Apple. Encima, el texto 15.4:1, la etiqueta roja 5.1:1 y el
+     gris 4.7:1. */
+  --field-bad: #fff2f4;
   --shadow-sheet: 0 24px 60px rgb(29 29 31 / 0.22), 0 0 0 1px rgb(0 0 0 / 0.05);
   --shadow-toast: 0 0 0 1px rgb(0 0 0 / 0.06), 0 10px 30px rgb(29 29 31 / 0.14);
   --shadow-glass: 0 10px 30px rgb(29 29 31 / 0.08), 0 1px 3px rgb(29 29 31 / 0.05);
@@ -209,6 +212,14 @@
   --ease-panel: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
+/*
+  `kbd:` aplica algo solo si se está usando el teclado (lib/keyboard-focus.ts marca <html data-keyboard> al presionar Tab y
+  lo quita al hacer clic o tocar). Es lo que hace Cuenta de Apple (`data-focus-method=key`): un campo enfocado con el
+  mouse solo pone su borde azul; con Tab, además, el anillo. `:focus-visible` no sirve para esto en los campos de
+  texto: el navegador lo activa también al hacer clic en ellos.
+*/
+@custom-variant kbd (&:where([data-keyboard] *));
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
@@ -225,7 +236,6 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-brand: var(--brand);
-  --color-link-tint: var(--link-tint);
   --color-accent-text: var(--accent-text);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
@@ -239,6 +249,7 @@
   --color-fg-muted: var(--fg-muted);
   --color-field: var(--field);
   --color-field-line: var(--field-line);
+  --color-field-bad: var(--field-bad);
   --color-pill: var(--pill);
   --color-pill-ink: var(--pill-ink);
   --color-pill-hover: var(--pill-hover);
@@ -267,7 +278,6 @@
   --shadow-sheet: var(--shadow-sheet);
   --shadow-toast: var(--shadow-toast);
   --shadow-focus: var(--focus-ring);
-  --shadow-error: var(--error-ring);
   --shadow-float: var(--shadow-lg);
   --shadow-glass: var(--shadow-glass);
   --shadow-menu: var(--shadow-menu);
@@ -291,9 +301,10 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
+  /* El mismo anillo de Apple que `focus-ring`: 2 px azules, separados 3 px. Los botones solo lo muestran con teclado. */
   :focus-visible {
     outline: 2px solid var(--accent);
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
   h1,
   h2,
@@ -583,6 +594,10 @@
   font-size: var(--text-label);
   font-weight: 500;
 }
+/* Con error, la etiqueta se pone roja, como en Cuenta de Apple (5.1:1 sobre el fondo rosado del campo). */
+.float-field:has([aria-invalid="true"]) .float-label {
+  color: var(--bad);
+}
 /* Prefijo de un monto ("S/"): aparece junto con el número, cuando la etiqueta ya subió. */
 .float-field.has-prefix input {
   padding-left: 40px;
@@ -607,9 +622,10 @@
   color: transparent;
 }
 
-/* Lo que el navegador autocompleta no pinta el campo de amarillo: queda con el fondo del campo. */
+/* Lo que el navegador autocompleta no pinta el campo de amarillo: queda con el fondo del campo (`--autofill-fill`, que
+   un campo con error cambia por el rosado). */
 input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 1000px var(--field) inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--autofill-fill, var(--field)) inset;
   -webkit-text-fill-color: var(--fg);
 }
 
