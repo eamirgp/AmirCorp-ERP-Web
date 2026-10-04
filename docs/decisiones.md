@@ -153,3 +153,8 @@ Error que encontró el dueño: en la vista "Activos", cambiar las filas por pág
 - `Pagination` avisa `undefined` al elegir el tamaño por defecto (`defaultPageSize`).
 - Ordenar (con el menú o con un clic en una columna) pasa por `sortSearch` (`lib/filters.ts`): si el orden elegido es el de por defecto (`defaultSortBy`, `defaultSortDescending`), no va a la URL.
 - Así la lista se reconoce igual a la que abre normalmente (se marca "Todos") o a su vista guardada.
+
+### 20. Un producto nuevo empieza con precio 0.00
+**Fecha:** octubre 2026
+
+A pedido del dueño, el formulario de un producto nuevo trae el precio de venta en 0.00 en vez de vacío. El dominio ya acepta 0 como "producto todavía sin precio" (`Product.SalePriceError`): así se puede registrar un producto antes de saber a cuánto se venderá. **Pendiente para Ventas:** avisar al vender un producto con precio 0, para que no salga una venta gratis por olvido.

@@ -31,7 +31,9 @@ interface Values {
   supplierCodes: { supplier: SupplierOption | null; code: string }[]
 }
 
-const empty: Values = { code: '', name: '', unitOfMeasure: '', igvAffectation: '', salePrice: '', supplierCodes: [] }
+// Un producto nuevo empieza con precio 0.00: el dominio lo acepta como "todavía sin precio" (Product.SalePriceError),
+// así se puede registrar antes de saber a cuánto se venderá.
+const empty: Values = { code: '', name: '', unitOfMeasure: '', igvAffectation: '', salePrice: '0.00', supplierCodes: [] }
 
 export function ProductFormDialog({ open, product, onClose }: { open: boolean; product: ProductRow | null; onClose: () => void }) {
   const units = useQuery(unitsOfMeasureQuery)
