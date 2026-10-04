@@ -160,10 +160,8 @@ export function ManageViewsDialog({
                 </form>
               ) : (
                 <>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-base">{v.name}</span>
-                    {v.isDefault && <span className="block text-xs text-fg-muted">Se abre con esta</span>}
-                  </span>
+                  {/* La estrella ya dice cuál abre la pantalla (lo explica la descripción): sin texto debajo del nombre. */}
+                  <span className="min-w-0 flex-1 truncate text-base">{v.name}</span>
                   <MoreMenu
                     label={`Más opciones de ${v.name}`}
                     items={[

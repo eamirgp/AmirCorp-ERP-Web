@@ -217,3 +217,8 @@ El dueño preguntó si Apple sombrea de azul "Agregar código de proveedor" al p
 - **De dónde venía el halo:** de la Mac (sus campos muestran un resplandor azul al enfocarlos). La referencia de esta pantalla es la web de Apple, que no lo usa.
 
 Reemplaza en esto a la decisión 21, que hablaba del "halo del campo enfocado". Se quitaron los tokens `link-tint` y `error-ring` (`shadow-error`).
+
+### 25. "Administrar vistas" sin "Se abre con esta"
+**Fecha:** octubre 2026
+
+El dueño pidió quitar el texto "Se abre con esta" debajo del nombre de la vista predeterminada (decisión 23): la descripción de la ventana ("La estrella marca con cuál se abre la pantalla.") y la estrella azul ya lo dicen. Cada fila muestra solo el nombre. Los lectores de pantalla lo siguen sabiendo por el nombre del botón de la estrella ("Dejar de abrir con Activos").
