@@ -49,7 +49,7 @@ function Timeline({ target }: { target: HistoryTarget }) {
       <ol className="flex flex-col">
         {entries.map((e, i) => (
           <li key={e.id} className="relative flex gap-3.5 pb-[22px] last:pb-0">
-            {/* Línea que une los eventos; el más reciente, en jade. */}
+            {/* Línea que une los eventos; el más reciente, en el color de acento. */}
             {i < entries.length - 1 && <span className="absolute top-4 bottom-0 left-[5px] w-px bg-rule" aria-hidden />}
             <span className={`relative mt-1.5 size-[11px] shrink-0 rounded-full border-2 ${i === 0 ? 'border-selected bg-selected' : 'border-[#c7c7cc] bg-page'}`} aria-hidden />
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">

@@ -8,7 +8,7 @@ import { LogoMark } from './logo'
 export function AppIcon({ className = '' }: { className?: string }) {
   return (
     <div aria-hidden className={`relative flex size-40 items-center justify-center ${className}`}>
-      <div className="animate-breathe absolute size-[150px] rounded-full bg-accent blur-[42px]" />
+      <div className="animate-breathe absolute size-[150px] rounded-full bg-brand blur-[42px]" />
       <div className="animate-arrive relative flex size-28 items-center justify-center rounded-[28px] border border-[#e8e8ed] bg-white shadow-[0_12px_32px_rgb(29_29_31/0.10),0_2px_6px_rgb(29_29_31/0.06)]">
         <LogoMark height={60} tone="light" />
       </div>

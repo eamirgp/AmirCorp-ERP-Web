@@ -196,7 +196,7 @@ function CollapsibleGroup({ group, pathname, onNavigate }: { group: NavGroup; pa
 
 const rowClass = 'flex h-9 items-center gap-2.5 rounded-full px-3 text-sm'
 
-/** Una opción del menú. La pantalla actual va en una píldora jade con texto blanco; los íconos, en jade. */
+/** Una opción del menú. La pantalla actual va en una píldora azul con texto blanco; los íconos, en azul. */
 function NavRow({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
   if (!item.to)
     return (

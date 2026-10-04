@@ -2,7 +2,7 @@ import { useId, type ReactNode } from 'react'
 
 /**
  * Interruptor de encendido y apagado (HIG "Toggles"): va en una fila de una lista agrupada, con el texto que dice qué
- * controla a la izquierda. Encendido es jade oscuro (`selected`) con la bolita a la derecha; apagado, gris
+ * controla a la izquierda. Encendido es azul (`selected`) con la bolita a la derecha; apagado, gris
  * (`switch-off`, 3:1 sobre la fila). Además del color cambia la posición, para no depender solo del color. La bolita se
  * desliza con la curva de los paneles.
  */

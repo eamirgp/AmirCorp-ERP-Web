@@ -72,7 +72,7 @@ const PAD = 6
 /**
  * Lista desplegable como el botón desplegable de la Mac (HIG "Pop-up buttons" y "Menus"): un botón con la opción elegida
  * y flechas arriba y abajo que abre el menú de vidrio del sistema, con una marca en la opción actual. El menú se abre con
- * la opción elegida justo sobre el botón, como en la Mac, y la opción bajo el mouse se pinta en jade.
+ * la opción elegida justo sobre el botón, como en la Mac, y la opción bajo el mouse se pinta del color de acento.
  *
  * Por dentro sigue habiendo un `<select>` nativo, oculto: los formularios lo registran y lo leen como siempre
  * (`form.register`, `value` y `onChange`), y las opciones se escriben con `<option>`. `popup` es el botón gris en píldora de

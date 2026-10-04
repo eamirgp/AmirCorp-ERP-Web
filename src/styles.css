@@ -9,7 +9,7 @@
   Títulos en League Spartan y textos en Source Sans.
 
   Estilo minimalista: fondo blanco, neutros puros, bordes finos y sin sombras en la página.
-  El negro es la acción principal y el jade se usa solo como acento puntual.
+  Desde la decisión 21 el acento y el botón principal son el azul de Apple; el jade queda en el logo y el inicio de sesión.
 
   Los colores viven como variables en :root y se redefinen para modo oscuro. Por ahora todo el sistema es claro mientras
   se rediseña al estilo Apple (decisión 13 de docs/decisiones.md): index.html fija data-theme="light", así que las
@@ -37,11 +37,13 @@
   --primary: #0a0a0a;
   --primary-hover: #2a2a2a;
   --primary-ink: #ffffff;
-  /* Verde jade del manual: el acento (pantalla activa, foco, enlaces, fichas de filtro). Apple recomienda el color de la
-     marca como acento en apps de contenido sin color (HIG "Color"). */
-  --accent: #5aaf76;
-  --accent-soft: #e4f2e8; /* fichas de filtro: jade #2A7445 encima, 4.9:1 */
-  --accent-text: #2a7445; /* jade oscurecido para texto sobre fondo claro (contraste AA) */
+  /* Acento: el azul de Apple (decisión 21), el de apple.com. Reemplaza al jade de la decisión 16: el dueño prefirió que
+     el sistema se vea como una app de Apple. El jade de la marca queda en el logo y en el brillo del inicio de sesión. */
+  --brand: #5aaf76; /* verde jade del manual: solo el brillo detrás del ícono de la marca */
+  --accent: #0071e3; /* contorno del foco con teclado */
+  --accent-soft: #e8f1fb; /* fichas de filtro y fondos celestes: azul #0066CC encima, 4.9:1 */
+  --accent-text: #0066cc; /* azul para texto sobre fondo claro: 5.6:1 sobre blanco */
+  --link-tint: rgb(0 102 204 / 0.08); /* fondo de un botón de solo texto al pasar el mouse */
   /* Estados con los colores de Apple (decisión 16): verde, naranja y rojo del sistema en su versión de alto contraste
      (#008932, #C55300, #E9152D), apenas más oscuros para que el texto pase 4.5:1 también sobre su fondo suave y sobre el
      gris de los botones. Medidos: sobre blanco 5.5:1, sobre su fondo 4.9:1, sobre #E8E8ED 4.5:1. */
@@ -62,19 +64,19 @@
   --fg-muted: #6e6e73; /* 5:1 sobre blanco */
   --field: #ffffff;
   --field-line: #86868b; /* borde de campo: 3.6:1 */
-  --pill: #1d1d1f; /* botón principal en píldora */
+  --pill: #0071e3; /* botón principal en píldora, azul de apple.com: texto blanco 4.7:1 (decisión 21) */
   --pill-ink: #ffffff;
-  --pill-hover: #2c2c2e;
-  --link: #2a7445; /* acción secundaria en jade oscuro: 5.7:1 */
+  --pill-hover: #0077ed; /* el tono de apple.com al pasar el mouse */
+  --link: #0066cc; /* enlaces, botones de solo texto e íconos del menú: 5.6:1 sobre blanco, 5.1:1 sobre el vidrio */
 
   /* Marco de la aplicación (menú lateral flotante y barra superior de vidrio, HIG "Sidebars" y "Toolbars"). */
-  --sidebar: rgb(245 245 247 / 0.82); /* vidrio gris claro: #6E6E73 encima da 4.7:1, #1D1D1F 15.5:1, el jade 5.2:1 */
+  --sidebar: rgb(245 245 247 / 0.82); /* vidrio gris claro: #6E6E73 encima da 4.7:1, #1D1D1F 15.5:1, el azul 5.1:1 */
   --glass: rgb(255 255 255 / 0.75); /* barra superior al desplazar y botones redondos */
   --glass-menu: rgb(255 255 255 / 0.88); /* menú de usuario */
   --glass-line: rgb(0 0 0 / 0.06);
   --hairline: rgb(0 0 0 / 0.08);
   --hover: rgb(0 0 0 / 0.045);
-  --selected: #2a7445; /* pantalla elegida: píldora jade con texto blanco, 5.7:1 */
+  --selected: #0071e3; /* pantalla elegida y opción resaltada de un menú: azul con texto blanco, 4.7:1 */
   --selected-ink: #ffffff;
   --disabled: #86868b; /* módulos "pronto" (no se pueden usar: WCAG no pide contraste) */
   --monogram-top: #7c7c80; /* círculo con las iniciales, como el de Contactos: blanco al centro del degradado, 5.4:1 */
@@ -88,9 +90,9 @@
   --stripe: #fafafa; /* filas pares de la tabla (#6E6E73 encima, 4.9:1) */
   --row-hover: #f0f0f2;
   --rule: #d2d2d7; /* línea bajo la cabecera de la tabla, borde de un campo bloqueado */
-  --switch-off: #8e8e93; /* interruptor apagado: 3:1 sobre la fila gris (WCAG 1.4.11); encendido, `selected` (5.2:1) */
+  --switch-off: #8e8e93; /* interruptor apagado: 3:1 sobre la fila gris (WCAG 1.4.11); encendido, `selected` (4.3:1) */
   --dim: rgb(29 29 31 / 0.22); /* pantalla atenuada detrás de una ventana */
-  --focus-ring: 0 0 0 4px rgb(90 175 118 / 0.28); /* halo jade del campo enfocado */
+  --focus-ring: 0 0 0 4px rgb(0 113 227 / 0.25); /* halo azul del campo enfocado */
   --error-ring: 0 0 0 4px rgb(209 15 37 / 0.16);
   --shadow-sheet: 0 24px 60px rgb(29 29 31 / 0.22), 0 0 0 1px rgb(0 0 0 / 0.05);
   --shadow-toast: 0 0 0 1px rgb(0 0 0 / 0.06), 0 10px 30px rgb(29 29 31 / 0.14);
@@ -219,6 +221,8 @@
   --color-primary-ink: var(--primary-ink);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-brand: var(--brand);
+  --color-link-tint: var(--link-tint);
   --color-accent-text: var(--accent-text);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
@@ -305,10 +309,10 @@
   --fg-muted: #6e6e73;
   --field: #ffffff;
   --field-line: #86868b;
-  --pill: #1d1d1f;
+  --pill: #0071e3;
   --pill-ink: #ffffff;
-  --pill-hover: #2c2c2e;
-  --link: #2a7445;
+  --pill-hover: #0077ed;
+  --link: #0066cc;
   --bad: #d10f25;
   --bad-soft: #fdedee;
 }

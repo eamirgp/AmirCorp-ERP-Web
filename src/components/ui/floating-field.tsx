@@ -3,7 +3,7 @@ import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'rea
 /**
  * Campo del estilo Apple (docs/diseno.md), como el de Cuenta de Apple: 56 px de alto y la etiqueta dentro del campo.
  * Vacío, la etiqueta se ve grande, como texto de ejemplo; al hacer clic o al escribir, sube y se achica con una
- * transición suave, y el borde se oscurece con un halo jade. `trailing` es una acción al final del campo ("Mostrar").
+ * transición suave, y el borde se oscurece con un halo azul. `trailing` es una acción al final del campo ("Mostrar").
  */
 export const FloatingField = forwardRef<HTMLInputElement, Omit<InputHTMLAttributes<HTMLInputElement>, 'placeholder'> & { label: string; trailing?: ReactNode }>(
   // `className` y `style` van al recuadro (por ejemplo, su animación de entrada); lo demás, al campo.
@@ -14,7 +14,7 @@ export const FloatingField = forwardRef<HTMLInputElement, Omit<InputHTMLAttribut
     return (
       <div
         style={style}
-        className={`relative flex h-14 items-center rounded-xl border border-field-line bg-field transition-[border-color,box-shadow] duration-200 ease-apple focus-within:border-fg focus-within:shadow-[0_0_0_4px_rgb(90_175_118/0.28)] has-[input[aria-invalid=true]]:border-bad ${className}`}
+        className={`relative flex h-14 items-center rounded-xl border border-field-line bg-field transition-[border-color,box-shadow] duration-200 ease-apple focus-within:border-fg focus-within:shadow-focus has-[input[aria-invalid=true]]:border-bad ${className}`}
       >
         <div className="relative h-full min-w-0 flex-1">
           {/* El placeholder vacío (" ") permite saber con CSS si el campo tiene texto (:placeholder-shown). */}

@@ -158,3 +158,14 @@ Error que encontró el dueño: en la vista "Activos", cambiar las filas por pág
 **Fecha:** octubre 2026
 
 A pedido del dueño, el formulario de un producto nuevo trae el precio de venta en 0.00 en vez de vacío. El dominio ya acepta 0 como "producto todavía sin precio" (`Product.SalePriceError`): así se puede registrar un producto antes de saber a cuánto se venderá. **Pendiente para Ventas:** avisar al vender un producto con precio 0, para que no salga una venta gratis por olvido.
+
+### 21. El azul de Apple como acento y en el botón principal (reemplaza parte de la decisión 16)
+**Fecha:** octubre 2026
+
+El dueño pidió los colores originales de Apple. Se le mostraron lado a lado en el lienzo el jade de la marca (decisión 16) y el azul de apple.com, y eligió el azul, también para el botón principal (antes negro).
+
+- **Azul `#0071E3`** (el de los botones de apple.com): botón principal, pantalla elegida del menú lateral, opción resaltada de los menús, interruptor encendido, halo del campo enfocado y contorno del foco con teclado. Texto blanco encima: 4.7:1. Al pasar el mouse, `#0077ED`, como apple.com.
+- **Azul `#0066CC`** (el de los enlaces de apple.com): enlaces, botones de solo texto ("Limpiar filtros", "Guardar vista"), íconos del menú lateral y texto de las fichas de filtro. 5.6:1 sobre blanco, 5.1:1 sobre el vidrio del menú, 4.9:1 sobre la ficha celeste (`#E8F1FB`).
+- **El jade de la marca** queda en el logo y en el brillo detrás del ícono del inicio de sesión (token `brand`). El botón "Continuar" del inicio de sesión también pasa a azul.
+- **Sin cambio:** los grises (ya eran los de apple.com) y los colores de estado de Apple (verde, naranja y rojo, decisión 16).
+- **Por qué cambia:** Apple recomienda el color de la marca como acento en apps de una empresa (por eso la decisión 16 eligió jade), pero el azul es lo que más hace sentir una app de Apple, y eso es lo que pidió el dueño.

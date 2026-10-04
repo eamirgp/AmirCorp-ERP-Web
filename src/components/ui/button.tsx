@@ -6,15 +6,15 @@ type Size = 'sm' | 'md' | 'icon'
 /**
  * Estilos de la guía de Apple (HIG "Buttons"): se distinguen por el estilo, no por el tamaño, y hay uno o dos
  * principales por vista.
- * - primary: píldora negra, la acción más probable.
+ * - primary: píldora azul de Apple (decisión 21), la acción más probable.
  * - secondary: píldora gris.
- * - ghost: solo texto en jade (acción simple, como "Limpiar filtros"); con un ícono solo, un círculo sin fondo.
+ * - ghost: solo texto en azul (acción simple, como "Limpiar filtros"); con un ícono solo, un círculo sin fondo.
  * - danger: texto rojo sobre gris, para lo que quita algo.
  */
 const variants: Record<Variant, string> = {
   primary: 'bg-pill text-pill-ink hover:bg-pill-hover',
   secondary: 'bg-fill text-fg hover:bg-fill-hover',
-  ghost: 'bg-transparent text-link hover:bg-[rgb(42_116_69/0.08)]',
+  ghost: 'bg-transparent text-link hover:bg-link-tint',
   danger: 'bg-fill text-bad hover:bg-fill-hover',
 }
 
