@@ -3,6 +3,7 @@ import { flexRender, getCoreRowModel, useReactTable, type ColumnDef, type RowDat
 import { ChevronUp, MoreHorizontal } from 'lucide-react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { Button } from './button'
+import { glassItemClass, glassMenuClass, useClickMenu } from './menu'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -146,13 +147,6 @@ export interface RowMenuItem {
   danger?: boolean
 }
 
-/** Menú de vidrio, el mismo del menú del usuario: lo usan las filas y las barras de filtros. */
-export const glassMenuClass =
-  'animate-menu-open z-50 min-w-52 origin-(--radix-dropdown-menu-content-transform-origin) rounded-[14px] bg-glass-menu p-1.5 text-fg shadow-menu backdrop-blur-[30px] backdrop-saturate-[1.8]'
-// Como en la Mac, la opción bajo el mouse (o elegida con las flechas) se pinta del color de acento con letra blanca,
-// también sus íconos y su marca.
-export const glassItemClass =
-  'relative flex h-9 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-sm outline-none data-[highlighted]:bg-selected data-[highlighted]:text-selected-ink [&_svg]:size-4 [&_svg]:shrink-0 data-[highlighted]:[&_svg]:!text-selected-ink'
 
 /**
  * Botón "⋯" de una fila con sus acciones escritas en un menú (HIG "Pull-down buttons": una lista de acciones): la tabla
@@ -162,17 +156,18 @@ export const glassItemClass =
 export function RowMenu({ label, items, busy }: { label: string; items: RowMenuItem[]; busy?: boolean }) {
   const normal = items.filter((i) => !i.danger)
   const danger = items.filter((i) => i.danger)
+  const menu = useClickMenu()
 
   return (
     <RowActions>
-      <Menu.Root>
-        <Menu.Trigger asChild>
+      <Menu.Root {...menu.root}>
+        <Menu.Trigger asChild {...menu.trigger}>
           <Button size="icon" variant="ghost" loading={busy} aria-label={`Acciones para ${label}`} title="Acciones">
             <MoreHorizontal />
           </Button>
         </Menu.Trigger>
         <Menu.Portal>
-          <Menu.Content align="end" sideOffset={4} className={glassMenuClass}>
+          <Menu.Content {...menu.content} align="end" sideOffset={4} className={glassMenuClass}>
             {normal.map((i) => (
               <Menu.Item key={i.label} className={`${glassItemClass} [&_svg]:text-fg-muted`} onSelect={i.onSelect}>
                 {i.icon}

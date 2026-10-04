@@ -7,6 +7,7 @@ import { useEffect, useId, useState, type ComponentProps, type ReactNode } from 
 import { meQuery } from '@/api/account'
 import { brand } from '@/brand'
 import { LogoMark } from '@/brand/logo'
+import { useClickMenu } from '@/components/ui/menu'
 import { session } from '@/lib/session'
 import { moduleTitle, navGroups, type NavGroup, type NavItem } from './nav'
 
@@ -268,13 +269,17 @@ function UserMenu() {
     .join('')
     .toUpperCase()
 
+  // Se abre al soltar el clic, como los demás menús (decisión 18).
+  const menu = useClickMenu()
+
   return (
-    <Menu.Root>
-      <Menu.Trigger className="press flex-none rounded-full transition-shadow hover:shadow-[0_0_0_4px_var(--hover)]" aria-label={`Menú de ${name}`}>
+    <Menu.Root {...menu.root}>
+      <Menu.Trigger {...menu.trigger} className="press flex-none rounded-full transition-shadow hover:shadow-[0_0_0_4px_var(--hover)]" aria-label={`Menú de ${name}`}>
         <Monogram initials={initials} />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Content
+          {...menu.content}
           align="end"
           sideOffset={10}
           className="animate-menu-open z-50 w-72 origin-(--radix-dropdown-menu-content-transform-origin) rounded-2xl bg-glass-menu p-1.5 text-fg shadow-menu backdrop-blur-[30px] backdrop-saturate-[1.8]"

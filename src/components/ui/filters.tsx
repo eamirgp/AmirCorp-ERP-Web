@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react'
 import type { Option } from '@/lib/filters'
 import { formatDate } from '@/lib/format'
 import { Button } from './button'
-import { glassItemClass, glassMenuClass } from './data-table'
+import { glassItemClass, glassMenuClass, useClickMenu } from './menu'
 import { Input } from './field'
 import { Sheet } from './sheet'
 
@@ -55,17 +55,18 @@ export function SortMenu<T extends string>({
   onChange: (value: T, descending: boolean) => void
 }) {
   const current = options.find((o) => o.value === value) ?? options[0]
+  const menu = useClickMenu()
 
   return (
-    <Menu.Root>
-      <Menu.Trigger className={popupClass}>
+    <Menu.Root {...menu.root}>
+      <Menu.Trigger className={popupClass} {...menu.trigger}>
         <span>
           Ordenar: <span className="font-semibold">{current.label}</span>
         </span>
         <ChevronDown className="text-fg-muted" />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Content align="start" sideOffset={6} className={glassMenuClass}>
+        <Menu.Content {...menu.content} align="start" sideOffset={6} className={glassMenuClass}>
           <Menu.Label className="px-2.5 pt-1 pb-1.5 text-xs text-fg-muted">Ordenar por</Menu.Label>
           <Menu.RadioGroup value={current.value} onValueChange={(v) => onChange(v as T, descending)}>
             {options.map((o) => (

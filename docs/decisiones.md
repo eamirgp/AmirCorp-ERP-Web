@@ -135,3 +135,12 @@ La lista desplegable nativa del navegador se veía como la de Windows (lista bla
 - **`Select` propio:** un botón con la opción elegida y flechas arriba y abajo que abre el menú de vidrio del sistema, con una marca ✓ en la opción actual. Como en la Mac, el menú se abre con la opción elegida justo sobre el botón y queda marcada para seguir con las flechas. Lo usan todas las listas: filas por página, unidad, IGV, tipo de documento, empresa, moneda, rol…
 - **Los formularios no cambiaron:** por dentro sigue un `<select>` nativo oculto que los formularios registran como siempre (`form.register`, `value`, `onChange`); el menú cambia su valor y dispara `change`. Cuando el formulario escribe el valor por código (al cargar o limpiar), el botón se entera y se actualiza.
 - **Todos los menús resaltan en jade con letra blanca** la opción bajo el mouse o elegida con las flechas (antes, gris suave): el del usuario, el "⋯" de las filas, "Ordenar", las listas y los resultados de los buscadores. Es lo que hace la Mac con el color de acento.
+
+### 18. Los menús se abren al soltar el clic
+**Fecha:** octubre 2026
+
+Radix abre sus menús apenas se presiona el botón del mouse (la Mac hace lo mismo), y al dueño no le gustó que se abrieran tan rápido: pidió que se abran al soltar el clic, como la mayoría de las páginas web. Todos los menús usan `useClickMenu` (`components/ui/menu.ts`): las listas desplegables, "Ordenar", el "⋯" de las filas y el menú del usuario.
+
+- **Al presionar no pasa nada; el clic completo abre o cierra el menú.** Un clic afuera lo cierra; un clic en su propio botón también (no cuenta como "afuera").
+- **Los menús dejaron de ser "modales":** con el menú abierto, Radix bloqueaba los clics en el resto de la página y, según el momento, el clic en el botón le llegaba o no, así que a veces el menú no se cerraba. Ahora el clic siempre llega al botón y se comporta igual cada vez.
+- **El teclado no cambia:** Enter, espacio o flecha abajo abren el menú y Esc lo cierra (lo maneja Radix).

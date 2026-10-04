@@ -14,7 +14,7 @@ import {
   type SelectHTMLAttributes,
 } from 'react'
 import { useControlClass, useInField } from './control'
-import { glassItemClass, glassMenuClass } from './data-table'
+import { glassItemClass, glassMenuClass, useClickMenu } from './menu'
 
 interface Option {
   value: string
@@ -108,6 +108,15 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
     if (native.current) setCurrent(native.current.value)
   }, [options.length])
 
+  // Se abre al soltar el clic (decisión 18). Como en la Mac, al abrir queda marcada la opción elegida: las flechas y
+  // Enter siguen desde ahí.
+  const menu = useClickMenu()
+  useEffect(() => {
+    if (!menu.open) return
+    const frame = requestAnimationFrame(() => content.current?.querySelector<HTMLElement>('[data-state="checked"]')?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [menu.open])
+
   const shown = value !== undefined ? String(value) : current
   const selected = options.find((o) => o.value === shown)
   const index = Math.max(0, options.findIndex((o) => o.value === shown))
@@ -142,13 +151,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
       >
         {children}
       </select>
-      <Menu.Root
-        onOpenChange={(open) => {
-          // Como en la Mac, al abrir queda marcada la opción elegida: las flechas y Enter siguen desde ahí.
-          if (open) requestAnimationFrame(() => content.current?.querySelector<HTMLElement>('[data-state="checked"]')?.focus())
-        }}
-      >
+      <Menu.Root {...menu.root}>
         <Menu.Trigger
+          {...menu.trigger}
           id={id}
           title={title}
           disabled={disabled}
@@ -162,6 +167,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Content
+            {...menu.content}
             ref={content}
             side="bottom"
             align="start"

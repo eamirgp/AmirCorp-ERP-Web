@@ -73,6 +73,8 @@ Dentro de un `Field`, los campos (`Input`, `Select`, `NumberInput`, `SearchSelec
 
 `Select` (`components/ui/select.tsx`) dibuja su propio botón y menú, pero por dentro tiene un `<select>` nativo oculto: se usa como una lista común (`form.register`, o `value` y `onChange`, y opciones con `<option>`). Elegir en el menú cambia el valor de la lista oculta y dispara `change`; cuando react-hook-form escribe `select.value` por código, el botón se actualiza solo.
 
+Todo menú nuevo usa `useClickMenu()` (`components/ui/menu.ts`), que lo abre al soltar el clic (decisión 18): `<Menu.Root {...menu.root}>`, `<Menu.Trigger {...menu.trigger}>` y `<Menu.Content {...menu.content}>`, con las clases `glassMenuClass` y `glassItemClass` del mismo archivo.
+
 `ConfirmDialog` es una alerta solo para lo que pierde algo y no se puede deshacer. Activar o desactivar desde una lista no pregunta: `useActivation(toggle, done)` (`features/shared/use-activation.ts`) cambia el estado, avisa con un `toast` y dice qué fila está guardando (`busyId`).
 
 ## Cálculos en pantalla
