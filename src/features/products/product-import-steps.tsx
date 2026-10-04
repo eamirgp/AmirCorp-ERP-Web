@@ -1,17 +1,17 @@
-import { Download, FileSpreadsheet, Upload } from 'lucide-react'
-import { useMemo, useRef, useState, type DragEvent } from 'react'
+import { CircleAlert, Download, FileSpreadsheet, Upload } from 'lucide-react'
+import { useRef, useState, type DragEvent, type ReactNode } from 'react'
 import { errorText } from '@/api/client'
 import { downloadProductTemplate, type ProductImportPreview, type ProductImportRow } from '@/api/products'
 import { Button } from '@/components/ui/button'
-import { FilterChip, type Option } from '@/components/ui/filters'
 import { ErrorList, Pill } from '@/components/ui/misc'
+import { SwitchRow } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 import { saveBlob } from '@/lib/download'
 import { formatInt } from '@/lib/format'
 
 type Action = NonNullable<ProductImportRow['action']>
 
-/** Tono del punto de estado para cada resultado que informa la API. */
+/** Tono de la pastilla para cada resultado que informa la API. */
 const tones: Record<Action, 'ok' | 'warn' | 'bad' | 'neutral'> = {
   Create: 'ok',
   Update: 'warn',
@@ -20,7 +20,34 @@ const tones: Record<Action, 'ok' | 'warn' | 'bad' | 'neutral'> = {
   Error: 'bad',
 }
 
+/** Color del punto de cada mosaico del resumen: el mismo tono que su pastilla. */
+const dots: Record<Action, string> = {
+  Create: 'bg-link',
+  Update: 'bg-warn',
+  Skip: 'bg-disabled',
+  Unchanged: 'bg-disabled',
+  Error: 'bg-bad',
+}
+
 const MAX_ROWS_SHOWN = 200
+
+/** Un paso numerado, como las instrucciones de Apple: el número en un círculo y lo que hay que hacer. */
+function NumberedStep({ n, title, children }: { n: number; title: string; children: ReactNode }) {
+  return (
+    <section className="flex items-start gap-3.5">
+      <span aria-hidden className="flex size-7 shrink-0 items-center justify-center rounded-full bg-pill text-sm font-semibold text-pill-ink">
+        {n}
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 pt-0.5">
+        <h3 className="text-md font-semibold text-fg">
+          <span className="sr-only">Paso {n}: </span>
+          {title}
+        </h3>
+        {children}
+      </div>
+    </section>
+  )
+}
 
 /** Paso 1 de la importación: descargar la plantilla y subir el archivo lleno. */
 export function UploadStep({
@@ -65,148 +92,155 @@ export function UploadStep({
     <div className="flex flex-col gap-5">
       <ErrorList messages={errors} />
 
-      <section className="flex flex-col gap-2">
-        <p className="text-sm text-muted">
-          <strong className="font-medium text-ink">1.</strong> Descarga la plantilla y llénala en Excel. Para cambiar productos que ya tienes (por ejemplo, sus precios),
-          descárgalos con{' '}
-          <button type="button" onClick={onExport} className="font-medium text-accent-text underline underline-offset-4 hover:text-ink">
-            Exportar
+      <NumberedStep n={1} title="Descarga la plantilla y llénala en Excel">
+        <p className="text-sm text-fg-muted">
+          ¿Vas a cambiar productos que ya tienes, como sus precios?{' '}
+          <button type="button" onClick={onExport} className="font-semibold text-link hover:opacity-75">
+            Expórtalos
           </button>
           , edítalos y súbelos aquí.
         </p>
-        <div className="flex flex-wrap gap-2">
+        <div>
           <Button size="sm" onClick={getTemplate} loading={downloading}>
             <Download />
             Descargar plantilla
           </Button>
         </div>
-      </section>
+      </NumberedStep>
 
-      <section className="flex flex-col gap-2">
-        <p className="text-sm text-muted">
-          <strong className="font-medium text-ink">2.</strong> Sube el archivo lleno.
-        </p>
-        <label
-          onDragOver={(e) => {
-            e.preventDefault()
-            setDragging(true)
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
-          className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed px-6 py-8 text-center transition-colors ${dragging ? 'border-ink bg-surface-2' : 'border-line-strong hover:border-ink/40'}`}
-        >
-          <input ref={input} type="file" accept=".xlsx" className="sr-only" onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
-          {file ? (
-            <>
-              <FileSpreadsheet className="size-7 text-accent" strokeWidth={1.5} />
-              <span className="text-base font-medium">{file.name}</span>
-              <span className="text-xs text-faint">Haz clic para elegir otro archivo</span>
-            </>
-          ) : (
-            <>
-              <Upload className="size-7 text-faint" strokeWidth={1.5} />
-              <span className="text-base">Arrastra el archivo aquí o haz clic para elegirlo</span>
-              <span className="text-xs text-faint">Excel (.xlsx), hasta 5 MB</span>
-            </>
-          )}
-        </label>
-      </section>
+      <NumberedStep n={2} title="Sube el archivo lleno">
+        <input ref={input} type="file" accept=".xlsx" className="sr-only" tabIndex={-1} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
+        {file ? (
+          <div className="flex items-center gap-3 rounded-2xl bg-muted-fill py-3 pr-3 pl-3.5">
+            <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-ok-soft text-link">
+              <FileSpreadsheet className="size-[22px]" strokeWidth={1.75} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-base font-semibold">{file.name}</span>
+              <span className="num block text-xs text-fg-muted">{formatInt(Math.max(1, Math.round(file.size / 1024)))} KB</span>
+            </span>
+            <Button size="sm" variant="ghost" onClick={() => input.current?.click()}>
+              Cambiar
+            </Button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => input.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault()
+              setDragging(true)
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={onDrop}
+            className={`flex w-full flex-col items-center gap-2 rounded-2xl border-[1.5px] border-dashed px-5 py-7 text-center transition-colors duration-200 ${dragging ? 'border-fg bg-muted-fill' : 'border-[#c7c7cc] hover:border-field-line hover:bg-stripe'}`}
+          >
+            <span aria-hidden className="flex size-[52px] items-center justify-center rounded-full bg-muted-fill text-fg-muted">
+              <Upload className="size-6" strokeWidth={1.75} />
+            </span>
+            <span className="text-base font-semibold">Arrastra el archivo aquí o haz clic para elegirlo</span>
+            <span className="text-xs text-fg-muted">Excel (.xlsx), hasta 5 MB</span>
+          </button>
+        )}
+      </NumberedStep>
 
-      <label className="flex items-start gap-3 text-base">
-        <input type="checkbox" className="mt-1 size-4 [accent-color:var(--ink)]" checked={updateExisting} onChange={(e) => onUpdateExisting(e.target.checked)} />
-        <span>
-          Actualizar los productos que ya existen
-          <span className="block text-sm text-muted">Se reconocen por el código. Si no marcas esta opción, esos productos se omiten y no se modifican.</span>
-        </span>
-      </label>
+      <SwitchRow
+        label="Actualizar los productos que ya existen"
+        description="Se reconocen por el código. Si está apagado, esos productos se omiten y no se tocan."
+        checked={updateExisting}
+        onChange={onUpdateExisting}
+      />
     </div>
   )
 }
 
-/** Paso 2 de la importación: qué pasará con cada fila, según la revisión de la API. */
+/**
+ * Paso 2 de la importación: qué pasará con cada fila, según la revisión de la API. El resumen va en mosaicos con la
+ * cifra grande (como Recordatorios de Apple); un clic en un mosaico muestra solo esas filas y otro clic las muestra todas.
+ */
 export function ReviewStep({ preview, errors }: { preview: ProductImportPreview; errors: string[] }) {
   const [filter, setFilter] = useState<Action | undefined>(preview.withErrors > 0 ? 'Error' : undefined)
 
-  // Las opciones del filtro son los resultados que trae la API, con su descripción.
-  const options = useMemo(() => {
-    const seen = new Map<Action, string>()
-    for (const r of preview.rows) if (r.action) seen.set(r.action, r.actionDescription ?? r.action)
-    return [...seen].map(([value, label]) => ({ value, label })) as Option<Action>[]
-  }, [preview.rows])
-
   const rows = filter ? preview.rows.filter((r) => r.action === filter) : preview.rows
-  const summary = [
-    { label: 'Se crearán', value: preview.toCreate, tone: 'ok' as const },
-    { label: 'Se actualizarán', value: preview.toUpdate, tone: 'warn' as const },
-    { label: 'Se omitirán', value: preview.skipped, tone: 'neutral' as const },
-    { label: 'Sin cambios', value: preview.unchanged, tone: 'neutral' as const },
-    { label: 'Con errores', value: preview.withErrors, tone: 'bad' as const },
-  ].filter((s) => s.value > 0)
+  const summary = (
+    [
+      { action: 'Create', label: 'se crearán', value: preview.toCreate },
+      { action: 'Update', label: 'se actualizarán', value: preview.toUpdate },
+      { action: 'Skip', label: 'se omitirán', value: preview.skipped },
+      { action: 'Unchanged', label: 'sin cambios', value: preview.unchanged },
+      { action: 'Error', label: 'con errores', value: preview.withErrors },
+    ] as const
+  ).filter((s) => s.value > 0)
 
   return (
     <div className="flex flex-col gap-4">
       <ErrorList messages={errors} />
 
-      <div className="flex flex-wrap gap-x-6 gap-y-2">
-        {summary.map((s) => (
-          <Pill key={s.label} tone={s.tone}>
-            <span className="num font-medium text-ink">{formatInt(s.value)}</span> {s.label.toLowerCase()}
-          </Pill>
-        ))}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-2.5" role="group" aria-label="Mostrar filas por resultado">
+        {summary.map((s) => {
+          const active = filter === s.action
+          return (
+            <button
+              key={s.action}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setFilter(active ? undefined : s.action)}
+              className={`press flex flex-col items-start gap-1.5 rounded-2xl p-3.5 text-left transition-[background-color,box-shadow] duration-200 ${active ? 'bg-page shadow-[0_0_0_2px_var(--fg)]' : 'bg-muted-fill hover:bg-row-hover'}`}
+            >
+              <span aria-hidden className={`size-2.5 rounded-full ${dots[s.action]}`} />
+              <span className="num font-display text-2xl leading-none font-bold">{formatInt(s.value)}</span>
+              <span className="text-sm text-fg-muted">{s.label}</span>
+            </button>
+          )
+        })}
       </div>
 
       {preview.withErrors > 0 ? (
-        <p className="border-l-2 border-bad bg-bad-soft px-3.5 py-2.5 text-sm text-bad">
-          Hay filas con errores. Corrígelas en tu archivo y vuelve a subirlo: no se guardará nada mientras haya errores.
-        </p>
+        <ErrorList messages={['Hay filas con errores. Corrígelas en tu archivo y vuelve a subirlo: no se guardará nada mientras haya errores.']} />
       ) : !preview.canImport ? (
-        <p className="border-l-2 border-line-strong bg-surface-2 px-3.5 py-2.5 text-sm text-muted">No hay productos para crear ni actualizar.</p>
+        <p className="text-sm text-fg-muted">No hay productos para crear ni actualizar.</p>
       ) : null}
 
-      <div className="flex items-center gap-3">
-        <FilterChip label="Resultado" options={options} value={filter} onChange={setFilter} />
-        <span className="num text-sm text-faint">
-          {formatInt(rows.length)} {rows.length === 1 ? 'fila' : 'filas'}
-        </span>
-      </div>
-
-      <div className="relative max-h-[45vh] overflow-auto border-y border-line">
+      <div className="relative max-h-[45vh] overflow-auto rounded-xl">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 bg-surface">
-            <tr className="text-left text-xs text-faint">
-              <th className="border-b border-line py-2 pr-3 font-normal">Fila</th>
-              <th className="border-b border-line px-3 py-2 font-normal">Código</th>
-              <th className="border-b border-line px-3 py-2 font-normal">Nombre</th>
-              <th className="border-b border-line px-3 py-2 font-normal">Resultado</th>
+          <thead className="sticky top-0 z-10 bg-page">
+            <tr className="text-left text-xs font-semibold text-fg-muted">
+              <th className="h-10 w-14 border-b border-rule px-3">Fila</th>
+              <th className="h-10 border-b border-rule px-3">Código</th>
+              <th className="h-10 border-b border-rule px-3">Nombre</th>
+              <th className="h-10 border-b border-rule px-3">Resultado</th>
             </tr>
           </thead>
           <tbody>
             {rows.slice(0, MAX_ROWS_SHOWN).map((r) => (
-              <tr key={r.rowNumber} className="border-b border-line align-top">
-                <td className="num py-2.5 pr-3 text-faint">{r.rowNumber}</td>
-                <td className="px-3 py-2.5 font-mono text-xs whitespace-nowrap">{r.code ?? '—'}</td>
-                <td className="px-3 py-2.5">{r.name ?? '—'}</td>
+              <tr key={r.rowNumber} className="align-top even:bg-stripe">
+                <td className="num px-3 py-3 text-fg-muted">{r.rowNumber}</td>
+                <td className="px-3 py-3 font-mono text-xs whitespace-nowrap text-fg-muted">{r.code ?? '—'}</td>
+                <td className="px-3 py-3">{r.name ?? '—'}</td>
                 <td className="px-3 py-2.5">
                   <Pill tone={r.action ? tones[r.action] : 'neutral'}>{r.actionDescription}</Pill>
                   {r.errors.length > 0 && (
-                    <ul className="mt-1 text-sm text-bad">
+                    <ul className="mt-1.5 flex flex-col gap-0.5 text-sm text-bad">
                       {r.errors.map((e) => (
-                        <li key={e}>{e}</li>
+                        <li key={e} className="flex gap-1.5">
+                          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+                          {e}
+                        </li>
                       ))}
                     </ul>
                   )}
                   {r.changes.length > 0 && (
-                    <ul className="mt-1 text-sm text-muted">
+                    <ul className="mt-1.5 text-sm text-fg-muted">
                       {/* En un producto nuevo no hay valor anterior: se muestra solo el que se va a crear. */}
                       {r.changes.map((c) => (
                         <li key={c.field}>
                           {c.field}:{' '}
                           {c.from != null && (
                             <>
-                              <span className="line-through">{c.from}</span> →{' '}
+                              <s className="text-disabled">{c.from}</s> →{' '}
                             </>
                           )}
-                          <span className="text-ink">{c.to}</span>
+                          <span className="font-medium text-fg">{c.to}</span>
                         </li>
                       ))}
                     </ul>
@@ -217,11 +251,11 @@ export function ReviewStep({ preview, errors }: { preview: ProductImportPreview;
           </tbody>
         </table>
       </div>
-      {rows.length > MAX_ROWS_SHOWN && (
-        <p className="text-xs text-faint">
-          Se muestran las primeras {MAX_ROWS_SHOWN} filas de {formatInt(rows.length)}.
-        </p>
-      )}
+      <p className="num text-xs text-fg-muted">
+        {rows.length > MAX_ROWS_SHOWN
+          ? `Se muestran las primeras ${MAX_ROWS_SHOWN} filas de ${formatInt(rows.length)}.`
+          : `${formatInt(rows.length)} ${rows.length === 1 ? 'fila' : 'filas'}`}
+      </p>
     </div>
   )
 }

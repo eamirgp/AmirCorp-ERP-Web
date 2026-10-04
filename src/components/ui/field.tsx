@@ -118,23 +118,32 @@ export function Field({
   label,
   hint,
   error,
+  prefix,
   children,
 }: {
   label: string
   hint?: string
   error?: string
+  /** Símbolo delante del valor ("S/"): aparece cuando la etiqueta sube. Va también en el nombre que leen los lectores de pantalla. */
+  prefix?: string
   children: (props: { id: string; 'aria-invalid': boolean; 'aria-describedby'?: string }) => ReactNode
 }) {
   const id = useId()
   const describedBy = error || hint ? `${id}-desc` : undefined
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <div className="float-field">
+      <div className={`float-field ${prefix ? 'has-prefix' : ''}`}>
         <FieldContext.Provider value={true}>{children({ id, 'aria-invalid': !!error, 'aria-describedby': describedBy })}</FieldContext.Provider>
         {/* Después del campo: se dibuja encima y el CSS la sube cuando el campo tiene foco o texto. */}
         <label htmlFor={id} className="float-label">
           {label}
+          {prefix && <span className="sr-only"> ({prefix})</span>}
         </label>
+        {prefix && (
+          <span className="float-prefix" aria-hidden>
+            {prefix}
+          </span>
+        )}
       </div>
       {error ? (
         <FieldError id={describedBy}>{error}</FieldError>

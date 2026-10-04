@@ -35,67 +35,6 @@ function Token({ label, value, onOpen, onRemove }: { label: string; value: React
   )
 }
 
-/**
- * Filtro suelto, para listas pequeñas dentro de un diálogo (ej.: el resultado de la importación).
- * Las pantallas de lista usan FilterBar, que junta todos los filtros en un panel.
- * - Sin valor: botón gris "Estado ⌄" que abre las opciones.
- * - Con valor: ficha "Estado: Activos" que se cambia con un clic y se quita con la ✕.
- */
-export function FilterChip<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string
-  options: Option<T>[]
-  value: T | undefined
-  onChange: (value: T | undefined) => void
-}) {
-  const selected = options.find((o) => o.value === value)
-
-  return (
-    <Menu.Root>
-      {selected ? (
-        <span className="inline-flex h-[30px] items-center rounded-full bg-ok-soft text-sm text-fg">
-          <Menu.Trigger className="flex h-full items-center gap-1 rounded-l-full pr-1 pl-3 outline-none focus-visible:shadow-focus">
-            {label}: <span className="font-semibold">{selected.label}</span>
-            <ChevronDown className="size-3.5 text-link" />
-          </Menu.Trigger>
-          <button
-            type="button"
-            onClick={() => onChange(undefined)}
-            className="press mr-1 flex size-[22px] items-center justify-center rounded-full text-link hover:bg-[rgb(42_116_69/0.12)]"
-            aria-label={`Quitar filtro ${label}`}
-          >
-            <X className="size-3.5" strokeWidth={2.5} />
-          </button>
-        </span>
-      ) : (
-        <Menu.Trigger className={popupClass}>
-          {label}
-          <ChevronDown className="text-fg-muted" />
-        </Menu.Trigger>
-      )}
-      <Menu.Portal>
-        <Menu.Content align="start" sideOffset={6} className={glassMenuClass}>
-          <Menu.Label className="px-2.5 pt-1 pb-1.5 text-xs text-fg-muted">Filtrar por {label.toLowerCase()}</Menu.Label>
-          <Menu.RadioGroup value={value ?? ''} onValueChange={(v) => onChange(v as T)}>
-            {options.map((o) => (
-              <Menu.RadioItem key={o.value} value={o.value} className={`${glassItemClass} pr-9`}>
-                {o.label}
-                <Menu.ItemIndicator className={checkClass}>
-                  <Check />
-                </Menu.ItemIndicator>
-              </Menu.RadioItem>
-            ))}
-          </Menu.RadioGroup>
-        </Menu.Content>
-      </Menu.Portal>
-    </Menu.Root>
-  )
-}
-
 // Al elegir una opción el menú sigue abierto: se elige el campo y la dirección de una vez, y la lista de atrás
 // se reordena al instante. Se cierra con un clic afuera o con Esc.
 const keepOpen = (e: Event) => e.preventDefault()

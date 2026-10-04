@@ -44,6 +44,11 @@ Aprobados en el lienzo de diseño y programados en `src/components/ui`, así que
 | Panel lateral (`Sheet`) | Filtros e historial: el mismo vidrio del menú lateral, flotando a la derecha (a 10 px de los bordes, esquinas de 22 px), entra desde la derecha (`animate-panel-in-right`). |
 | Encabezado de pantalla (`PageHeader`) | Título de 40 px (`text-display`), descripción de 17 px en gris y las acciones a la derecha. |
 | Sección de formulario (`Card`) | Sin tarjeta: un título de 24 px y una línea fina arriba. |
+| Prefijo de un monto (`Field prefix="S/"`) | El símbolo aparece delante del número cuando la etiqueta sube (`.float-prefix`); lo leen los lectores de pantalla junto a la etiqueta. La aclaración ("En soles, con IGV.") va como ayuda debajo, no en la etiqueta. Decisión 15. |
+| Interruptor (`SwitchRow`, HIG "Toggles") | Para encender o apagar una opción, dentro de una fila gris (`muted-fill`) con el texto a la izquierda. 51 × 31 px; encendido jade oscuro (`selected`, 5.2:1 sobre la fila), apagado gris (`switch-off`, `#8E8E93`, 3:1); la bolita blanca se desliza. Decisión 15. |
+| Lista agrupada | Como Ajustes de Apple: un bloque `muted-fill` con esquinas de 16 px y filas separadas por una línea fina (los códigos de proveedores de un producto). Decisión 15. |
+| Mosaicos de resumen | Como Recordatorios de Apple: cifra grande (League Spartan), un punto del color del resultado y el texto; un clic filtra y el elegido queda blanco con borde (resultado de una importación). Decisión 15. |
+| Opciones en tarjeta | Para elegir una entre pocas opciones con explicación (qué exportar): tarjetas grises con un círculo de marca; la elegida queda blanca, con borde y el círculo negro con check. Decisión 15. |
 
 Tokens nuevos en `styles.css`: `fill`, `fill-hover`, `muted-fill`, `stripe`, `row-hover`, `rule`, `ok-soft`, `dim`, sombras `shadow-sheet`, `shadow-toast`, `shadow-focus` y `shadow-error`, y tamaños `text-title` (26 px) y `text-display` (40 px).
 
@@ -155,7 +160,8 @@ En `src/components/ui/` (su aspecto está en "Componentes base", arriba):
 | `Button` (`Spinner`), `Input`, `Select`, `NumberInput`, `Field` | Controles de formulario; `Field` enlaza etiqueta, control y ayuda, y pone la etiqueta adentro |
 | `Dialog`, `ConfirmDialog`, `Sheet`, `toast` | Ventana de formulario, alerta de lo que no se puede deshacer, panel lateral y avisos |
 | `DataTable`, `RowMenu` | Tabla en franjas, con orden por columna, navegación por teclado y el menú "⋯" de cada fila |
-| `FilterBar`, `FilterChip`, `SortMenu` | Barra de filtros, fichas de filtro y menú de orden |
+| `FilterBar`, `SortMenu` | Barra de filtros (con sus fichas) y menú de orden |
+| `SwitchRow` | Fila con un interruptor de encendido y apagado |
 | `ListPanel`, `SearchBox`, `Pagination` | Agrupa la lista, buscador y pie de paginación |
 | `FloatingField`, `PillButton`, `InlineError` | Los del inicio de sesión: campo con etiqueta adentro, botón de 50 px y error junto a los campos |
 | `ListBody` (`ListError`, `EmptyState`, `Loading`) | Los estados de una lista: error con "Reintentar", cargando, filas, nada coincide con "Limpiar filtros" y estado inicial |

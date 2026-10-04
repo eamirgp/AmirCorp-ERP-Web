@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react'
+import { Check, Download } from 'lucide-react'
 import { useState } from 'react'
 import { errorText } from '@/api/client'
 import { exportProducts, type ProductExportParams } from '@/api/products'
@@ -31,8 +31,9 @@ export function useProductExport() {
 }
 
 /**
- * Con filtros aplicados, pregunta qué exportar: los productos que se ven (por defecto) o todos.
- * El Excel sale en el formato de la plantilla, así se puede editar y volver a importar.
+ * Con filtros aplicados, pregunta qué exportar: los productos que se ven (por defecto) o todos. Cada opción es una
+ * tarjeta con su marca; la elegida queda blanca con borde. El Excel sale en el formato de la plantilla, así se puede
+ * editar y volver a importar.
  */
 export function ProductExportDialog({
   open,
@@ -56,24 +57,33 @@ export function ProductExportDialog({
     if (ok) onClose()
   }
 
-  const option = (value: 'filtered' | 'all', title: string, hint: string) => (
-    <label
-      className={`flex cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 ${scope === value ? 'border-ink/40 bg-surface-2' : 'border-line hover:border-line-strong'}`}
-    >
-      <input type="radio" name="export-scope" className="mt-1 size-4 [accent-color:var(--ink)]" checked={scope === value} onChange={() => setScope(value)} />
-      <span>
-        <span className="block text-base font-medium">{title}</span>
-        <span className="block text-sm text-muted">{hint}</span>
-      </span>
-    </label>
-  )
+  const option = (value: 'filtered' | 'all', title: string, hint: string) => {
+    const checked = scope === value
+    return (
+      <label
+        className={`flex cursor-pointer items-center gap-3 rounded-[14px] px-3.5 py-3 transition-[background-color,box-shadow] duration-200 has-[:focus-visible]:shadow-focus ${checked ? 'bg-page shadow-[0_0_0_2px_var(--fg)]' : 'bg-muted-fill hover:bg-row-hover'}`}
+      >
+        <input type="radio" name="export-scope" className="sr-only" checked={checked} onChange={() => setScope(value)} />
+        <span
+          aria-hidden
+          className={`flex size-[22px] shrink-0 items-center justify-center rounded-full border-[1.5px] ${checked ? 'border-pill bg-pill text-pill-ink' : 'border-field-line'}`}
+        >
+          {checked && <Check className="size-3.5" strokeWidth={3} />}
+        </span>
+        <span>
+          <span className="block text-base font-semibold">{title}</span>
+          <span className="block text-sm text-fg-muted">{hint}</span>
+        </span>
+      </label>
+    )
+  }
 
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => !o && onClose()}
       title="Exportar productos"
-      description="El Excel sale en el formato de la plantilla: puedes editarlo y volver a importarlo."
+      description="Sale en el formato de la plantilla: puedes editarlo y volver a importarlo."
       footer={
         <>
           <Button onClick={onClose}>Cancelar</Button>
@@ -88,10 +98,10 @@ export function ProductExportDialog({
         <legend className="sr-only">Qué productos exportar</legend>
         {option(
           'filtered',
-          matching === undefined ? 'Solo los que estás viendo' : `Solo los que estás viendo (${countLabel(matching, 'producto', 'productos')})`,
-          'Con la búsqueda y los filtros aplicados, en el mismo orden de la pantalla.',
+          matching === undefined ? 'Solo los que estás viendo' : `Solo los que estás viendo · ${countLabel(matching, 'producto', 'productos')}`,
+          'Con la búsqueda y los filtros, en el mismo orden de la pantalla.',
         )}
-        {option('all', 'Todos los productos', 'Todo el catálogo, sin filtros.')}
+        {option('all', 'Todo el catálogo', 'Sin filtros.')}
       </fieldset>
     </Dialog>
   )

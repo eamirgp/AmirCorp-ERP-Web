@@ -83,6 +83,7 @@
   --stripe: #fafafa; /* filas pares de la tabla (#6E6E73 encima, 4.9:1) */
   --row-hover: #f0f0f2;
   --rule: #d2d2d7; /* línea bajo la cabecera de la tabla, borde de un campo bloqueado */
+  --switch-off: #8e8e93; /* interruptor apagado: 3:1 sobre la fila gris (WCAG 1.4.11); encendido, `selected` (5.2:1) */
   --ok-soft: #e4f2e8; /* pastilla "Activo" y fichas de filtro: jade #2A7445 encima, 4.9:1 */
   --dim: rgb(29 29 31 / 0.22); /* pantalla atenuada detrás de una ventana */
   --focus-ring: 0 0 0 4px rgb(90 175 118 / 0.28); /* halo jade del campo enfocado */
@@ -250,6 +251,7 @@
   --color-row-hover: var(--row-hover);
   --color-rule: var(--rule);
   --color-ok-soft: var(--ok-soft);
+  --color-switch-off: var(--switch-off);
   --color-dim: var(--dim);
   --shadow-sheet: var(--shadow-sheet);
   --shadow-toast: var(--shadow-toast);
@@ -569,6 +571,25 @@
   font-size: var(--text-label);
   font-weight: 500;
 }
+/* Prefijo de un monto ("S/"): aparece junto con el número, cuando la etiqueta ya subió. */
+.float-field.has-prefix input {
+  padding-left: 40px;
+}
+.float-prefix {
+  position: absolute;
+  top: 26px;
+  left: 17px;
+  font-size: var(--text-apple);
+  line-height: 1.2;
+  color: var(--fg-muted);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms var(--ease-apple);
+}
+.float-field:has(input:focus, input:not(:placeholder-shown)) .float-prefix {
+  opacity: 1;
+}
+
 /* El texto de ejemplo del campo (placeholder) solo se ve con el campo enfocado: vacío, la etiqueta hace de ejemplo. */
 .float-field input:not(:focus)::placeholder {
   color: transparent;

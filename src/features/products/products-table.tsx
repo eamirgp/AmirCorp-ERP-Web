@@ -26,7 +26,7 @@ export function ProductsTable({
 }) {
   const columns = useMemo(
     () => [
-      col.accessor('code', { header: 'Código', meta: { sortBy: 'Code' }, cell: (c) => <span className="font-mono text-xs whitespace-nowrap text-muted">{c.getValue()}</span> }),
+      col.accessor('code', { header: 'Código', meta: { sortBy: 'Code' }, cell: (c) => <span className="font-mono text-xs whitespace-nowrap text-fg-muted">{c.getValue()}</span> }),
       col.accessor('name', {
         header: 'Producto',
         meta: { sortBy: 'Name' },
@@ -34,17 +34,17 @@ export function ProductsTable({
         cell: (c) => (
           <span>
             {c.getValue()}
-            {c.row.original.searchMatch && <span className="block text-xs text-faint">{c.row.original.searchMatch}</span>}
+            {c.row.original.searchMatch && <span className="block text-xs text-fg-muted">{c.row.original.searchMatch}</span>}
           </span>
         ),
       }),
-      col.accessor('unitOfMeasureName', { header: 'Unidad', meta: { hideOnMobile: true }, cell: (c) => <span className="text-muted">{c.getValue()}</span> }),
+      col.accessor('unitOfMeasureName', { header: 'Unidad', meta: { hideOnMobile: true }, cell: (c) => <span className="text-fg-muted">{c.getValue()}</span> }),
       // Nombre corto en la tabla; el completo de SUNAT aparece al pasar el mouse.
       col.accessor('igvAffectationShortDescription', {
         header: 'IGV',
         meta: { hideOnMobile: true },
         cell: (c) => (
-          <span className="text-muted" title={c.row.original.igvAffectationDescription}>
+          <span className="text-fg-muted" title={c.row.original.igvAffectationDescription}>
             {c.getValue()}
           </span>
         ),

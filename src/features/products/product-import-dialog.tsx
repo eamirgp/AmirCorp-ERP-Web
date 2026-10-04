@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { CheckCircle2 } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { errorMessages } from '@/api/client'
 import { previewProductImport, useImportProducts, type ProductImportPreview } from '@/api/products'
@@ -66,7 +66,8 @@ export function ProductImportDialog({
       },
     )
 
-  const title = step === 'upload' ? 'Importar productos desde Excel' : step === 'review' ? 'Revisa antes de importar' : 'Importación terminada'
+  const title = step === 'upload' ? 'Importar productos' : step === 'review' ? 'Revisa antes de importar' : 'Importación terminada'
+  const description = step === 'upload' ? 'Crea o actualiza muchos productos a la vez desde Excel.' : step === 'review' ? file?.name : undefined
 
   return (
     <Dialog
@@ -74,7 +75,7 @@ export function ProductImportDialog({
       // Mientras se guarda no se puede cerrar: así nadie cree que canceló una importación que sigue en curso.
       onOpenChange={(o) => !o && !confirm.isPending && onClose()}
       title={title}
-      description={step === 'review' && file ? file.name : undefined}
+      description={description}
       width={step === 'review' ? 'max-w-4xl' : 'max-w-xl'}
       footer={
         step === 'upload' ? (
@@ -104,7 +105,7 @@ export function ProductImportDialog({
             </Button>
           </>
         ) : (
-          <Button variant="primary" onClick={onClose}>
+          <Button variant="primary" className="mx-auto min-w-40" onClick={onClose}>
             Listo
           </Button>
         )
@@ -122,10 +123,13 @@ export function ProductImportDialog({
       )}
       {step === 'review' && preview && <ReviewStep preview={preview} errors={confirm.isError ? errorMessages(confirm.error) : []} />}
       {step === 'done' && result && (
-        <div className="flex flex-col items-center gap-3 py-8 text-center">
-          <CheckCircle2 className="size-10 text-ok" strokeWidth={1.5} />
-          <p className="text-md">
-            Se crearon <strong>{formatInt(result.created)}</strong> y se actualizaron <strong>{formatInt(result.updated)}</strong> productos.
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          {/* Un check grande que llega creciendo, como la confirmación de Apple. */}
+          <span aria-hidden className="animate-arrive flex size-[72px] items-center justify-center rounded-full bg-ok-soft text-link">
+            <Check className="size-9" strokeWidth={2.25} />
+          </span>
+          <p className="text-lg">
+            Se crearon <strong className="num">{formatInt(result.created)}</strong> y se actualizaron <strong className="num">{formatInt(result.updated)}</strong> productos.
           </p>
         </div>
       )}

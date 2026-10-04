@@ -104,3 +104,15 @@ La tercera pieza del rediseño, aprobada en el lienzo de diseño. Se cambiaron l
 - **Tabla en franjas**, a pedido del dueño (Apple las sugiere en la Mac para tablas anchas), y sin tarjeta alrededor.
 - **Desactivar no pide confirmación** (reemplaza la regla "Confirmar lo que quita algo" de `diseno.md`). La guía de Apple pide no interrumpir con una alerta lo que se puede deshacer, y desactivar se deshace activando: la fila queda atenuada y un aviso dice lo que pasó. `useConfirmToggle` pasó a ser `useActivation`. La alerta (`ConfirmDialog`) queda para lo que pierde algo y no se puede deshacer: salir sin guardar una compra o cambiar el proveedor con productos en las líneas. Bloquear un cliente o proveedor sigue abriendo su ventana, porque pide el motivo.
 - **Ordenar con un clic en el título de una columna** (Apple, en la Mac: otro clic invierte el orden). Lo ordena la API (decisión 35 de la API, que agregó los campos que faltaban): productos por código, nombre y precio; clientes y proveedores por documento y nombre; compras por fecha, comprobante, proveedor, empresa y total. Fechas y montos empiezan de mayor a menor. El menú "Ordenar" sigue para lo que no es una columna (fecha de creación o de registro). Las listas cortas sin paginar (empresas, usuarios, unidades) no ordenan por columna: la API ya las devuelve en orden y ordenarlas en la pantalla sería lógica fuera de la API.
+
+### 15. Pantalla de Productos al estilo Apple
+**Fecha:** octubre 2026
+
+La primera pantalla rediseñada completa, aprobada en el lienzo de diseño. La lista ya usaba los componentes base; cambiaron sus ventanas:
+
+- **Formulario del producto:** el precio lleva "S/" delante del número (`Field prefix`) y la ayuda debajo ("En soles, con IGV.") en vez de dentro de la etiqueta. Los códigos de proveedores van en una lista agrupada, como Ajustes de Apple: un bloque gris con una fila por proveedor y "Agregar código de proveedor" al final.
+- **Importar, paso 1:** dos pasos numerados (descargar la plantilla, subir el archivo), una zona para soltar el archivo que, ya elegido, muestra su nombre, tamaño y "Cambiar", y "Actualizar los productos que ya existen" como interruptor en una fila (`SwitchRow`; la guía de Apple usa interruptores para encender o apagar una opción, dentro de una fila de lista).
+- **Importar, paso 2:** el resumen en mosaicos con la cifra grande (como Recordatorios de Apple). Un clic en un mosaico muestra solo esas filas y otro clic las muestra todas; reemplaza al filtro "Resultado", y `FilterChip` se quitó porque solo lo usaba esta ventana.
+- **Importar, paso 3:** un check grande en jade que llega creciendo.
+- **Exportar:** las dos opciones como tarjetas con su marca; la elegida queda blanca con borde.
+- **Historial:** la línea de tiempo en el panel de vidrio, con el evento más reciente en jade y cada cambio como "Precio de venta: ~~S/ 139.00~~ → S/ 149.00" (`ChangeList`, que también usa Auditoría).

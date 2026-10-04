@@ -36,11 +36,11 @@ function Timeline({ target }: { target: HistoryTarget }) {
 
   if (entries.length === 0)
     return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <HistoryIcon className="size-6 text-faint" strokeWidth={1.5} />
-        <p className="max-w-xs text-base text-muted">
-          Todavía no hay cambios registrados. Lo que se hizo antes de activar el historial no aparece aquí.
-        </p>
+      <div className="flex flex-col items-center gap-2.5 py-16 text-center">
+        <span aria-hidden className="flex size-14 items-center justify-center rounded-full bg-page text-fg-muted">
+          <HistoryIcon className="size-[26px]" strokeWidth={1.75} />
+        </span>
+        <p className="max-w-xs text-sm text-fg-muted">Todavía no hay cambios registrados. Lo que se hizo antes de activar el historial no aparece aquí.</p>
       </div>
     )
 
@@ -48,14 +48,14 @@ function Timeline({ target }: { target: HistoryTarget }) {
     <div className="flex flex-col gap-4">
       <ol className="flex flex-col">
         {entries.map((e, i) => (
-          <li key={e.id} className="relative flex gap-4 pb-6 last:pb-0">
-            {/* Línea que une los eventos */}
-            {i < entries.length - 1 && <span className="absolute top-4 bottom-0 left-[5px] w-px bg-line" aria-hidden />}
-            <span className={`relative mt-1.5 size-[11px] shrink-0 rounded-full border-2 ${i === 0 ? 'border-accent bg-accent' : 'border-line-strong bg-surface'}`} aria-hidden />
+          <li key={e.id} className="relative flex gap-3.5 pb-[22px] last:pb-0">
+            {/* Línea que une los eventos; el más reciente, en jade. */}
+            {i < entries.length - 1 && <span className="absolute top-4 bottom-0 left-[5px] w-px bg-rule" aria-hidden />}
+            <span className={`relative mt-1.5 size-[11px] shrink-0 rounded-full border-2 ${i === 0 ? 'border-selected bg-selected' : 'border-[#c7c7cc] bg-page'}`} aria-hidden />
             <div className="flex min-w-0 flex-1 flex-col gap-1.5">
               <div>
-                <p className="font-medium">{e.actionDescription}</p>
-                <p className="text-sm text-muted">
+                <p className="text-base font-semibold text-fg">{e.actionDescription}</p>
+                <p className="text-sm text-fg-muted">
                   {e.userName} · <span className="num">{formatDateTime(e.occurredAt)}</span>
                 </p>
               </div>
@@ -66,7 +66,7 @@ function Timeline({ target }: { target: HistoryTarget }) {
       </ol>
 
       {history.hasNextPage && (
-        <Button className="self-start" onClick={() => history.fetchNextPage()} loading={history.isFetchingNextPage}>
+        <Button size="sm" className="self-start" onClick={() => history.fetchNextPage()} loading={history.isFetchingNextPage}>
           Ver más
         </Button>
       )}
