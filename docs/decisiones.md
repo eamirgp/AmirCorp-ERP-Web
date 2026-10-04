@@ -182,3 +182,24 @@ El dueño notó cosas que "no encajaban" y se revisó todo el módulo de Product
 - **Guardar vista:** "Abrir siempre con esta vista" era una casilla cuadrada del navegador; ahora es el interruptor de Apple (`SwitchRow`).
 
 Quedan para una maqueta: la ventana "Administrar vistas" (recargada, "Eliminar" en azul) y la lista en el celular. Y, con un cambio en la API, los errores de cada campo debajo del campo.
+
+### 23. Administrar vistas y Productos en el celular
+**Fecha:** octubre 2026
+
+Las dos maquetas que quedaron de la decisión 22 (`VistasAdministrar` y `ProductosCelular` en el lienzo), aprobadas por el dueño.
+
+**Administrar vistas** (`ManageViewsDialog`): antes cada vista tenía tres botones de texto azul ("Usar filtros actuales", "Renombrar", "Eliminar") y un "¿Eliminar? Sí / No" en la misma fila.
+- Las vistas son una **lista agrupada** como Ajustes del iPhone (HIG "Lists and tables"): la estrella a la izquierda (azul y rellena en la que abre la pantalla, con "Se abre con esta" debajo del nombre) y un **"⋯"** a la derecha.
+- El "⋯" (`MoreMenu`, HIG "Pull-down buttons") tiene "Usar los filtros de ahora" (apagado si ya son los mismos), "Renombrar" y, separado, al final y en rojo, "Eliminar".
+- **Eliminar pregunta con la alerta de Apple** (`ConfirmDialog`), porque no se puede deshacer: "¿Eliminar la vista «Inactivos»?".
+- Renombrar cambia la fila por un campo compacto y "Listo"; Esc deja el nombre como estaba sin cerrar la ventana (el campo lleva `data-own-escape`, que `Dialog` respeta).
+- La ventana se cierra con **"Listo"** (azul), como las hojas de Apple que solo muestran algo, en vez de "Cerrar".
+
+**Productos en el celular** (menos de 768 px, `useIsPhone`): la computadora no cambia.
+- **Encabezado:** el título baja a 34 px (el "Large Title" del iPhone, `text-large-title`) y los tres botones se resumen en dos redondos junto al título: "⋯" de vidrio (Importar desde Excel, Exportar a Excel) y "+" azul (Nuevo producto), como la barra de una app del iPhone (`PageHeader compactActions`).
+- **Buscador a todo el ancho** y debajo, en **un carril que se desliza de lado**, las vistas, "Filtros" y "Ordenar" (como las barras de filtros de la App Store o Fotos): una sola línea en vez de tres. `FilterBar` recibe las vistas en `views`; en la computadora siguen en su propia fila, arriba.
+- **Filas como las del iPhone** en lugar de la tabla (`GroupedList`, estilo "inset grouped"): el nombre arriba (16 px), el código y la unidad debajo en gris, el precio a la derecha y la pastilla "Inactivo" solo si lo está (lo normal no se marca). Tocar la fila abre el producto.
+- **Cambio frente a la maqueta:** la maqueta tenía una flecha ">" a la derecha de cada fila. Con la flecha no había cómo ver el historial ni desactivar en el celular, así que en su lugar va el mismo **"⋯"** de la tabla, como en las filas de la app Archivos del iPhone.
+- **Pie compacto:** "1–10 de 214" y "‹ 1 / 22 ›". Las filas por página y los saltos a la primera y última página quedan para la computadora.
+
+Las demás listas (Clientes, Proveedores, Compras, Usuarios, Empresas, Auditoría) todavía ponen sus vistas fuera de `FilterBar` y usan la tabla en el celular; pasan a este diseño cuando se rediseñe cada una.

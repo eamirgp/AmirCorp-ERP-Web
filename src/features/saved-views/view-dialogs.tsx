@@ -1,11 +1,13 @@
-import { Star } from 'lucide-react'
+import { Pencil, RefreshCw, Star, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { errorMessages } from '@/api/client'
 import { useSavedViewMutations, type SavedView, type SavedViewScreen } from '@/api/saved-views'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog } from '@/components/ui/dialog'
 import { Field, Input } from '@/components/ui/field'
 import { ErrorList } from '@/components/ui/misc'
+import { MoreMenu } from '@/components/ui/more-menu'
 import { SwitchRow } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 
@@ -68,7 +70,11 @@ export function SaveViewDialog({ screen, filters, onClose }: { screen: SavedView
   )
 }
 
-/** Lista de vistas: cambiar la predeterminada, renombrar, actualizar con los filtros actuales o eliminar. */
+/**
+ * Lista de vistas como una lista agrupada de Apple: la estrella marca con cuál abre la pantalla, y cada fila tiene un
+ * menú "⋯" con "Usar los filtros de ahora", "Renombrar" y, al final y en rojo, "Eliminar" (que pide confirmación porque
+ * no se puede deshacer). "Listo" cierra, como en las hojas de Apple.
+ */
 export function ManageViewsDialog({
   screen,
   views,
@@ -102,22 +108,34 @@ export function ManageViewsDialog({
       },
     )
 
+  const deleting = views.find((v) => v.id === confirmDelete)
+
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()} title="Administrar vistas" width="max-w-2xl" footer={<Button onClick={onClose}>Cerrar</Button>}>
+    <Dialog
+      open
+      onOpenChange={(o) => !o && onClose()}
+      title="Administrar vistas"
+      description="La estrella marca con cuál se abre la pantalla."
+      footer={
+        <Button variant="primary" onClick={onClose}>
+          Listo
+        </Button>
+      }
+    >
       <div className="flex flex-col gap-3">
         <ErrorList messages={failed ? errorMessages(failed) : []} />
-        <ul className="flex flex-col">
+        <ul className="flex flex-col overflow-hidden rounded-2xl bg-muted-fill">
           {views.map((v) => (
-            <li key={v.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line py-3 last:border-b-0">
-              <button
-                type="button"
+            <li key={v.id} className="flex min-h-13 items-center gap-2.5 border-b border-hairline py-1.5 pr-1.5 pl-2 last:border-b-0">
+              <Button
+                size="icon"
+                variant="ghost"
                 onClick={() => save(v, { isDefault: !v.isDefault }, v.isDefault ? `«${v.name}» ya no es la predeterminada` : `«${v.name}» es tu vista predeterminada`)}
-                className={`rounded p-1 hover:bg-surface-2 ${v.isDefault ? 'text-accent' : 'text-faint hover:text-ink'}`}
                 aria-label={v.isDefault ? `Dejar de abrir con ${v.name}` : `Abrir siempre con ${v.name}`}
-                title={v.isDefault ? 'Vista predeterminada' : 'Abrir siempre con esta vista'}
+                title={v.isDefault ? 'La pantalla abre con esta vista' : 'Abrir siempre con esta vista'}
               >
-                <Star className="size-4" fill={v.isDefault ? 'currentColor' : 'none'} />
-              </button>
+                <Star className={v.isDefault ? 'text-selected' : 'text-disabled'} fill={v.isDefault ? 'currentColor' : 'none'} />
+              </Button>
 
               {renaming?.id === v.id ? (
                 <form
@@ -127,55 +145,64 @@ export function ManageViewsDialog({
                     save(v, { name: renaming.name }, 'Vista renombrada', () => setRenaming(null))
                   }}
                 >
-                  <Input className="h-9" autoFocus value={renaming.name} onChange={(e) => setRenaming({ id: v.id, name: e.target.value })} aria-label="Nuevo nombre" />
+                  <Input
+                    autoFocus
+                    value={renaming.name}
+                    onChange={(e) => setRenaming({ id: v.id, name: e.target.value })}
+                    // Esc deja el nombre como estaba, sin cerrar la ventana.
+                    data-own-escape
+                    onKeyDown={(e) => e.key === 'Escape' && setRenaming(null)}
+                    aria-label="Nombre de la vista"
+                  />
                   <Button size="sm" variant="primary" type="submit" loading={update.isPending}>
-                    Guardar
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setRenaming(null)}>
-                    Cancelar
+                    Listo
                   </Button>
                 </form>
               ) : (
                 <>
-                  <span className="min-w-0 flex-1 truncate text-base">
-                    {v.name}
-                    {v.isDefault && <span className="ml-2 text-xs text-faint">predeterminada</span>}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-base">{v.name}</span>
+                    {v.isDefault && <span className="block text-xs text-fg-muted">Se abre con esta</span>}
                   </span>
-                  {confirmDelete === v.id ? (
-                    <span className="flex items-center gap-1 text-sm">
-                      ¿Eliminar?
-                      <Button size="sm" variant="danger" loading={remove.isPending} onClick={() => remove.mutate(v.id, { onSuccess: () => toast.ok('Vista eliminada') })}>
-                        Sí, eliminar
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(null)}>
-                        No
-                      </Button>
-                    </span>
-                  ) : (
-                    <span className="flex flex-wrap items-center gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={v.filters === currentFilters}
-                        title={v.filters === currentFilters ? 'La pantalla ya tiene estos filtros' : undefined}
-                        onClick={() => save(v, { filters: currentFilters }, `«${v.name}» actualizada con los filtros actuales`)}
-                      >
-                        Usar filtros actuales
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setRenaming({ id: v.id, name: v.name })}>
-                        Renombrar
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(v.id)}>
-                        Eliminar
-                      </Button>
-                    </span>
-                  )}
+                  <MoreMenu
+                    label={`Más opciones de ${v.name}`}
+                    items={[
+                      {
+                        label: 'Usar los filtros de ahora',
+                        icon: <RefreshCw />,
+                        disabled: v.filters === currentFilters,
+                        onSelect: () => save(v, { filters: currentFilters }, `«${v.name}» ahora usa los filtros de la pantalla`),
+                      },
+                      { label: 'Renombrar', icon: <Pencil />, onSelect: () => setRenaming({ id: v.id, name: v.name }) },
+                      { label: 'Eliminar', icon: <Trash2 />, danger: true, onSelect: () => setConfirmDelete(v.id) },
+                    ]}
+                  />
                 </>
               )}
             </li>
           ))}
         </ul>
       </div>
+
+      {/* Eliminar no se puede deshacer: se pregunta con la alerta de Apple. */}
+      <ConfirmDialog
+        open={!!deleting}
+        title={`¿Eliminar la vista «${deleting?.name ?? ''}»?`}
+        confirmLabel="Eliminar"
+        pending={remove.isPending}
+        onCancel={() => setConfirmDelete(null)}
+        onConfirm={() =>
+          deleting &&
+          remove.mutate(deleting.id, {
+            onSuccess: () => {
+              toast.ok('Vista eliminada')
+              setConfirmDelete(null)
+            },
+          })
+        }
+      >
+        No se puede deshacer. Los registros de la lista no cambian.
+      </ConfirmDialog>
     </Dialog>
   )
 }

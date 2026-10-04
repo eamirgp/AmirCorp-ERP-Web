@@ -9,16 +9,18 @@ import { Button } from '@/components/ui/button'
 import { FilterBar, SortMenu, type Option } from '@/components/ui/filters'
 import { ListBody, Pagination, SearchBox, ListPanel } from '@/components/ui/list-controls'
 import { PageHeader } from '@/components/ui/misc'
+import { MoreMenu } from '@/components/ui/more-menu'
 import { HistorySheet, type HistoryTarget } from '@/features/audit/history-sheet'
 import { ProductExportDialog, useProductExport } from '@/features/products/product-export-dialog'
 import { ProductFormDialog } from '@/features/products/product-form-dialog'
 import { ProductImportDialog } from '@/features/products/product-import-dialog'
-import { ProductsTable } from '@/features/products/products-table'
+import { ProductsList, ProductsTable } from '@/features/products/products-table'
 import { useActivation } from '@/features/shared/use-activation'
 import { ViewTabs } from '@/features/saved-views/view-tabs'
 import { applyDefaultView, isCustomized } from '@/features/saved-views/view-filters'
 import { directionSchema, pageSchema, pageSizeSchema, nextSort, shownSort, sortSearch, statusOptions, statusSchema } from '@/lib/filters'
 import { useHotkey } from '@/lib/hotkeys'
+import { useIsPhone } from '@/lib/use-media-query'
 
 // El estado de la pantalla vive en la URL: se puede compartir, recargar y usar el botón Atrás.
 const sortOptions: Option<ProductSortBy>[] = [
@@ -68,7 +70,9 @@ function ProductsPage() {
   const exportParams = { q, status, sortBy, descending }
   // Sin filtros descarga todo al instante; con filtros pregunta si solo lo que se ve o todo.
   const startExport = () => (hasFilters ? setExporting(true) : void exporter.run(exportParams))
+  const openImport = () => navigate({ search: (prev) => ({ ...prev, importar: true }) })
   const closeImport = () => navigate({ search: (prev) => ({ ...prev, importar: undefined }), replace: true })
+  const phone = useIsPhone()
 
   const openNew = () => navigate({ search: (prev) => ({ ...prev, nuevo: true }) })
   const closeForm = () => {
@@ -98,7 +102,7 @@ function ProductsPage() {
         description="Catálogo compartido por tus empresas."
         actions={
           <>
-            <Button onClick={() => navigate({ search: (prev) => ({ ...prev, importar: true }) })}>
+            <Button onClick={openImport}>
               <FileSpreadsheet />
               Importar
             </Button>
@@ -112,11 +116,27 @@ function ProductsPage() {
             </Button>
           </>
         }
+        compactActions={
+          <>
+            <MoreMenu
+              glass
+              label="Importar o exportar"
+              busy={exporter.busy}
+              items={[
+                { label: 'Importar desde Excel', icon: <FileSpreadsheet />, onSelect: openImport },
+                { label: 'Exportar a Excel', icon: <Download />, onSelect: startExport },
+              ]}
+            />
+            <Button size="icon" variant="primary" onClick={openNew} aria-label="Nuevo producto" title="Nuevo producto">
+              <Plus />
+            </Button>
+          </>
+        }
       />
 
       <ListPanel>
-        <ViewTabs screen="Products" search={search} onApply={(s) => navigate({ search: s as Search })} />
         <FilterBar
+          views={<ViewTabs screen="Products" search={search} onApply={(s) => navigate({ search: s as Search })} />}
           busy={list.isFetching && !list.isPending}
           search={<SearchBox value={search.q} onSearch={onSearch} placeholder="Buscar productos" hint="Por código interno, código de proveedor o nombre" />}
           filters={[
@@ -161,16 +181,17 @@ function ProductsPage() {
             ),
           }}
         >
-          {(rows) => (
-            <ProductsTable
-              rows={rows}
-              onEdit={setEditing}
-              onToggle={activation.request}
-              busyId={activation.busyId}
-              sort={sort && { ...sort, onSort: sortByColumn }}
-              onHistory={(p) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` })}
-            />
-          )}
+          {(rows) => {
+            const props = {
+              rows,
+              onEdit: setEditing,
+              onToggle: activation.request,
+              busyId: activation.busyId,
+              onHistory: (p: ProductRow) => setHistory({ entityType: 'Product', entityId: p.id, label: `${p.code} · ${p.name}` }),
+            }
+            // En el celular, filas como las del iPhone en vez de la tabla.
+            return phone ? <ProductsList {...props} /> : <ProductsTable {...props} sort={sort && { ...sort, onSort: sortByColumn }} />
+          }}
         </ListBody>
 
         <Pagination

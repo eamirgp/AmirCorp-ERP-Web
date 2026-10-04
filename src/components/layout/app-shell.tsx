@@ -7,6 +7,7 @@ import { useEffect, useId, useState, type ComponentProps, type ReactNode } from 
 import { meQuery } from '@/api/account'
 import { brand } from '@/brand'
 import { LogoMark } from '@/brand/logo'
+import { glassButtonClass } from '@/components/ui/button'
 import { useClickMenu } from '@/components/ui/menu'
 import { session } from '@/lib/session'
 import { moduleTitle, navGroups, type NavGroup, type NavItem } from './nav'
@@ -110,7 +111,7 @@ function GlassButton({ className = '', ...props }: ComponentProps<'button'>) {
     <button
       type="button"
       {...props}
-      className={`press flex size-9 flex-none items-center justify-center rounded-full bg-glass text-fg shadow-[0_0_0_1px_var(--glass-line),0_2px_8px_rgb(29_29_31/0.06)] backdrop-blur-xl hover:bg-white ${className}`}
+      className={`press flex size-9 flex-none items-center justify-center rounded-full ${glassButtonClass} ${className}`}
     >
       <PanelLeft className="size-[19px]" strokeWidth={1.75} />
     </button>

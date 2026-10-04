@@ -59,9 +59,10 @@ export function Dialog({
               }
             }}
             // Esc en un buscador con la lista abierta cierra solo la lista (lo hace el buscador); el siguiente Esc cierra la
-            // ventana. Radix escucha Esc antes que el campo, por eso se revisa aquí.
+            // ventana. Lo mismo en un campo marcado con `data-own-escape`, que usa Esc para lo suyo (por ejemplo, dejar de
+            // renombrar una vista). Radix escucha Esc antes que el campo, por eso se revisa aquí.
             onEscapeKeyDown={(e) => {
-              if (e.target instanceof Element && e.target.closest('[role="combobox"][aria-expanded="true"]')) e.preventDefault()
+              if (e.target instanceof Element && e.target.closest('[role="combobox"][aria-expanded="true"], [data-own-escape]')) e.preventDefault()
               // Con algo escrito, Esc no lo borra todo de golpe: se cierra con Cancelar o la X.
               else if (edited.current || saving()) e.preventDefault()
             }}

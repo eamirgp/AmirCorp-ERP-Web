@@ -200,6 +200,9 @@
   --text-title--line-height: 1.15;
   --text-display: 40px;
   --text-display--line-height: 1.1;
+  /* El título grande del iPhone (HIG "Typography": Large Title, 34 pt): el de cada pantalla en el celular. */
+  --text-large-title: 34px;
+  --text-large-title--line-height: 1.1;
   /* La curva de frenado suave de Apple, para entradas y cambios de estado. */
   --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
   /* La curva de los paneles que entran y salen (el menú lateral): arranca rápido y se asienta sin rebotar. */

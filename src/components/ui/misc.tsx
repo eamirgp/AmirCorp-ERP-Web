@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useIsPhone } from '@/lib/use-media-query'
 import { InlineError } from './inline-error'
 
 type Tone = 'ok' | 'warn' | 'bad' | 'neutral'
@@ -21,15 +22,30 @@ export function Kbd({ children }: { children: ReactNode }) {
   return <kbd className="inline-flex h-6 min-w-6 items-center justify-center rounded-md bg-muted-fill px-1.5 font-sans text-2xs text-fg-muted">{children}</kbd>
 }
 
-/** Encabezado de una pantalla: el título grande (como los de Apple), su descripción y las acciones a la derecha. */
-export function PageHeader({ title, description, actions }: { title: string; description?: string; actions?: ReactNode }) {
+/**
+ * Encabezado de una pantalla: el título grande (como los de Apple), su descripción y las acciones a la derecha.
+ * En el celular, si se pasa `compactActions`, esas reemplazan a `actions` junto al título: botones redondos de solo
+ * ícono, como la barra de una app del iPhone ("⋯" con lo secundario y un "+" azul para crear).
+ */
+export function PageHeader({
+  title,
+  description,
+  actions,
+  compactActions,
+}: {
+  title: string
+  description?: string
+  actions?: ReactNode
+  compactActions?: ReactNode
+}) {
+  const compact = useIsPhone() && !!compactActions
   return (
-    <header className="flex flex-col gap-x-6 gap-y-4 pt-2 sm:flex-row sm:items-end">
+    <header className={`flex gap-y-4 pt-2 ${compact ? 'items-end gap-x-2.5' : 'flex-col gap-x-6 sm:flex-row sm:items-end'}`}>
       <div className="min-w-0 flex-1">
-        <h1 className="font-display text-display font-bold tracking-[-0.025em] text-fg">{title}</h1>
-        {description && <p className="mt-1.5 max-w-2xl text-apple text-fg-muted">{description}</p>}
+        <h1 className="font-display text-display font-bold tracking-[-0.025em] text-fg max-md:text-large-title">{title}</h1>
+        {description && <p className="mt-1.5 max-w-2xl text-apple text-fg-muted max-md:mt-1 max-md:text-sm">{description}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
+      {compact ? <div className="flex flex-none items-center gap-2.5 pb-0.5">{compactActions}</div> : actions && <div className="flex flex-wrap items-center gap-2.5">{actions}</div>}
     </header>
   )
 }

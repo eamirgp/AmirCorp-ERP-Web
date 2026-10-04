@@ -107,12 +107,14 @@ export function Pagination({
 }) {
   if (!info || info.totalCount === 0) return null
   return (
-    <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-1 pl-4 text-sm text-fg-muted">
+    <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-1 pl-1 text-sm md:pl-4 text-fg-muted">
       <span className="num">
         {formatInt(info.from)}–{formatInt(info.to)} de {formatInt(info.totalCount)}
       </span>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex items-center gap-2 whitespace-nowrap">
+        {/* En el celular el pie se resume: el rango y "‹ 1 / 22 ›". Las filas por página y los saltos al inicio y al
+            final quedan para la computadora. */}
+        <div className="flex items-center gap-2 whitespace-nowrap max-md:hidden">
           <span aria-hidden>Filas por página</span>
           <Select popup aria-label="Filas por página" className="num" value={info.pageSize} onChange={(e) => {
               const size = Number(e.target.value)
@@ -129,7 +131,7 @@ export function Pagination({
           // Solo íconos: las flechas de página se reconocen sin texto. El nombre sale al pasar el mouse y lo leen los
           // lectores de pantalla.
           <div className="flex items-center gap-1">
-            <PageButton label="Primera página" disabled={!info.hasPreviousPage} onClick={() => onPage(1)}>
+            <PageButton label="Primera página" className="max-md:hidden" disabled={!info.hasPreviousPage} onClick={() => onPage(1)}>
               <ChevronsLeft />
             </PageButton>
             <PageButton label="Página anterior" disabled={!info.hasPreviousPage} onClick={() => onPage(info.page - 1)}>
@@ -141,7 +143,7 @@ export function Pagination({
             <PageButton label="Página siguiente" disabled={!info.hasNextPage} onClick={() => onPage(info.page + 1)}>
               <ChevronRight />
             </PageButton>
-            <PageButton label="Última página" disabled={!info.hasNextPage} onClick={() => onPage(info.totalPages)}>
+            <PageButton label="Última página" className="max-md:hidden" disabled={!info.hasNextPage} onClick={() => onPage(info.totalPages)}>
               <ChevronsRight />
             </PageButton>
           </div>
@@ -151,9 +153,21 @@ export function Pagination({
   )
 }
 
-function PageButton({ label, disabled, onClick, children }: { label: string; disabled: boolean; onClick: () => void; children: ReactNode }) {
+function PageButton({
+  label,
+  disabled,
+  onClick,
+  className,
+  children,
+}: {
+  label: string
+  disabled: boolean
+  onClick: () => void
+  className?: string
+  children: ReactNode
+}) {
   return (
-    <Button size="icon" disabled={disabled} onClick={onClick} aria-label={label} title={label}>
+    <Button size="icon" disabled={disabled} onClick={onClick} aria-label={label} title={label} className={className}>
       {children}
     </Button>
   )

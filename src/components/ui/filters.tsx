@@ -122,10 +122,15 @@ function valueLabel(f: FilterDef) {
  *   Estado: Activos ✕   Desde: 28/09/2026 ✕   Limpiar filtros        ← solo si hay filtros aplicados
  * Todos los filtros viven en un panel lateral que abre "Filtros": la barra se ve igual con 1 o con 10.
  * Debajo solo aparece lo aplicado, como fichas, para ver siempre qué filtra la lista y quitarlo con un clic.
- * Las vistas guardadas van arriba, como control segmentado (ViewTabs). En las listas paginadas el total va en el pie.
+ * Las vistas guardadas (`views`, el control segmentado ViewTabs) van arriba, en su propia fila. En las listas
+ * paginadas el total va en el pie.
+ *
+ * En el celular el buscador ocupa toda la fila y debajo, en un carril que se desliza de lado, van las vistas, "Filtros"
+ * y "Ordenar" (como las barras de filtros de la App Store o Fotos en el iPhone): una sola línea en vez de tres.
  */
 export function FilterBar({
   search,
+  views,
   filters = [],
   onClear,
   count,
@@ -133,6 +138,7 @@ export function FilterBar({
   busy,
 }: {
   search: ReactNode
+  views?: ReactNode
   filters?: FilterDef[]
   /** Si se pasa, muestra "Limpiar filtros". Pásalo solo cuando la lista esté filtrada, buscada u ordenada. */
   onClear?: () => void
@@ -145,29 +151,34 @@ export function FilterBar({
 
   return (
     <div className="flex flex-col gap-2.5">
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
-        {search}
-        {filters.length > 0 && (
-          <button type="button" className={popupClass} onClick={() => setPanelOpen(true)} aria-haspopup="dialog">
-            <SlidersHorizontal className="text-fg-muted" />
-            Filtros
-            {applied.length > 0 && (
-              <span className="num inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-pill px-1.5 text-label font-semibold text-pill-ink">{applied.length}</span>
-            )}
-          </button>
-        )}
-        {sort}
-        {onClear && applied.length === 0 && (
-          <Button size="sm" variant="ghost" onClick={onClear}>
-            Limpiar filtros
-          </Button>
-        )}
-        {(busy || count) && (
-          <div className="ml-auto flex items-center gap-2 text-sm text-fg-muted">
-            {busy && <span>Actualizando…</span>}
-            {count && <span className="num">{count}</span>}
-          </div>
-        )}
+      {/* En la computadora el carril se "deshace" (contents) y sus botones quedan en la misma fila que el buscador;
+          las vistas suben a una fila propia con `order`. */}
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-3 md:gap-y-2">
+        <div className="w-full sm:w-auto md:order-2">{search}</div>
+        <div className="-mx-4 flex w-[calc(100%+2rem)] items-center gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:-mx-8 sm:w-[calc(100%+4rem)] sm:px-8 md:contents [&::-webkit-scrollbar]:hidden">
+          {views && <div className="flex shrink-0 items-center md:order-1 md:mb-0.5 md:w-full">{views}</div>}
+          {filters.length > 0 && (
+            <button type="button" className={`${popupClass} md:order-3`} onClick={() => setPanelOpen(true)} aria-haspopup="dialog">
+              <SlidersHorizontal className="text-fg-muted" />
+              Filtros
+              {applied.length > 0 && (
+                <span className="num inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-pill px-1.5 text-label font-semibold text-pill-ink">{applied.length}</span>
+              )}
+            </button>
+          )}
+          {sort && <div className="flex shrink-0 md:order-3">{sort}</div>}
+          {onClear && applied.length === 0 && (
+            <Button size="sm" variant="ghost" className="md:order-3" onClick={onClear}>
+              Limpiar filtros
+            </Button>
+          )}
+          {(busy || count) && (
+            <div className="flex shrink-0 items-center gap-2 text-sm whitespace-nowrap text-fg-muted md:order-4 md:ml-auto">
+              {busy && <span>Actualizando…</span>}
+              {count && <span className="num">{count}</span>}
+            </div>
+          )}
+        </div>
       </div>
 
       {applied.length > 0 && (

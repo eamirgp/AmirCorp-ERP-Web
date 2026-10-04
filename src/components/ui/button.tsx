@@ -1,6 +1,6 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'glass'
 type Size = 'sm' | 'md' | 'icon'
 
 /**
@@ -10,12 +10,16 @@ type Size = 'sm' | 'md' | 'icon'
  * - secondary: píldora gris.
  * - ghost: solo texto en azul (acción simple, como "Limpiar filtros"); con un ícono solo, un círculo sin fondo.
  * - danger: texto rojo sobre gris, para lo que quita algo.
+ * - glass: botón redondo de vidrio de las barras (HIG "Toolbars"), como el del menú lateral; en el celular, el "⋯" del
+ *   encabezado.
  */
+export const glassButtonClass = 'bg-glass text-fg shadow-[0_0_0_1px_var(--glass-line),0_2px_8px_rgb(29_29_31/0.06)] backdrop-blur-xl hover:bg-white'
 const variants: Record<Variant, string> = {
   primary: 'bg-pill text-pill-ink hover:bg-pill-hover',
   secondary: 'bg-fill text-fg hover:bg-fill-hover',
   ghost: 'bg-transparent text-link hover:bg-link-tint',
   danger: 'bg-fill text-bad hover:bg-fill-hover',
+  glass: glassButtonClass,
 }
 
 // 44 px el normal (el mínimo que pide Apple para tocar o hacer clic) y 36 px el compacto, en barras y tablas.
@@ -44,7 +48,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   ref,
 ) {
   // Un botón de solo ícono no lleva fondo gris: es un símbolo sin borde, como en las barras de Apple.
-  const look = size === 'icon' && variant !== 'primary' ? 'bg-transparent text-fg hover:bg-hover' : variants[variant]
+  const look = size === 'icon' && variant !== 'primary' && variant !== 'glass' ? 'bg-transparent text-fg hover:bg-hover' : variants[variant]
   return (
     <button
       ref={ref}

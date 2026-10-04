@@ -1,9 +1,7 @@
-import * as Menu from '@radix-ui/react-dropdown-menu'
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef, type RowData } from '@tanstack/react-table'
-import { ChevronUp, MoreHorizontal } from 'lucide-react'
+import { ChevronUp } from 'lucide-react'
 import type { KeyboardEvent, ReactNode } from 'react'
-import { Button } from './button'
-import { glassItemClass, glassMenuClass, useClickMenu } from './menu'
+import { MoreMenu, type MenuAction } from './more-menu'
 
 declare module '@tanstack/react-table' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -139,51 +137,16 @@ export function RowActions({ children }: { children: ReactNode }) {
   )
 }
 
-export interface RowMenuItem {
-  label: string
-  icon: ReactNode
-  onSelect: () => void
-  /** Acción que quita algo (desactivar, anular): se muestra en rojo y separada. */
-  danger?: boolean
-}
-
+export type RowMenuItem = MenuAction
 
 /**
- * Botón "⋯" de una fila con sus acciones escritas en un menú (HIG "Pull-down buttons": una lista de acciones): la tabla
- * queda limpia y cada acción dice con palabras lo que hace. Lo que quita algo va al final, en rojo y separado. Un clic
- * en la fila sigue abriendo el registro.
+ * Botón "⋯" de una fila con sus acciones escritas en un menú (MoreMenu): la tabla queda limpia y cada acción dice con
+ * palabras lo que hace. Un clic en la fila sigue abriendo el registro; el del botón no.
  */
 export function RowMenu({ label, items, busy }: { label: string; items: RowMenuItem[]; busy?: boolean }) {
-  const normal = items.filter((i) => !i.danger)
-  const danger = items.filter((i) => i.danger)
-  const menu = useClickMenu()
-
   return (
     <RowActions>
-      <Menu.Root {...menu.root}>
-        <Menu.Trigger asChild {...menu.trigger}>
-          <Button size="icon" variant="ghost" loading={busy} aria-label={`Acciones para ${label}`} title="Acciones">
-            <MoreHorizontal />
-          </Button>
-        </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Content {...menu.content} align="end" sideOffset={4} className={glassMenuClass}>
-            {normal.map((i) => (
-              <Menu.Item key={i.label} className={`${glassItemClass} [&_svg]:text-fg-muted`} onSelect={i.onSelect}>
-                {i.icon}
-                {i.label}
-              </Menu.Item>
-            ))}
-            {danger.length > 0 && normal.length > 0 && <Menu.Separator className="mx-2 my-1.5 h-px bg-hairline" />}
-            {danger.map((i) => (
-              <Menu.Item key={i.label} className={`${glassItemClass} text-bad`} onSelect={i.onSelect}>
-                {i.icon}
-                {i.label}
-              </Menu.Item>
-            ))}
-          </Menu.Content>
-        </Menu.Portal>
-      </Menu.Root>
+      <MoreMenu label={`Acciones para ${label}`} items={items} busy={busy} />
     </RowActions>
   )
 }
