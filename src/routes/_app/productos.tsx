@@ -95,7 +95,7 @@ function ProductsPage() {
     <>
       <PageHeader
         title="Productos"
-        description="Catálogo compartido por tus empresas. El stock y el costo se llevan por separado en cada una."
+        description="Catálogo compartido por tus empresas."
         actions={
           <>
             <Button onClick={() => navigate({ search: (prev) => ({ ...prev, importar: true }) })}>
