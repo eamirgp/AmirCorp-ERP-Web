@@ -3117,8 +3117,16 @@ export interface components {
         };
         /** @enum {unknown} */
         Currency: "PEN" | "USD" | null;
+        /**
+         * @description La forma de toda respuesta de error: `{ "errors": [{ "message": "...", "field": "code" }] }`. `field` dice
+         *     de qué campo del pedido es el error (la pantalla lo pone debajo de ese campo); si es null, es del pedido entero
+         *     (decisión 37).
+         */
         ErrorResponse: {
-            errors: string[];
+            errors: {
+                message: string;
+                field?: null | string;
+            }[];
         };
         FoundBusinessPartnerDto: {
             /** Format: uuid */

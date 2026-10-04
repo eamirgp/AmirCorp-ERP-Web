@@ -1,7 +1,10 @@
 import createClient, { type Middleware } from 'openapi-fetch'
 import { session } from '@/lib/session'
 import { apiBaseUrl } from './base-url'
+import { readErrors, type ApiErrorDetail } from './errors'
 import type { components, paths } from './schema'
+
+export type { ApiErrorDetail }
 
 /** Tipos de los DTOs de la API, generados desde su contrato OpenAPI (npm run api:generate). */
 export type Schemas = components['schemas']
@@ -22,10 +25,9 @@ const retries = new WeakMap<Request, Request>()
  */
 const userChanged = () =>
   new Response(
-    JSON.stringify({ errors: ['En este navegador se inició sesión con otro usuario. Revisa los datos y vuelve a intentarlo.'] }),
+    JSON.stringify({ errors: [{ message: 'En este navegador se inició sesión con otro usuario. Revisa los datos y vuelve a intentarlo.', field: null }] }),
     { status: 409, headers: { 'Content-Type': 'application/json' } },
   )
-
 const auth: Middleware = {
   async onRequest({ request }) {
     // El token de acceso dura 15 minutos: si está por vencer, se renueva antes de enviar el pedido. Así la sesión se
@@ -62,8 +64,8 @@ const auth: Middleware = {
 
     // La API ya no acepta al usuario (por ejemplo, lo desactivaron): se cierra la sesión y el router lleva al login, que
     // muestra el motivo.
-    const body = (await response.clone().json().catch(() => null)) as { errors?: unknown } | null
-    session.end(Array.isArray(body?.errors) && body.errors.length > 0 ? String(body.errors[0]) : undefined)
+    const errors = readErrors(await response.clone().json().catch(() => null))
+    session.end(errors[0]?.message)
     return response
   },
 }
@@ -74,14 +76,20 @@ api.use(auth)
 export class ApiError extends Error {
   readonly status: number
   readonly messages: string[]
+  /** Los mismos errores con su campo, para ponerlos debajo de él (`applyApiErrors`). */
+  readonly details: ApiErrorDetail[]
 
-  constructor(status: number, messages: string[]) {
+  constructor(status: number, details: ApiErrorDetail[]) {
+    const messages = details.map((d) => d.message)
     super(messages.join(' '))
     this.name = 'ApiError'
     this.status = status
     this.messages = messages
+    this.details = details
   }
 }
+
+const general = (message: string): ApiErrorDetail[] => [{ message, field: null }]
 
 /** Sin conexión con el servidor (sin internet, o el sistema apagado o reiniciándose). */
 export const CONNECTION_ERROR = 'No se pudo conectar con el sistema. Revisa tu conexión a internet e inténtalo de nuevo.'
@@ -95,27 +103,25 @@ const fallbackMessages: Record<number, string> = {
 }
 
 /**
- * Espera la respuesta de openapi-fetch y devuelve sus datos, o lanza ApiError con los mensajes
- * que envió la API ({ errors: [...] }).
+ * Espera la respuesta de openapi-fetch y devuelve sus datos, o lanza ApiError con los errores
+ * que envió la API ({ errors: [{ message, field }] }).
  */
 export async function unwrap<T>(request: Promise<{ data?: T; error?: unknown; response: Response }>): Promise<T> {
   let result: { data?: T; error?: unknown; response: Response }
   try {
     result = await request
   } catch {
-    throw new ApiError(0, [CONNECTION_ERROR])
+    throw new ApiError(0, general(CONNECTION_ERROR))
   }
 
   const { data, error, response } = result
   if (response.ok) return data as T
 
-  const body = error as { errors?: unknown } | undefined
-  const messages =
-    Array.isArray(body?.errors) && body.errors.length > 0
-      ? body.errors.map(String)
-      : [fallbackMessages[response.status] ?? 'Ocurrió un error inesperado. Inténtalo de nuevo.']
-
-  throw new ApiError(response.status, messages)
+  const errors = readErrors(error)
+  throw new ApiError(
+    response.status,
+    errors.length > 0 ? errors : general(fallbackMessages[response.status] ?? 'Ocurrió un error inesperado. Inténtalo de nuevo.'),
+  )
 }
 
 export const errorMessages = (error: unknown): string[] =>

@@ -8,6 +8,7 @@
  * - La sesión vence tras 8 horas sin usar el sistema (`sessionExpiresAt`, lo dice la API).
  */
 import { apiBaseUrl } from '@/api/base-url'
+import { readErrors } from '@/api/errors'
 
 type Listener = () => void
 type SessionResponse = { token: string; sessionExpiresAt: string }
@@ -127,9 +128,7 @@ export const session = {
       // Solo un 401 cierra la sesión. Sin conexión o con un error del servidor (500, 503) sigue abierta: el pedido
       // fallará con su mensaje y se podrá reintentar.
       if (response?.status === 401) {
-        const body = (await response.json().catch(() => null)) as { errors?: unknown } | null
-        const errors = Array.isArray(body?.errors) ? (body.errors as unknown[]) : []
-        session.end(errors.length > 0 ? String(errors[0]) : undefined)
+        session.end(readErrors(await response.json().catch(() => null))[0]?.message)
       }
       return false
     })().finally(() => (refreshing = null))

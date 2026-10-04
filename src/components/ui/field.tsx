@@ -55,8 +55,11 @@ export const NumberInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTML
   )
 })
 
-/** Error junto al campo, en rojo y con ícono (Apple: avisar cerca de lo que describe). */
-function FieldError({ id, role, children }: { id?: string; role?: 'alert'; children: ReactNode }) {
+/**
+ * Error junto al campo, en rojo y con ícono (Apple: avisar cerca de lo que describe). `Field` lo usa solo; un campo
+ * compacto (una fila de una lista) lo pone debajo.
+ */
+export function FieldError({ id, role, children }: { id?: string; role?: 'alert'; children: ReactNode }) {
   return (
     <p id={id} role={role} className="flex gap-1.5 px-1 text-sm text-bad">
       <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />

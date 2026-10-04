@@ -222,3 +222,17 @@ Reemplaza en esto a la decisión 21, que hablaba del "halo del campo enfocado". 
 **Fecha:** octubre 2026
 
 El dueño pidió quitar el texto "Se abre con esta" debajo del nombre de la vista predeterminada (decisión 23): la descripción de la ventana ("La estrella marca con cuál se abre la pantalla.") y la estrella azul ya lo dicen. Cada fila muestra solo el nombre. Los lectores de pantalla lo siguen sabiendo por el nombre del botón de la estrella ("Dejar de abrir con Activos").
+
+### 26. Errores debajo de cada campo
+**Fecha:** octubre 2026
+
+El dueño no quería la lista de errores arriba del formulario de producto (con el formulario vacío y tres filas de proveedores eran diez líneas). Se hizo la maqueta `ProductosErrores` en el lienzo, siguiendo la guía de Apple ("Entering data": avisar junto al dato) y el inicio de sesión de Cuenta de Apple, y el dueño la aprobó.
+
+- **Cada error de la API va debajo de su campo**, con el aspecto de la decisión 24 (borde y etiqueta rojos, fondo rosado). La API ahora dice de qué campo es cada error (decisión 37 de la API): `ApiError.details` trae `{ message, field }` y `useApiErrors` (`lib/form-errors.ts`) los reparte con `setError` de react-hook-form. Arriba (`ErrorList`) quedan solo los que no son de un campo, como "otra persona cambió este producto".
+- **Al guardar con errores, el cursor va al primer campo marcado** y la ventana baja hasta él; si ninguno es de un campo, vuelve arriba, donde está el mensaje.
+- **Al escribir o elegir en un campo, su error se va.** Agregar o quitar filas no borra los errores de las demás.
+- **Filas de proveedores vacías:** no se envían ni dan error, como Contactos del iPhone con un teléfono agregado y no llenado. Una fila a medias marca solo lo que falta ("Elige el proveedor." o "Escribe el código del proveedor."). Como no se envían todas las filas, la pantalla traduce la fila de la API a la suya (`toFormField` en `product-form-dialog.tsx`).
+- **Mensajes cortos que dicen qué hacer**, de la API: "Escribe el código interno.", "Elige la unidad de medida.".
+- El botón "Crear producto" no se apaga mientras falten datos (la guía de Apple lo sugiere para formularios cortos): con cuatro campos obligatorios, un botón apagado no dice qué falta.
+
+Solo el formulario de Productos usa esto por ahora; los demás siguen mostrando la lista arriba hasta que se rediseñen (necesitan también el cambio en su parte de la API).
