@@ -223,7 +223,8 @@ export function SearchSelect<T>({
                   choose(item)
                 }}
                 onMouseEnter={() => setActive(i)}
-                className="cursor-pointer rounded-lg px-2.5 py-2 text-sm aria-selected:bg-hover aria-disabled:cursor-not-allowed aria-disabled:text-disabled"
+                // La opción activa en jade con letra blanca, como los menús de la Mac (también lo de adentro: documento, avisos).
+                className="cursor-pointer rounded-lg px-2.5 py-2 text-sm aria-selected:bg-selected aria-selected:text-selected-ink aria-selected:[&_*]:!text-selected-ink aria-disabled:cursor-not-allowed aria-disabled:text-disabled aria-selected:aria-disabled:bg-hover aria-selected:aria-disabled:text-disabled"
               >
                 {renderItem ? renderItem(item) : itemLabel(item)}
               </li>
@@ -239,7 +240,7 @@ export function SearchSelect<T>({
                 runExtra(option)
               }}
               onMouseEnter={() => setActive(items.length + k)}
-              className={`cursor-pointer rounded-lg px-2.5 py-2 text-sm font-medium aria-selected:bg-hover ${k === 0 ? 'mt-1 border-t border-hairline' : ''}`}
+              className={`cursor-pointer rounded-lg px-2.5 py-2 text-sm font-medium aria-selected:bg-selected aria-selected:text-selected-ink ${k === 0 ? 'mt-1 border-t border-hairline' : ''}`}
             >
               {option.label}
             </li>

@@ -71,6 +71,8 @@ Decisión 24 de la API: el token de acceso dura 15 minutos y vive **solo en memo
 
 Dentro de un `Field`, los campos (`Input`, `Select`, `NumberInput`, `SearchSelect`) toman el tamaño de formulario con la etiqueta adentro: lo saben por un contexto de React, así que el formulario solo escribe `<Field label="Nombre">{(a) => <Input {...a} />}</Field>`. Fuera de un `Field` son compactos y necesitan `aria-label`.
 
+`Select` (`components/ui/select.tsx`) dibuja su propio botón y menú, pero por dentro tiene un `<select>` nativo oculto: se usa como una lista común (`form.register`, o `value` y `onChange`, y opciones con `<option>`). Elegir en el menú cambia el valor de la lista oculta y dispara `change`; cuando react-hook-form escribe `select.value` por código, el botón se actualiza solo.
+
 `ConfirmDialog` es una alerta solo para lo que pierde algo y no se puede deshacer. Activar o desactivar desde una lista no pregunta: `useActivation(toggle, done)` (`features/shared/use-activation.ts`) cambia el estado, avisa con un `toast` y dice qué fila está guardando (`busyId`).
 
 ## Cálculos en pantalla

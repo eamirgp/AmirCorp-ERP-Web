@@ -149,8 +149,10 @@ export interface RowMenuItem {
 /** Menú de vidrio, el mismo del menú del usuario: lo usan las filas y las barras de filtros. */
 export const glassMenuClass =
   'animate-menu-open z-50 min-w-52 origin-(--radix-dropdown-menu-content-transform-origin) rounded-[14px] bg-glass-menu p-1.5 text-fg shadow-menu backdrop-blur-[30px] backdrop-saturate-[1.8]'
+// Como en la Mac, la opción bajo el mouse (o elegida con las flechas) se pinta del color de acento con letra blanca,
+// también sus íconos y su marca.
 export const glassItemClass =
-  'relative flex h-9 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-sm outline-none data-[highlighted]:bg-hover [&_svg]:size-4 [&_svg]:shrink-0'
+  'relative flex h-9 cursor-pointer items-center gap-2.5 rounded-lg px-2.5 text-sm outline-none data-[highlighted]:bg-selected data-[highlighted]:text-selected-ink [&_svg]:size-4 [&_svg]:shrink-0 data-[highlighted]:[&_svg]:!text-selected-ink'
 
 /**
  * Botón "⋯" de una fila con sus acciones escritas en un menú (HIG "Pull-down buttons": una lista de acciones): la tabla

@@ -289,7 +289,7 @@ function UserMenu() {
           </div>
           <Menu.Separator className="mx-2.5 mb-1.5 h-px bg-hairline" />
           <Menu.Item
-            className="flex h-10 cursor-pointer items-center gap-2.5 rounded-[10px] px-3 text-sm outline-none data-[highlighted]:bg-hover [&_svg]:size-[18px] [&_svg]:text-fg-muted"
+            className="flex h-10 cursor-pointer items-center gap-2.5 rounded-[10px] px-3 text-sm outline-none data-[highlighted]:bg-selected data-[highlighted]:text-selected-ink [&_svg]:size-[18px] [&_svg]:text-fg-muted data-[highlighted]:[&_svg]:text-selected-ink"
             onSelect={() => void session.logout()}
           >
             <LogOut strokeWidth={1.75} />

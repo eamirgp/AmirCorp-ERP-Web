@@ -1,58 +1,16 @@
 import { CircleAlert } from 'lucide-react'
-import {
-  createContext,
-  forwardRef,
-  useContext,
-  useId,
-  useState,
-  type InputHTMLAttributes,
-  type ReactNode,
-  type SelectHTMLAttributes,
-} from 'react'
+import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react'
 import { COMMA_MESSAGE, formatNumberInput, hasComma, numberInputProblem } from '@/lib/number-input'
-
-/**
- * Si el campo está dentro de un `Field` (formulario): entonces mide 56 px y su etiqueta va adentro y sube al escribir.
- * Fuera de un `Field` (una celda de tabla, un filtro) es compacto, de 36 px, y se nombra con `aria-label`.
- */
-const FieldContext = createContext(false)
-
-const base =
-  'w-full min-w-0 border border-field-line bg-field text-fg outline-none transition-[border-color,box-shadow] duration-200 ease-apple focus:border-fg focus:shadow-focus aria-[invalid=true]:border-bad aria-[invalid=true]:focus:shadow-error disabled:border-rule disabled:bg-muted-fill disabled:text-fg-muted'
-const floating = 'h-14 rounded-xl pt-[22px] pb-1.5 px-4 text-apple'
-const compact = 'h-9 rounded-[10px] px-3 text-sm placeholder:text-fg-muted'
-
-function useControlClass() {
-  return `${base} ${useContext(FieldContext) ? floating : compact}`
-}
+import { FieldContext, useControlClass, useInField } from './control'
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className = '', placeholder, ...props }, ref) {
-  const inField = useContext(FieldContext)
+  const inField = useInField()
   // Dentro de un Field el texto de ejemplo siempre existe (aunque sea un espacio): así el CSS sabe si el campo está vacío.
   return <input ref={ref} className={`${useControlClass()} ${className}`} placeholder={inField ? (placeholder ?? ' ') : placeholder} {...props} />
 })
 
-/**
- * Lista desplegable. `popup` es el botón gris en píldora de las barras (HIG "Pop-up buttons"), como "Filas por página";
- * si no, tiene el aspecto de un campo.
- */
-export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement> & { popup?: boolean }>(function Select(
-  { className = '', children, popup, ...props },
-  ref,
-) {
-  const control = useControlClass()
-  const look = popup ? 'press h-9 rounded-full bg-fill pl-3.5 text-sm text-fg outline-none hover:bg-fill-hover focus-visible:shadow-focus' : control
-  return (
-    <select
-      ref={ref}
-      className={`${look} cursor-pointer appearance-none bg-[length:16px] bg-[right_14px_center] bg-no-repeat pr-10 disabled:cursor-not-allowed ${className}`}
-      style={{ backgroundImage: chevron }}
-      {...props}
-    >
-      {children}
-    </select>
-  )
-})
+// La lista desplegable vive en su propio archivo; se exporta también desde aquí, junto a los demás campos.
+export { Select } from './select'
 
 /**
  * Campo para números escritos a mano (precios, cantidades, tipo de cambio).
@@ -96,9 +54,6 @@ export const NumberInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTML
     </span>
   )
 })
-
-// Flechas arriba y abajo, como las listas desplegables de la Mac.
-const chevron = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236E6E73' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 15 5 5 5-5'/%3E%3Cpath d='m7 9 5-5 5 5'/%3E%3C/svg%3E")`
 
 /** Error junto al campo, en rojo y con ícono (Apple: avisar cerca de lo que describe). */
 function FieldError({ id, role, children }: { id?: string; role?: 'alert'; children: ReactNode }) {

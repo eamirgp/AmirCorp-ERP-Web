@@ -100,16 +100,16 @@ export function Pagination({ info, onPage, onPageSize }: { info: PageInfo | unde
         {formatInt(info.from)}–{formatInt(info.to)} de {formatInt(info.totalCount)}
       </span>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <label className="flex items-center gap-2 whitespace-nowrap">
-          Filas por página
-          <Select popup className="num" value={info.pageSize} onChange={(e) => onPageSize(Number(e.target.value))}>
+        <div className="flex items-center gap-2 whitespace-nowrap">
+          <span aria-hidden>Filas por página</span>
+          <Select popup aria-label="Filas por página" className="num" value={info.pageSize} onChange={(e) => onPageSize(Number(e.target.value))}>
             {info.pageSizeOptions.map((size) => (
               <option key={size} value={size}>
                 {size}
               </option>
             ))}
           </Select>
-        </label>
+        </div>
         {info.totalPages > 1 && (
           // Solo íconos: las flechas de página se reconocen sin texto. El nombre sale al pasar el mouse y lo leen los
           // lectores de pantalla.
