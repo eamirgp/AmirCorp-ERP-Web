@@ -22,7 +22,7 @@ const tones: Record<Action, 'ok' | 'warn' | 'bad' | 'neutral'> = {
 
 /** Color del punto de cada mosaico del resumen: el mismo tono que su pastilla. */
 const dots: Record<Action, string> = {
-  Create: 'bg-link',
+  Create: 'bg-ok',
   Update: 'bg-warn',
   Skip: 'bg-disabled',
   Unchanged: 'bg-disabled',
@@ -112,7 +112,7 @@ export function UploadStep({
         <input ref={input} type="file" accept=".xlsx" className="sr-only" tabIndex={-1} onChange={(e) => onFile(e.target.files?.[0] ?? null)} />
         {file ? (
           <div className="flex items-center gap-3 rounded-2xl bg-muted-fill py-3 pr-3 pl-3.5">
-            <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-ok-soft text-link">
+            <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-link">
               <FileSpreadsheet className="size-[22px]" strokeWidth={1.75} />
             </span>
             <span className="min-w-0 flex-1">

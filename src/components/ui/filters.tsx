@@ -18,7 +18,7 @@ const checkClass = 'absolute right-2.5 [&_svg]:text-link'
 /** Ficha de un filtro aplicado (HIG "Search fields": tokens): "Estado: Activos ✕". */
 function Token({ label, value, onOpen, onRemove }: { label: string; value: ReactNode; onOpen?: () => void; onRemove: () => void }) {
   return (
-    <span className="inline-flex h-[30px] items-center rounded-full bg-ok-soft text-sm text-fg">
+    <span className="inline-flex h-[30px] items-center rounded-full bg-accent-soft text-sm text-fg">
       <button type="button" onClick={onOpen} className="flex h-full items-center gap-1 rounded-l-full pr-1 pl-3 outline-none focus-visible:shadow-focus">
         {label}: <span className="num font-semibold">{value}</span>
       </button>

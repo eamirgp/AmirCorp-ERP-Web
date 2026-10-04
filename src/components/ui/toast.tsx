@@ -53,7 +53,7 @@ export function Toaster() {
           .filter((t) => t.tone === 'ok')
           .map((t) => (
             <div key={t.id} className={`${box} rounded-full py-2.5 pr-5 pl-3.5`}>
-              <CheckCircle2 className="text-link" />
+              <CheckCircle2 className="text-ok" />
               {t.text}
             </div>
           ))}

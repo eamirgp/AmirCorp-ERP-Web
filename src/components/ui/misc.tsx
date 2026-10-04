@@ -3,9 +3,9 @@ import { InlineError } from './inline-error'
 
 type Tone = 'ok' | 'warn' | 'bad' | 'neutral'
 
-// Contrastes medidos: jade sobre verde claro 4.9:1, ámbar 5.4:1, rojo 4.9:1, gris sobre gris claro 4.7:1.
+// Colores de estado de Apple (decisión 16). Contrastes medidos: verde, naranja y rojo sobre su fondo 4.9:1; gris sobre gris claro 4.7:1.
 const tones: Record<Tone, string> = {
-  ok: 'bg-ok-soft text-link',
+  ok: 'bg-ok-soft text-ok',
   warn: 'bg-warn-soft text-warn-text',
   bad: 'bg-bad-soft text-bad',
   neutral: 'bg-muted-fill text-fg-muted',

@@ -125,7 +125,7 @@ export function ProductImportDialog({
       {step === 'done' && result && (
         <div className="flex flex-col items-center gap-3 py-6 text-center">
           {/* Un check grande que llega creciendo, como la confirmación de Apple. */}
-          <span aria-hidden className="animate-arrive flex size-[72px] items-center justify-center rounded-full bg-ok-soft text-link">
+          <span aria-hidden className="animate-arrive flex size-[72px] items-center justify-center rounded-full bg-ok-soft text-ok">
             <Check className="size-9" strokeWidth={2.25} />
           </span>
           <p className="text-lg">

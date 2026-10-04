@@ -37,16 +37,21 @@
   --primary: #0a0a0a;
   --primary-hover: #2a2a2a;
   --primary-ink: #ffffff;
-  /* Verde jade del manual: acento puntual (pantalla activa, foco, estados). */
+  /* Verde jade del manual: el acento (pantalla activa, foco, enlaces, fichas de filtro). Apple recomienda el color de la
+     marca como acento en apps de contenido sin color (HIG "Color"). */
   --accent: #5aaf76;
-  --accent-soft: #eef7f1;
+  --accent-soft: #e4f2e8; /* fichas de filtro: jade #2A7445 encima, 4.9:1 */
   --accent-text: #2a7445; /* jade oscurecido para texto sobre fondo claro (contraste AA) */
-  --ok: #5aaf76;
-  --warn: #d48a1f;
-  --warn-soft: #fdf4e6;
-  --warn-text: #8a5a12;
-  --bad: #c0392f; /* errores: 4.9:1 sobre su fondo rosado, 5.4:1 sobre blanco */
-  --bad-soft: #fdf1f0;
+  /* Estados con los colores de Apple (decisión 16): verde, naranja y rojo del sistema en su versión de alto contraste
+     (#008932, #C55300, #E9152D), apenas más oscuros para que el texto pase 4.5:1 también sobre su fondo suave y sobre el
+     gris de los botones. Medidos: sobre blanco 5.5:1, sobre su fondo 4.9:1, sobre #E8E8ED 4.5:1. */
+  --ok: #007a2c; /* "Activo", "Registrada", éxito */
+  --ok-soft: #e6f5ea;
+  --warn: #c55300; /* punto de "Se actualizará" (no es texto) */
+  --warn-soft: #fff1e6;
+  --warn-text: #b04a00; /* "Pendiente", avisos */
+  --bad: #d10f25; /* errores, "Anulada", lo que quita algo */
+  --bad-soft: #fdedee;
   --overlay: rgb(0 0 0 / 0.35);
   --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.14);
 
@@ -84,10 +89,9 @@
   --row-hover: #f0f0f2;
   --rule: #d2d2d7; /* línea bajo la cabecera de la tabla, borde de un campo bloqueado */
   --switch-off: #8e8e93; /* interruptor apagado: 3:1 sobre la fila gris (WCAG 1.4.11); encendido, `selected` (5.2:1) */
-  --ok-soft: #e4f2e8; /* pastilla "Activo" y fichas de filtro: jade #2A7445 encima, 4.9:1 */
   --dim: rgb(29 29 31 / 0.22); /* pantalla atenuada detrás de una ventana */
   --focus-ring: 0 0 0 4px rgb(90 175 118 / 0.28); /* halo jade del campo enfocado */
-  --error-ring: 0 0 0 4px rgb(192 57 47 / 0.18);
+  --error-ring: 0 0 0 4px rgb(209 15 37 / 0.16);
   --shadow-sheet: 0 24px 60px rgb(29 29 31 / 0.22), 0 0 0 1px rgb(0 0 0 / 0.05);
   --shadow-toast: 0 0 0 1px rgb(0 0 0 / 0.06), 0 10px 30px rgb(29 29 31 / 0.14);
   --shadow-glass: 0 10px 30px rgb(29 29 31 / 0.08), 0 1px 3px rgb(29 29 31 / 0.05);
@@ -305,8 +309,8 @@
   --pill-ink: #ffffff;
   --pill-hover: #2c2c2e;
   --link: #2a7445;
-  --bad: #c0392f;
-  --bad-soft: #fdf1f0;
+  --bad: #d10f25;
+  --bad-soft: #fdedee;
 }
 
 /*

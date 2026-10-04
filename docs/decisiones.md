@@ -116,3 +116,13 @@ La primera pantalla rediseñada completa, aprobada en el lienzo de diseño. La l
 - **Importar, paso 3:** un check grande en jade que llega creciendo.
 - **Exportar:** las dos opciones como tarjetas con su marca; la elegida queda blanca con borde.
 - **Historial:** la línea de tiempo en el panel de vidrio, con el evento más reciente en jade y cada cambio como "Precio de venta: ~~S/ 139.00~~ → S/ 149.00" (`ChangeList`, que también usa Auditoría).
+
+### 16. Colores de Apple para los estados; el jade sigue de acento
+**Fecha:** octubre 2026
+
+El dueño pidió usar los mismos colores que Apple. Se revisó la guía (HIG "Color") y apple.com:
+
+- **Los grises ya eran los de Apple** (`#1D1D1F`, `#6E6E73`, `#F5F5F7` y los de bordes y botones, medidos en apple.com).
+- **El acento sigue siendo el jade de la marca.** Apple usa azul (`#0071E3` en botones y `#0066CC` en enlaces de apple.com), pero su guía dice que en apps de contenido sin color elegir el color de la marca como acento "puede ser una forma efectiva de reflejar la identidad de la empresa". El dueño eligió esta opción entre jade, azul de Apple o dejarlo igual.
+- **Los estados pasan a los colores de Apple:** verde, naranja y rojo del sistema. Los normales no se leen como texto sobre blanco (verde `#34C759` da 2.2:1, rojo `#FF383C` 3.6:1); sus versiones de alto contraste (`#008932`, `#C55300`, `#E9152D`) pasan sobre blanco pero no sobre un fondo de color (4.0:1). Se usa el mismo tono apenas más oscuro: verde `#007A2C`, naranja `#B04A00` (texto; el punto usa `#C55300`) y rojo `#D10F25`, que dan 4.9:1 sobre su fondo suave, 5.5:1 sobre blanco y 4.5:1 sobre el gris de los botones. Cambian las pastillas de estado, los errores, el aviso de éxito y los mosaicos de la importación; las fichas de filtro siguen en jade porque son acento, no estado.
+- **Filas de la tabla:** se mantiene el tinte suave al pasar el mouse. En la Mac (Finder, Mail) las filas no se sombrean y se abren con doble clic; en el iPad con mouse Apple pide un tinte suave para elementos grandes como una fila (HIG "Pointing devices", sin agrandarla). Aquí un solo clic abre el registro, como en el iPad.
